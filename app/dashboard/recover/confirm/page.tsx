@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { Logo } from '@/components/Logo';
@@ -8,7 +8,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { CopyButton } from '@/components/CopyButton';
 import Link from 'next/link';
 
-export default function RecoverConfirmPage() {
+function RecoverConfirmInner() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
 
@@ -109,5 +109,13 @@ export default function RecoverConfirmPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function RecoverConfirmPage() {
+  return (
+    <Suspense>
+      <RecoverConfirmInner />
+    </Suspense>
   );
 }

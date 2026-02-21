@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useState, useRef, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { api, type Invoice } from '@/lib/api';
 import { QRCode } from '@/components/QRCode';
 import { Logo } from '@/components/Logo';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { useTheme } from '@/contexts/ThemeContext';
 
 function buildZcashUri(address: string, amount: number, memo: string): string {
   const memoB64 = btoa(memo).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
@@ -33,7 +35,19 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState('');
+  const [refundAddr, setRefundAddr] = useState('');
+  const [refundSaved, setRefundSaved] = useState(false);
   const eventSourceRef = useRef<EventSource | null>(null);
+
+  // Honor ?theme=dark|light from the redirect URL
+  const searchParams = useSearchParams();
+  const { theme, toggleTheme, mounted } = useTheme();
+  useEffect(() => {
+    if (!mounted) return;
+    const requested = searchParams.get('theme') as 'dark' | 'light' | null;
+    if (requested && requested !== theme) toggleTheme();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mounted]);
 
   useEffect(() => {
     api.getInvoice(invoiceId).then(setInvoice).catch((e) => setError(e.message));
@@ -142,6 +156,33 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
 
               <div className="memo-label">INCLUDE THIS MEMO</div>
               <div className="memo-box memo" onClick={() => copy(invoice.memo_code, 'Memo')}>{invoice.memo_code}</div>
+
+              <div className="memo-label" style={{ marginTop: 16 }}>REFUND ADDRESS <span style={{ color: 'var(--cp-text-dim)', fontWeight: 400 }}>(OPTIONAL)</span></div>
+              <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginBottom: 6, lineHeight: 1.5 }}>
+                Provide a Zcash address to receive a refund if needed.
+              </div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <input
+                  type="text"
+                  value={refundAddr}
+                  onChange={(e) => { setRefundAddr(e.target.value); setRefundSaved(false); }}
+                  placeholder="u1..."
+                  className="input"
+                  style={{ fontSize: 10, flex: 1 }}
+                />
+                <button
+                  onClick={async () => {
+                    if (!refundAddr.trim()) return;
+                    await navigator.clipboard.writeText(refundAddr).catch(() => {});
+                    setRefundSaved(true);
+                    setTimeout(() => setRefundSaved(false), 2000);
+                  }}
+                  className="btn"
+                  style={{ fontSize: 10, whiteSpace: 'nowrap' }}
+                >
+                  {refundSaved ? 'SAVED ✓' : 'SAVE'}
+                </button>
+              </div>
 
               <div className="timer">Expires in {countdown.text}</div>
             </div>

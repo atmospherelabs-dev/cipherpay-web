@@ -1,5 +1,6 @@
 import { API_URL } from '@/lib/config';
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import CheckoutClient from './CheckoutClient';
 
 interface PageProps {
@@ -34,5 +35,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function CheckoutPage({ params }: PageProps) {
   const { id } = await params;
-  return <CheckoutClient invoiceId={id} />;
+  return (
+    <Suspense>
+      <CheckoutClient invoiceId={id} />
+    </Suspense>
+  );
 }
