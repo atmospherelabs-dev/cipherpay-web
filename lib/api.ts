@@ -2,8 +2,10 @@ import { API_URL } from './config';
 
 export interface MerchantInfo {
   id: string;
+  name: string;
   payment_address: string;
   webhook_url: string | null;
+  webhook_secret_preview: string;
   has_recovery_email: boolean;
   created_at: string;
   stats: {
@@ -24,6 +26,7 @@ export interface Invoice {
   zec_rate_at_creation: number;
   payment_address: string;
   zcash_uri: string;
+  merchant_name: string | null;
   status: 'pending' | 'detected' | 'confirmed' | 'expired' | 'shipped';
   detected_txid: string | null;
   detected_at: string | null;
@@ -57,6 +60,7 @@ export interface CreateInvoiceResponse {
 }
 
 export interface RegisterRequest {
+  name?: string;
   ufvk: string;
   payment_address: string;
   webhook_url?: string;
@@ -68,6 +72,51 @@ export interface RegisterResponse {
   api_key: string;
   dashboard_token: string;
   webhook_secret: string;
+}
+
+export interface Product {
+  id: string;
+  merchant_id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  price_eur: number;
+  variants: string | null;
+  active: number;
+  created_at: string;
+}
+
+export interface PublicProduct {
+  id: string;
+  name: string;
+  description: string | null;
+  price_eur: number;
+  variants: string[];
+  slug: string;
+}
+
+export interface CreateProductRequest {
+  slug: string;
+  name: string;
+  description?: string;
+  price_eur: number;
+  variants?: string[];
+}
+
+export interface UpdateProductRequest {
+  name?: string;
+  description?: string;
+  price_eur?: number;
+  variants?: string[];
+  active?: boolean;
+}
+
+export interface CheckoutRequest {
+  product_id: string;
+  variant?: string;
+  shipping_alias?: string;
+  shipping_address?: string;
+  shipping_region?: string;
 }
 
 export interface ZecRates {
@@ -104,6 +153,21 @@ export const api = {
 
   myInvoices: () => request<Invoice[]>('/api/merchants/me/invoices'),
 
+  updateMe: (data: { name?: string; payment_address?: string; webhook_url?: string }) =>
+    request<{ status: string }>('/api/merchants/me', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  regenerateApiKey: () =>
+    request<{ api_key: string }>('/api/merchants/me/regenerate-api-key', { method: 'POST' }),
+
+  regenerateDashboardToken: () =>
+    request<{ dashboard_token: string }>('/api/merchants/me/regenerate-dashboard-token', { method: 'POST' }),
+
+  regenerateWebhookSecret: () =>
+    request<{ webhook_secret: string }>('/api/merchants/me/regenerate-webhook-secret', { method: 'POST' }),
+
   // Public
   register: (data: RegisterRequest) =>
     request<RegisterResponse>('/api/merchants', {
@@ -122,7 +186,51 @@ export const api = {
   cancelInvoice: (id: string) =>
     request<{ status: string }>(`/api/invoices/${id}/cancel`, { method: 'POST' }),
 
+  shipInvoice: (id: string) =>
+    request<{ status: string }>(`/api/invoices/${id}/ship`, { method: 'POST' }),
+
+  // Recovery
+  recover: (email: string) =>
+    request<{ message: string }>('/api/auth/recover', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+
+  recoverConfirm: (token: string) =>
+    request<{ dashboard_token: string; message: string }>('/api/auth/recover/confirm', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    }),
+
   getRates: () => request<ZecRates>('/api/rates'),
+
+  // Products
+  createProduct: (data: CreateProductRequest) =>
+    request<Product>('/api/products', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  listProducts: () => request<Product[]>('/api/products'),
+
+  updateProduct: (id: string, data: UpdateProductRequest) =>
+    request<Product>(`/api/products/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  deactivateProduct: (id: string) =>
+    request<{ status: string }>(`/api/products/${id}`, { method: 'DELETE' }),
+
+  getPublicProduct: (id: string) =>
+    request<PublicProduct>(`/api/products/${id}/public`),
+
+  // Public checkout (buyer-driven)
+  checkout: (data: CheckoutRequest) =>
+    request<CreateInvoiceResponse>('/api/checkout', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
 
   // SSE stream for invoice status
   streamInvoice: (invoiceId: string): EventSource =>

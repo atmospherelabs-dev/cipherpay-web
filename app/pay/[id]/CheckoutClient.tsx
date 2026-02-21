@@ -111,7 +111,19 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
 
           {showPaymentUI && (
             <div className="checkout-preview">
+              {invoice.merchant_name && (
+                <div style={{ fontSize: 11, letterSpacing: 1, color: 'var(--cp-text-muted)', marginBottom: 8 }}>
+                  {invoice.merchant_name.toUpperCase()}
+                </div>
+              )}
               <div style={{ fontSize: 10, letterSpacing: 1, color: 'var(--cp-text-dim)' }}>PAY WITH SHIELDED ZEC</div>
+
+              {(invoice.product_name || invoice.size) && (
+                <div style={{ fontSize: 12, color: 'var(--cp-text)', marginTop: 8 }}>
+                  {invoice.product_name}{invoice.size ? ` · ${invoice.size}` : ''}
+                </div>
+              )}
+
               <div className="price">{eurStr}</div>
               <div className="price-zec">≈ {invoice.price_zec.toFixed(8)} ZEC</div>
 
@@ -154,6 +166,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
               <div className="checkout-status confirmed">
                 <div>PAYMENT CONFIRMED</div>
                 <div style={{ fontSize: 10, marginTop: 6, color: 'var(--cp-text-muted)', fontWeight: 400 }}>
+                  {invoice.product_name && <span>{invoice.product_name}{invoice.size ? ` · ${invoice.size}` : ''} — </span>}
                   Transaction included in block
                 </div>
               </div>

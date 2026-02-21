@@ -8,6 +8,7 @@ import { CopyButton } from '@/components/CopyButton';
 import Link from 'next/link';
 
 export default function RegisterPage() {
+  const [name, setName] = useState('');
   const [ufvk, setUfvk] = useState('');
   const [address, setAddress] = useState('');
   const [webhookUrl, setWebhookUrl] = useState('');
@@ -23,6 +24,7 @@ export default function RegisterPage() {
 
     try {
       const res = await api.register({
+        name: name || undefined,
         ufvk,
         payment_address: address,
         webhook_url: webhookUrl || undefined,
@@ -37,56 +39,39 @@ export default function RegisterPage() {
 
   if (result) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <header className="border-b border-cp-border px-6 py-3 flex items-center justify-between">
+      <div style={{ minHeight: '100vh', fontFamily: 'var(--font-geist-mono), monospace', fontSize: 13, lineHeight: 1.6, display: 'flex', flexDirection: 'column' }}>
+        <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid var(--cp-border)' }}>
           <Link href="/"><Logo size="sm" /></Link>
           <ThemeToggle />
         </header>
 
-        <main className="flex-1 flex items-center justify-center px-6 py-12">
-          <div className="card p-8 max-w-lg w-full">
-            <div className="text-center mb-8">
-              <div className="w-14 h-14 rounded-full bg-cp-green/15 flex items-center justify-center mx-auto mb-4">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cp-green">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
+        <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 24px' }}>
+          <div style={{ maxWidth: 500, width: '100%' }}>
+            <div className="panel">
+              <div className="panel-header">
+                <span className="panel-title">Merchant Created</span>
+                <span className="status-badge status-confirmed">SUCCESS</span>
               </div>
-              <h1 className="text-2xl font-bold">Merchant Created</h1>
-              <p className="text-sm text-cp-muted mt-2">
-                Save these credentials now. They will not be shown again.
-              </p>
-            </div>
+              <div className="panel-body">
+                <p style={{ fontSize: 11, color: 'var(--cp-text-muted)', marginBottom: 20 }}>
+                  Save these credentials now. They will not be shown again.
+                </p>
 
-            <div className="space-y-4">
-              <CredentialBlock
-                label="API Key (server-side only)"
-                value={result.api_key}
-                description="Use this in your server backend for creating invoices."
-              />
-              <CredentialBlock
-                label="Dashboard Token"
-                value={result.dashboard_token}
-                description="Use this to log into the web dashboard."
-              />
-              <CredentialBlock
-                label="Webhook Secret"
-                value={result.webhook_secret}
-                description="Use this to verify webhook signatures."
-              />
-            </div>
+                <CredentialBlock label="API KEY (SERVER-SIDE ONLY)" value={result.api_key} />
+                <CredentialBlock label="DASHBOARD TOKEN" value={result.dashboard_token} />
+                <CredentialBlock label="WEBHOOK SECRET" value={result.webhook_secret} />
 
-            <div className="mt-8 p-4 rounded-lg bg-cp-yellow/10 border border-cp-yellow/30">
-              <p className="text-sm text-cp-yellow font-medium">
-                These credentials are shown once. Copy them to a safe place.
-              </p>
-            </div>
+                <div style={{ marginTop: 16, padding: 12, background: 'rgba(234,179,8,0.1)', border: '1px solid rgba(234,179,8,0.3)', borderRadius: 4 }}>
+                  <p style={{ fontSize: 10, color: 'var(--cp-yellow)', fontWeight: 600, letterSpacing: 1 }}>
+                    THESE CREDENTIALS ARE SHOWN ONCE. COPY THEM TO A SAFE PLACE.
+                  </p>
+                </div>
 
-            <Link
-              href="/dashboard/login"
-              className="btn-primary w-full py-3 mt-6 text-center block"
-            >
-              Go to Dashboard
-            </Link>
+                <Link href="/dashboard/login" className="btn-primary" style={{ width: '100%', marginTop: 16, textDecoration: 'none', textAlign: 'center' }}>
+                  GO TO DASHBOARD
+                </Link>
+              </div>
+            </div>
           </div>
         </main>
       </div>
@@ -94,122 +79,78 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="border-b border-cp-border px-6 py-3 flex items-center justify-between">
+    <div style={{ minHeight: '100vh', fontFamily: 'var(--font-geist-mono), monospace', fontSize: 13, lineHeight: 1.6, display: 'flex', flexDirection: 'column' }}>
+      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid var(--cp-border)' }}>
         <Link href="/"><Logo size="sm" /></Link>
         <ThemeToggle />
       </header>
 
-      <main className="flex-1 flex items-center justify-center px-6 py-12">
-        <div className="card p-8 max-w-lg w-full">
-          <h1 className="text-2xl font-bold mb-2">Register as Merchant</h1>
-          <p className="text-sm text-cp-muted mb-8">
-            Provide your Zcash Unified Full Viewing Key and payment address.
-          </p>
-
-          <div className="p-4 rounded-lg bg-cp-purple/10 border border-cp-purple/30 mb-6">
-            <div className="flex gap-3">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cp-purple shrink-0 mt-0.5">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-              </svg>
-              <div className="text-sm">
-                <p className="font-medium text-cp-purple mb-1">Security: Use a dedicated wallet</p>
-                <p className="text-cp-muted leading-relaxed">
+      <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 24px' }}>
+        <div style={{ maxWidth: 500, width: '100%' }}>
+          <div className="panel">
+            <div className="panel-header">
+              <span className="panel-title">Register Merchant</span>
+            </div>
+            <div className="panel-body">
+              <div style={{ padding: 12, background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.3)', borderRadius: 4, marginBottom: 20 }}>
+                <div style={{ fontSize: 10, color: 'var(--cp-purple)', fontWeight: 600, letterSpacing: 1, marginBottom: 4 }}>
+                  SECURITY: USE A DEDICATED WALLET
+                </div>
+                <p style={{ fontSize: 10, color: 'var(--cp-text-muted)', lineHeight: 1.6 }}>
                   Do not use your personal wallet. Create a brand new wallet exclusively
-                  for your store, and use its viewing key here. Sweep funds to cold storage
-                  regularly.{' '}
-                  <Link href="/faq" className="text-cp-cyan hover:underline">
-                    Learn why &rarr;
-                  </Link>
+                  for your store, and use its viewing key here. Sweep funds to cold storage regularly.
+                </p>
+              </div>
+
+              <form onSubmit={handleSubmit}>
+                <div className="form-group">
+                  <label className="form-label">Store Name <span style={{ color: 'var(--cp-text-dim)' }}>(optional)</span></label>
+                  <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="My Store" className="input" />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Unified Full Viewing Key (UFVK) <span style={{ color: 'var(--cp-red)' }}>*</span></label>
+                  <textarea value={ufvk} onChange={(e) => setUfvk(e.target.value)} placeholder="uview1..." className="input" style={{ resize: 'vertical', minHeight: 70 }} required />
+                  <p style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 4 }}>Read-only key for payment detection. Cannot spend funds.</p>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Payment Address <span style={{ color: 'var(--cp-red)' }}>*</span></label>
+                  <input type="text" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="u1..." className="input" style={{ fontSize: 10 }} required />
+                  <p style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 4 }}>Must be from the same wallet as the UFVK above.</p>
+                </div>
+
+                <div className="divider" />
+                <div className="section-title">OPTIONAL</div>
+
+                <div className="form-group">
+                  <label className="form-label">Webhook URL</label>
+                  <input type="url" value={webhookUrl} onChange={(e) => setWebhookUrl(e.target.value)} placeholder="https://your-store.com/api/cipherpay-webhook" className="input" />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Recovery Email</label>
+                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="your@email.com" className="input" />
+                  <p style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 4 }}>Only used for account recovery if you lose your token. No marketing, ever.</p>
+                </div>
+
+                {error && (
+                  <div style={{ color: 'var(--cp-red)', fontSize: 11, marginBottom: 12 }}>{error}</div>
+                )}
+
+                <button type="submit" disabled={loading || !ufvk || !address} className="btn-primary" style={{ width: '100%', opacity: loading || !ufvk || !address ? 0.5 : 1 }}>
+                  {loading ? 'CREATING...' : 'CREATE MERCHANT ACCOUNT'}
+                </button>
+              </form>
+
+              <div className="divider" />
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ fontSize: 11, color: 'var(--cp-text-muted)' }}>
+                  Already have an account?{' '}
+                  <Link href="/dashboard/login" style={{ color: 'var(--cp-cyan)', textDecoration: 'none' }}>Sign in</Link>
                 </p>
               </div>
             </div>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1.5">
-                Unified Full Viewing Key (UFVK) <span className="text-cp-red">*</span>
-              </label>
-              <textarea
-                value={ufvk}
-                onChange={(e) => setUfvk(e.target.value)}
-                placeholder="uview1..."
-                className="input min-h-[80px] resize-y"
-                required
-              />
-              <p className="text-xs text-cp-muted mt-1">
-                Read-only key for payment detection. Cannot spend funds.
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1.5">
-                Payment Address <span className="text-cp-red">*</span>
-              </label>
-              <input
-                type="text"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="u1..."
-                className="input font-mono text-sm"
-                required
-              />
-              <p className="text-xs text-cp-muted mt-1">
-                Must be from the same wallet as the UFVK above. Trial decryption
-                only works if the viewing key matches the payment address.
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1.5">
-                Webhook URL <span className="text-cp-muted">(optional)</span>
-              </label>
-              <input
-                type="url"
-                value={webhookUrl}
-                onChange={(e) => setWebhookUrl(e.target.value)}
-                placeholder="https://your-store.com/api/cipherpay-webhook"
-                className="input"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1.5">
-                Recovery Email <span className="text-cp-muted">(optional)</span>
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="your@email.com"
-                className="input"
-              />
-              <p className="text-xs text-cp-muted mt-1">
-                Only used for account recovery if you lose your token. No marketing, ever.
-              </p>
-            </div>
-
-            {error && (
-              <p className="text-sm text-cp-red">{error}</p>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading || !ufvk || !address}
-              className="btn-primary w-full py-3 disabled:opacity-50"
-            >
-              {loading ? 'Creating...' : 'Create Merchant Account'}
-            </button>
-          </form>
-
-          <div className="mt-6 pt-6 border-t border-cp-border text-center">
-            <p className="text-sm text-cp-muted">
-              Already have an account?{' '}
-              <Link href="/dashboard/login" className="text-cp-cyan hover:underline">
-                Sign in
-              </Link>
-            </p>
           </div>
         </div>
       </main>
@@ -217,23 +158,14 @@ export default function RegisterPage() {
   );
 }
 
-function CredentialBlock({
-  label,
-  value,
-  description,
-}: {
-  label: string;
-  value: string;
-  description: string;
-}) {
+function CredentialBlock({ label, value }: { label: string; value: string }) {
   return (
-    <div className="p-4 rounded-lg bg-cp-bg border border-cp-border">
-      <div className="flex items-center justify-between mb-1.5">
-        <span className="text-xs font-medium text-cp-muted">{label}</span>
-        <CopyButton text={value} />
+    <div style={{ padding: 12, background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4, marginBottom: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+        <span style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)' }}>{label}</span>
+        <CopyButton text={value} label="" />
       </div>
-      <code className="text-sm font-mono break-all block">{value}</code>
-      <p className="text-xs text-cp-muted mt-2">{description}</p>
+      <code style={{ fontSize: 10, wordBreak: 'break-all', display: 'block', color: 'var(--cp-cyan)' }}>{value}</code>
     </div>
   );
 }

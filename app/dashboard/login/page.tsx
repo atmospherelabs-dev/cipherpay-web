@@ -34,64 +34,68 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="border-b border-cp-border px-6 py-3 flex items-center justify-between">
+    <div style={{ minHeight: '100vh', fontFamily: 'var(--font-geist-mono), monospace', fontSize: 13, lineHeight: 1.6, display: 'flex', flexDirection: 'column' }}>
+      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid var(--cp-border)' }}>
         <Link href="/"><Logo size="sm" /></Link>
         <ThemeToggle />
       </header>
 
-      <main className="flex-1 flex items-center justify-center px-6">
-        <div className="card p-8 max-w-md w-full">
-          <h1 className="text-2xl font-bold mb-2">Merchant Dashboard</h1>
-          <p className="text-sm text-cp-muted mb-8">
-            Paste your dashboard token to sign in.
-          </p>
+      <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 24px' }}>
+        <div style={{ maxWidth: 400, width: '100%' }}>
+          <div className="panel">
+            <div className="panel-header">
+              <span className="panel-title">Merchant Login</span>
+              <span className="status-badge status-confirmed">SECURE</span>
+            </div>
+            <div className="panel-body">
+              <p style={{ fontSize: 11, color: 'var(--cp-text-muted)', marginBottom: 20 }}>
+                Paste your dashboard token to sign in.
+              </p>
 
-          <form onSubmit={handleSubmit}>
-            <label className="block text-sm font-medium mb-2">
-              Dashboard Token
-            </label>
-            <input
-              type="password"
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
-              placeholder="cpay_dash_..."
-              className="input mb-4"
-              autoFocus
-            />
+              <form onSubmit={handleSubmit}>
+                <div className="form-group">
+                  <label className="form-label">Dashboard Token</label>
+                  <input
+                    type="password"
+                    value={token}
+                    onChange={(e) => setToken(e.target.value)}
+                    placeholder="cpay_dash_..."
+                    className="input"
+                    autoFocus
+                  />
+                </div>
 
-            {error && (
-              <p className="text-sm text-cp-red mb-4">{error}</p>
-            )}
+                {error && (
+                  <div style={{ color: 'var(--cp-red)', fontSize: 11, marginBottom: 12 }}>{error}</div>
+                )}
 
-            <button
-              type="submit"
-              disabled={loading || !token}
-              className="btn-primary w-full py-3 disabled:opacity-50"
-            >
-              {loading ? 'Signing in...' : 'Sign In'}
-            </button>
-          </form>
+                <button
+                  type="submit"
+                  disabled={loading || !token}
+                  className="btn-primary"
+                  style={{ width: '100%', opacity: loading || !token ? 0.5 : 1 }}
+                >
+                  {loading ? 'SIGNING IN...' : 'SIGN IN'}
+                </button>
+              </form>
 
-          <div className="mt-6 pt-6 border-t border-cp-border text-center space-y-2">
-            <p className="text-sm text-cp-muted">
-              Don&apos;t have an account?
-            </p>
-            <Link
-              href="/dashboard/register"
-              className="text-sm text-cp-cyan hover:underline"
-            >
-              Register as a merchant
-            </Link>
-          </div>
+              <div className="divider" />
 
-          <div className="mt-4 text-center">
-            <Link
-              href="/dashboard/recover"
-              className="text-xs text-cp-muted hover:text-cp-cyan transition-colors"
-            >
-              Lost your token?
-            </Link>
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ fontSize: 11, color: 'var(--cp-text-muted)', marginBottom: 8 }}>
+                  Don&apos;t have an account?
+                </p>
+                <Link href="/dashboard/register" style={{ fontSize: 11, color: 'var(--cp-cyan)', textDecoration: 'none' }}>
+                  Register as a merchant
+                </Link>
+              </div>
+
+              <div style={{ textAlign: 'center', marginTop: 12 }}>
+                <Link href="/dashboard/recover" style={{ fontSize: 10, color: 'var(--cp-text-dim)', textDecoration: 'none' }}>
+                  Lost your token?
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </main>

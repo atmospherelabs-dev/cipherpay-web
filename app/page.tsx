@@ -1,40 +1,7 @@
 import { Logo } from '@/components/Logo';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { NavLinks } from '@/components/NavLinks';
 import Link from 'next/link';
-
-const features = [
-  {
-    title: 'Non-Custodial',
-    description:
-      'Your keys, your funds. CipherPay never holds your ZEC. Payments go directly to your shielded address.',
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-      </svg>
-    ),
-  },
-  {
-    title: 'Fully Shielded',
-    description:
-      'Every payment uses Zcash shielded transactions. No transparent addresses, no leaking metadata.',
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-      </svg>
-    ),
-  },
-  {
-    title: 'Real-Time Detection',
-    description:
-      'Mempool scanning with trial decryption catches payments in seconds, not minutes.',
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-      </svg>
-    ),
-  },
-];
 
 const codeSnippet = `curl -X POST https://api.cipherpay.app/api/invoices \\
   -H "Authorization: Bearer cpay_sk_..." \\
@@ -53,144 +20,204 @@ const codeSnippet = `curl -X POST https://api.cipherpay.app/api/invoices \\
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen">
+    <div style={{ minHeight: '100vh', fontFamily: 'var(--font-geist-mono), monospace', fontSize: 13, lineHeight: 1.6 }}>
       {/* Header */}
-      <header className="fixed top-0 w-full z-50 border-b border-cp-border bg-cp-bg/80 backdrop-blur-lg">
-        <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
-          <Logo size="md" />
-          <div className="flex items-center gap-4">
-            <Link href="/faq" className="text-sm text-cp-muted hover:text-cp-cyan transition-colors hidden sm:block">
-              FAQ
-            </Link>
-            <ThemeToggle />
-            <Link href="/dashboard/login" className="btn-secondary text-sm">
-              Dashboard
-            </Link>
-            <Link href="/dashboard/register" className="btn-primary text-sm">
-              Get Started
-            </Link>
-          </div>
+      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid var(--cp-border)' }}>
+        <Logo size="md" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <Link href="/faq" style={{ fontSize: 11, color: 'var(--cp-text-muted)', textDecoration: 'none', letterSpacing: 1 }}>
+            FAQ
+          </Link>
+          <ThemeToggle />
+          <NavLinks />
         </div>
       </header>
 
       {/* Hero */}
-      <section className="pt-32 pb-20 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-cp-border text-xs text-cp-muted mb-8">
-            <span className="w-1.5 h-1.5 rounded-full bg-cp-green" />
-            Powered by CipherScan
-          </div>
+      <section style={{ padding: '80px 24px 60px', textAlign: 'center' }}>
+        <div style={{ maxWidth: 700, margin: '0 auto' }}>
+          <span className="tag" style={{ marginBottom: 24, display: 'inline-block' }}>POWERED BY CIPHERSCAN</span>
 
-          <h1 className="text-5xl sm:text-6xl font-bold tracking-tight mb-6">
-            Accept{' '}
-            <span className="text-cp-purple">shielded</span>{' '}
-            Zcash payments
+          <h1 style={{ fontSize: 42, fontWeight: 700, letterSpacing: -1, marginBottom: 16, lineHeight: 1.1 }}>
+            Accept <span style={{ color: 'var(--cp-purple)' }}>shielded</span> Zcash payments
           </h1>
 
-          <p className="text-lg text-cp-muted max-w-2xl mx-auto mb-10">
+          <p style={{ fontSize: 14, color: 'var(--cp-text-muted)', maxWidth: 520, margin: '0 auto 32px', lineHeight: 1.8 }}>
             Non-custodial payment gateway with real-time mempool detection.
             Your keys, your privacy, your commerce.
           </p>
 
-          <div className="flex items-center justify-center gap-4">
-            <Link href="/dashboard/register" className="btn-primary px-8 py-3 text-base">
-              Start Accepting ZEC
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+            <Link href="/dashboard/register" className="btn-primary" style={{ padding: '12px 28px', fontSize: 12, textDecoration: 'none' }}>
+              START ACCEPTING ZEC
             </Link>
-            <a href="#how-it-works" className="btn-secondary px-8 py-3 text-base">
-              How It Works
+            <a href="#how-it-works" className="btn" style={{ padding: '12px 28px', fontSize: 12, textDecoration: 'none' }}>
+              HOW IT WORKS
             </a>
           </div>
         </div>
       </section>
 
       {/* Features */}
-      <section className="py-20 px-6 border-t border-cp-border">
-        <div className="max-w-5xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-6">
-            {features.map((f) => (
-              <div key={f.title} className="card p-6">
-                <div className="w-10 h-10 rounded-lg bg-cp-cyan/10 flex items-center justify-center text-cp-cyan mb-4">
-                  {f.icon}
-                </div>
-                <h3 className="text-lg font-semibold mb-2">{f.title}</h3>
-                <p className="text-sm text-cp-muted leading-relaxed">
-                  {f.description}
+      <section style={{ borderTop: '1px solid var(--cp-border)', padding: '60px 24px' }}>
+        <div style={{ maxWidth: 900, margin: '0 auto' }}>
+          <div className="section-title" style={{ textAlign: 'center', marginBottom: 32 }}>WHY CIPHERPAY</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
+            <div className="panel">
+              <div className="panel-header">
+                <span className="panel-title">01 // Non-Custodial</span>
+              </div>
+              <div className="panel-body">
+                <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>
+                  Your keys, your funds. CipherPay never holds your ZEC. Payments go directly to your shielded address.
                 </p>
               </div>
-            ))}
+            </div>
+
+            <div className="panel">
+              <div className="panel-header">
+                <span className="panel-title">02 // Fully Shielded</span>
+              </div>
+              <div className="panel-body">
+                <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>
+                  Every payment uses Zcash shielded transactions. No transparent addresses, no leaking metadata.
+                </p>
+              </div>
+            </div>
+
+            <div className="panel">
+              <div className="panel-header">
+                <span className="panel-title">03 // Real-Time</span>
+              </div>
+              <div className="panel-body">
+                <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>
+                  Mempool scanning with trial decryption catches payments in seconds, not minutes.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section style={{ borderTop: '1px solid var(--cp-border)', padding: '60px 24px' }}>
+        <div style={{ maxWidth: 700, margin: '0 auto' }}>
+          <div className="section-title" style={{ textAlign: 'center', marginBottom: 8 }}>HOW IT WORKS</div>
+          <h2 style={{ fontSize: 24, fontWeight: 700, textAlign: 'center', marginBottom: 32 }}>
+            Three steps. Zero middlemen.
+          </h2>
+
+          <div className="panel" style={{ marginBottom: 24 }}>
+            <div className="panel-body">
+              <div className="stat-row">
+                <span style={{ color: 'var(--cp-cyan)', fontWeight: 600 }}>1. Register</span>
+                <span style={{ color: 'var(--cp-text-muted)' }}>Provide your viewing key + payment address</span>
+              </div>
+              <div className="stat-row">
+                <span style={{ color: 'var(--cp-cyan)', fontWeight: 600 }}>2. Add Products</span>
+                <span style={{ color: 'var(--cp-text-muted)' }}>Create your catalog in the dashboard</span>
+              </div>
+              <div className="stat-row">
+                <span style={{ color: 'var(--cp-cyan)', fontWeight: 600 }}>3. Get Paid</span>
+                <span style={{ color: 'var(--cp-text-muted)' }}>Share links or integrate via API</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Code Example */}
-      <section id="how-it-works" className="py-20 px-6 border-t border-cp-border">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-4">
+      <section id="how-it-works" style={{ borderTop: '1px solid var(--cp-border)', padding: '60px 24px' }}>
+        <div style={{ maxWidth: 700, margin: '0 auto' }}>
+          <div className="section-title" style={{ textAlign: 'center', marginBottom: 8 }}>FOR DEVELOPERS</div>
+          <h2 style={{ fontSize: 24, fontWeight: 700, textAlign: 'center', marginBottom: 32 }}>
             One API call to get paid
           </h2>
-          <p className="text-cp-muted text-center mb-10 max-w-xl mx-auto">
-            Create an invoice, show the QR code, get a webhook when paid.
-            That&apos;s it.
-          </p>
-          <div className="card overflow-hidden">
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-cp-border">
-              <span className="w-3 h-3 rounded-full bg-cp-red/60" />
-              <span className="w-3 h-3 rounded-full bg-cp-yellow/60" />
-              <span className="w-3 h-3 rounded-full bg-cp-green/60" />
-              <span className="ml-2 text-xs text-cp-muted font-mono">
-                terminal
-              </span>
+
+          <div className="panel">
+            <div className="panel-header">
+              <span className="panel-title">terminal</span>
+              <span className="tag">REST API</span>
             </div>
-            <pre className="p-6 overflow-x-auto text-sm leading-relaxed">
-              <code className="font-mono text-cp-text">{codeSnippet}</code>
-            </pre>
+            <div style={{ padding: 18, overflow: 'auto' }}>
+              <pre style={{ margin: 0, fontSize: 11, lineHeight: 1.8, color: 'var(--cp-text)' }}>
+                <code>{codeSnippet}</code>
+              </pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Integrations */}
+      <section style={{ borderTop: '1px solid var(--cp-border)', padding: '60px 24px' }}>
+        <div style={{ maxWidth: 700, margin: '0 auto' }}>
+          <div className="section-title" style={{ textAlign: 'center', marginBottom: 8 }}>INTEGRATIONS</div>
+          <h2 style={{ fontSize: 24, fontWeight: 700, textAlign: 'center', marginBottom: 32 }}>
+            Works with your stack
+          </h2>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div className="panel">
+              <div className="panel-body">
+                <div style={{ fontSize: 11, color: 'var(--cp-cyan)', letterSpacing: 1, marginBottom: 8 }}>HOSTED CHECKOUT</div>
+                <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>
+                  Share a payment link. No website needed. Works from social media, email, or chat.
+                </p>
+              </div>
+            </div>
+            <div className="panel">
+              <div className="panel-body">
+                <div style={{ fontSize: 11, color: 'var(--cp-cyan)', letterSpacing: 1, marginBottom: 8 }}>REST API</div>
+                <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>
+                  Create invoices, manage products, receive webhooks. Full programmatic control.
+                </p>
+              </div>
+            </div>
+            <div className="panel">
+              <div className="panel-body">
+                <div style={{ fontSize: 11, color: 'var(--cp-cyan)', letterSpacing: 1, marginBottom: 8 }}>JS WIDGET</div>
+                <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>
+                  Drop a script tag on any page. One line to add ZEC payments to any website.
+                </p>
+              </div>
+            </div>
+            <div className="panel">
+              <div className="panel-body">
+                <div style={{ fontSize: 11, color: 'var(--cp-cyan)', letterSpacing: 1, marginBottom: 8 }}>WOOCOMMERCE</div>
+                <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>
+                  Install the plugin, enter your API key. Your WordPress store accepts ZEC.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-20 px-6 border-t border-cp-border">
-        <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4">
+      <section style={{ borderTop: '1px solid var(--cp-border)', padding: '60px 24px' }}>
+        <div style={{ maxWidth: 500, margin: '0 auto', textAlign: 'center' }}>
+          <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 12 }}>
             Ready to accept private payments?
           </h2>
-          <p className="text-cp-muted mb-8">
+          <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', marginBottom: 24, lineHeight: 1.8 }}>
             Set up in under a minute. No KYC. No middleman. Just ZEC.
           </p>
-          <Link href="/dashboard/register" className="btn-primary px-10 py-3 text-base">
-            Create Your Merchant Account
+          <Link href="/dashboard/register" className="btn-primary" style={{ padding: '12px 32px', fontSize: 12, textDecoration: 'none' }}>
+            CREATE YOUR MERCHANT ACCOUNT
           </Link>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-cp-border py-8 px-6">
-        <div className="max-w-6xl mx-auto flex items-center justify-between text-xs text-cp-muted">
-          <div className="flex items-center gap-2">
-            <Logo size="sm" />
-            <span>&middot; Powered by CipherScan</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link href="/faq" className="hover:text-cp-cyan transition-colors">
-              FAQ
-            </Link>
-            <a
-              href="https://cipherscan.app"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-cp-cyan transition-colors"
-            >
-              CipherScan
-            </a>
-            <a
-              href="https://github.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-cp-cyan transition-colors"
-            >
-              GitHub
-            </a>
-          </div>
+      <footer style={{ borderTop: '1px solid var(--cp-border)', padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10, color: 'var(--cp-text-muted)' }}>
+          <Logo size="sm" />
+          <span>Powered by CipherScan</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 10 }}>
+          <Link href="/faq" style={{ color: 'var(--cp-text-muted)', textDecoration: 'none' }}>FAQ</Link>
+          <a href="https://cipherscan.app" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-text-muted)', textDecoration: 'none' }}>CipherScan</a>
+          <a href="https://github.com" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-text-muted)', textDecoration: 'none' }}>GitHub</a>
         </div>
       </footer>
     </div>
