@@ -31,19 +31,23 @@ function useCountdown(expiresAt: string) {
   return { text, expired };
 }
 
-function truncateAddress(addr: string, front = 12, back = 8): string {
-  if (addr.length <= front + back + 3) return addr;
-  return `${addr.slice(0, front)}...${addr.slice(-back)}`;
+function truncateAddress(addr: string): string {
+  if (addr.length <= 24) return addr;
+  return `${addr.slice(0, 14)}...${addr.slice(-10)}`;
+}
+
+function CopyIcon({ size = 12 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+    </svg>
+  );
 }
 
 function getShopOrigin(returnUrl: string | null): string | null {
   if (!returnUrl) return null;
-  try {
-    const url = new URL(returnUrl);
-    return url.origin;
-  } catch {
-    return null;
-  }
+  try { return new URL(returnUrl).origin; } catch { return null; }
 }
 
 export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
@@ -52,7 +56,6 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
   const [toast, setToast] = useState('');
   const [refundAddr, setRefundAddr] = useState('');
   const [refundSaved, setRefundSaved] = useState(false);
-  const [showFullAddr, setShowFullAddr] = useState(false);
   const eventSourceRef = useRef<EventSource | null>(null);
 
   const searchParams = useSearchParams();
@@ -127,7 +130,6 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ fontFamily: 'var(--font-geist-mono), monospace', fontSize: 13, lineHeight: 1.6 }}>
-      {/* Header */}
       <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid var(--cp-border)' }}>
         <Logo size="sm" />
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -137,85 +139,108 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
         </div>
       </header>
 
-      {/* Main */}
       <main className="flex-1 flex items-center justify-center" style={{ padding: '32px 24px' }}>
-        <div style={{ maxWidth: 420, width: '100%' }}>
+        <div style={{ maxWidth: 440, width: '100%' }}>
 
           {/* ── Payment UI ── */}
           {invoice.status === 'pending' && (
             <div style={{ textAlign: 'center' }}>
-              {/* Merchant + Product */}
-              <div style={{ marginBottom: 24 }}>
+
+              {/* Order info — prominent */}
+              <div style={{ marginBottom: 28, padding: '20px 0', borderBottom: '1px solid var(--cp-border)' }}>
                 {invoice.merchant_name && (
-                  <div style={{ fontSize: 10, letterSpacing: 2, color: 'var(--cp-text-dim)', marginBottom: 6 }}>
+                  <div style={{ fontSize: 11, letterSpacing: 2, color: 'var(--cp-text-muted)', marginBottom: 8 }}>
                     {invoice.merchant_name.toUpperCase()}
                   </div>
                 )}
                 {(invoice.product_name || invoice.size) && (
-                  <div style={{ fontSize: 12, color: 'var(--cp-text-muted)' }}>
+                  <div style={{ fontSize: 14, color: 'var(--cp-text)', fontWeight: 600, marginBottom: 12 }}>
                     {invoice.product_name}{invoice.size ? ` · ${invoice.size}` : ''}
                   </div>
                 )}
-              </div>
-
-              {/* QR Code — hero */}
-              {zcashUri && (
-                <div className="qr-container" style={{ marginBottom: 20 }}>
-                  <QRCode data={zcashUri} size={240} />
-                </div>
-              )}
-
-              {/* Price */}
-              <div style={{ marginBottom: 24 }}>
-                <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--cp-text)' }}>{eurStr}</div>
+                <div style={{ fontSize: 32, fontWeight: 700, color: 'var(--cp-text)' }}>{eurStr}</div>
                 <div style={{ fontSize: 13, color: 'var(--cp-cyan)', marginTop: 4 }}>≈ {invoice.price_zec.toFixed(8)} ZEC</div>
               </div>
 
-              {/* Address + Memo — side by side */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 8, marginBottom: 16 }}>
-                {/* Address */}
-                <div
-                  onClick={() => copy(address, 'Address')}
-                  style={{
-                    background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4,
-                    padding: '10px 12px', cursor: 'pointer', textAlign: 'left', transition: 'border-color 0.15s',
-                  }}
-                >
-                  <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', letterSpacing: 1, marginBottom: 4 }}>ADDRESS</div>
-                  <div
-                    style={{ fontSize: 10, color: 'var(--cp-cyan)', wordBreak: 'break-all', lineHeight: 1.4 }}
-                    onClick={(e) => { e.stopPropagation(); setShowFullAddr(!showFullAddr); copy(address, 'Address'); }}
-                  >
-                    {showFullAddr ? address : truncateAddress(address, 16, 12)}
-                  </div>
+              {/* QR Code */}
+              {zcashUri && (
+                <div className="qr-container" style={{ marginBottom: 12 }}>
+                  <QRCode data={zcashUri} size={200} />
                 </div>
+              )}
 
-                {/* Memo */}
-                <div
-                  onClick={() => copy(invoice.memo_code, 'Memo')}
-                  style={{
-                    background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4,
-                    padding: '10px 12px', cursor: 'pointer', textAlign: 'center', transition: 'border-color 0.15s',
-                    display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 130,
-                  }}
-                >
-                  <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', letterSpacing: 1, marginBottom: 4 }}>MEMO</div>
-                  <div style={{ fontSize: 13, letterSpacing: 2, color: 'var(--cp-purple)', fontWeight: 600 }}>
-                    {invoice.memo_code}
-                  </div>
-                </div>
+              {/* Instruction */}
+              <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', letterSpacing: 1, marginBottom: 16, lineHeight: 1.6 }}>
+                SCAN WITH YOUR ZCASH WALLET<br />
+                <span style={{ color: 'var(--cp-text-muted)' }}>or send manually using the details below</span>
               </div>
 
               {/* Open in Wallet */}
               {zcashUri && (
-                <a href={zcashUri} className="btn-primary" style={{ width: '100%', textDecoration: 'none', textTransform: 'uppercase', marginBottom: 20 }}>
+                <a href={zcashUri} className="btn-primary" style={{ width: '100%', textDecoration: 'none', textTransform: 'uppercase', marginBottom: 24 }}>
                   Open in Wallet
                 </a>
               )}
 
+              {/* Manual payment section */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+                <div style={{ flex: 1, height: 1, background: 'var(--cp-border)' }} />
+                <span style={{ fontSize: 9, color: 'var(--cp-text-dim)', letterSpacing: 2 }}>MANUAL PAYMENT</span>
+                <div style={{ flex: 1, height: 1, background: 'var(--cp-border)' }} />
+              </div>
+
+              {/* Payment Address */}
+              <div style={{ textAlign: 'left', marginBottom: 16 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <span style={{ fontSize: 10, color: 'var(--cp-text-muted)', letterSpacing: 1 }}>PAYMENT ADDRESS</span>
+                  <button
+                    onClick={() => copy(address, 'Address')}
+                    style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', color: 'var(--cp-cyan)', cursor: 'pointer', fontSize: 9, letterSpacing: 1, fontFamily: 'inherit', padding: 0 }}
+                  >
+                    <CopyIcon size={11} /> COPY
+                  </button>
+                </div>
+                <div
+                  onClick={() => copy(address, 'Address')}
+                  style={{
+                    background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4,
+                    padding: '10px 12px', cursor: 'pointer', fontSize: 10, color: 'var(--cp-cyan)',
+                    wordBreak: 'break-all', lineHeight: 1.5, transition: 'border-color 0.15s',
+                  }}
+                >
+                  {truncateAddress(address)}
+                </div>
+              </div>
+
+              {/* Memo — CRITICAL */}
+              <div style={{ textAlign: 'left', marginBottom: 20 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <span style={{ fontSize: 10, color: 'var(--cp-purple)', letterSpacing: 1, fontWeight: 600 }}>⚠ REQUIRED MEMO</span>
+                  <button
+                    onClick={() => copy(invoice.memo_code, 'Memo')}
+                    style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', color: 'var(--cp-purple)', cursor: 'pointer', fontSize: 9, letterSpacing: 1, fontFamily: 'inherit', padding: 0 }}
+                  >
+                    <CopyIcon size={11} /> COPY
+                  </button>
+                </div>
+                <div style={{ fontSize: 9, color: 'var(--cp-text-muted)', marginBottom: 6, lineHeight: 1.5 }}>
+                  You must include this memo in your transaction or your payment will not be detected.
+                </div>
+                <div
+                  onClick={() => copy(invoice.memo_code, 'Memo')}
+                  style={{
+                    background: 'var(--cp-bg)', border: '1px solid rgba(168, 85, 247, 0.3)', borderRadius: 4,
+                    padding: '12px', cursor: 'pointer', fontSize: 16, letterSpacing: 3, color: 'var(--cp-purple)',
+                    fontWeight: 700, textAlign: 'center', transition: 'border-color 0.15s',
+                  }}
+                >
+                  {invoice.memo_code}
+                </div>
+              </div>
+
               {/* Refund address */}
-              <div style={{ borderTop: '1px solid var(--cp-border)', paddingTop: 16, marginBottom: 16 }}>
-                <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', letterSpacing: 1, marginBottom: 6, textAlign: 'left' }}>
+              <div style={{ borderTop: '1px solid var(--cp-border)', paddingTop: 16, marginBottom: 16, textAlign: 'left' }}>
+                <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', letterSpacing: 1, marginBottom: 6 }}>
                   REFUND ADDRESS <span style={{ fontWeight: 400 }}>(OPTIONAL)</span>
                 </div>
                 <div style={{ display: 'flex', gap: 6 }}>
@@ -230,7 +255,6 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
                   <button
                     onClick={async () => {
                       if (!refundAddr.trim()) return;
-                      await navigator.clipboard.writeText(refundAddr).catch(() => {});
                       setRefundSaved(true);
                       setTimeout(() => setRefundSaved(false), 2000);
                     }}
@@ -246,24 +270,10 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
               <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', letterSpacing: 1 }}>
                 Expires in {countdown.text}
               </div>
-
-              {/* Cancel */}
-              {shopOrigin && (
-                <div style={{ marginTop: 16 }}>
-                  <a
-                    href={shopOrigin}
-                    style={{ fontSize: 10, color: 'var(--cp-text-dim)', letterSpacing: 1, textDecoration: 'none', transition: 'color 0.15s' }}
-                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--cp-text-muted)')}
-                    onMouseLeave={e => (e.currentTarget.style.color = 'var(--cp-text-dim)')}
-                  >
-                    CANCEL
-                  </a>
-                </div>
-              )}
             </div>
           )}
 
-          {/* ── Receipt (detected or confirmed) ── */}
+          {/* ── Receipt ── */}
           {showReceipt && (
             <ConfirmedReceipt invoice={invoice} returnUrl={returnUrl} />
           )}
@@ -273,7 +283,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
             <div className="checkout-status expired">
               <div>INVOICE EXPIRED</div>
               <div style={{ fontSize: 10, marginTop: 6, color: 'var(--cp-text-muted)', fontWeight: 400 }}>
-                Create a new invoice to continue
+                This invoice has expired. Please create a new order.
               </div>
               {shopOrigin && (
                 <a
@@ -320,54 +330,54 @@ function ConfirmedReceipt({ invoice, returnUrl }: { invoice: Invoice; returnUrl:
 
   const row: React.CSSProperties = {
     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-    padding: '12px 0', borderBottom: '1px solid var(--cp-border)',
-    fontSize: 11,
+    padding: '14px 0', borderBottom: '1px solid var(--cp-border)',
+    fontSize: 12,
   };
   const label: React.CSSProperties = { color: 'var(--cp-text-muted)', letterSpacing: 1, fontSize: 10 };
 
   return (
     <div>
-      <div className={`checkout-status ${isConfirmed ? 'confirmed' : 'detected'}`} style={{ marginBottom: 24 }}>
-        <div>{isConfirmed ? 'PAYMENT CONFIRMED' : 'PAYMENT SUCCESSFUL'}</div>
+      <div className={`checkout-status ${isConfirmed ? 'confirmed' : 'detected'}`} style={{ marginBottom: 24, padding: 20 }}>
+        <div style={{ fontSize: 15, fontWeight: 700 }}>{isConfirmed ? 'PAYMENT CONFIRMED' : 'PAYMENT SUCCESSFUL'}</div>
         {!isConfirmed && (
-          <div className="pulse" style={{ fontSize: 10, marginTop: 6, color: 'var(--cp-text-muted)', fontWeight: 400 }}>
+          <div className="pulse" style={{ fontSize: 10, marginTop: 8, color: 'var(--cp-text-muted)', fontWeight: 400 }}>
             Confirming on blockchain...
           </div>
         )}
       </div>
 
-      <div style={{ border: '1px solid var(--cp-border)', borderRadius: 6, padding: '0 20px' }}>
+      <div style={{ border: '1px solid var(--cp-border)', borderRadius: 6, padding: '0 24px' }}>
         {invoice.merchant_name && (
           <div style={row}>
             <span style={label}>MERCHANT</span>
-            <span>{invoice.merchant_name}</span>
+            <span style={{ fontWeight: 600 }}>{invoice.merchant_name}</span>
           </div>
         )}
 
         {invoice.product_name && (
           <div style={row}>
             <span style={label}>ITEM</span>
-            <span>{invoice.product_name}{invoice.size ? ` · ${invoice.size}` : ''}</span>
+            <span style={{ fontWeight: 600 }}>{invoice.product_name}{invoice.size ? ` · ${invoice.size}` : ''}</span>
           </div>
         )}
 
         <div style={row}>
           <span style={label}>AMOUNT</span>
-          <span>{eurStr}</span>
+          <span style={{ fontWeight: 700, fontSize: 14 }}>{eurStr}</span>
         </div>
 
         <div style={row}>
           <span style={label}>ZEC PAID</span>
-          <span style={{ color: 'var(--cp-cyan)' }}>{invoice.price_zec.toFixed(8)}</span>
+          <span style={{ color: 'var(--cp-cyan)', fontWeight: 600 }}>{invoice.price_zec.toFixed(8)}</span>
         </div>
 
         <div style={row}>
           <span style={label}>MEMO</span>
-          <span style={{ fontFamily: 'monospace', fontSize: 10 }}>{invoice.memo_code}</span>
+          <span style={{ fontFamily: 'monospace', fontSize: 11, letterSpacing: 1 }}>{invoice.memo_code}</span>
         </div>
 
         {invoice.detected_txid && (
-          <div style={{ ...row, borderBottom: 'none', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
+          <div style={{ ...row, borderBottom: 'none', flexDirection: 'column', alignItems: 'flex-start', gap: 6 }}>
             <span style={label}>TXID</span>
             <span style={{ fontSize: 9, color: 'var(--cp-cyan)', wordBreak: 'break-all', lineHeight: 1.5 }}>
               {invoice.detected_txid}
@@ -377,11 +387,11 @@ function ConfirmedReceipt({ invoice, returnUrl }: { invoice: Invoice; returnUrl:
       </div>
 
       {returnUrl && (
-        <div style={{ marginTop: 20 }}>
+        <div style={{ marginTop: 24 }}>
           <a
             href={returnUrl}
             className="btn-primary"
-            style={{ display: 'block', width: '100%', textDecoration: 'none', textAlign: 'center', textTransform: 'uppercase' }}
+            style={{ display: 'block', width: '100%', textDecoration: 'none', textAlign: 'center', textTransform: 'uppercase', padding: '14px 0' }}
           >
             ← Back to Store
           </a>
@@ -392,7 +402,7 @@ function ConfirmedReceipt({ invoice, returnUrl }: { invoice: Invoice; returnUrl:
       )}
 
       {!returnUrl && (
-        <div style={{ textAlign: 'center', marginTop: 20, fontSize: 10, color: 'var(--cp-text-dim)', letterSpacing: 1 }}>
+        <div style={{ textAlign: 'center', marginTop: 24, fontSize: 10, color: 'var(--cp-text-dim)', letterSpacing: 1 }}>
           YOU CAN CLOSE THIS PAGE
         </div>
       )}
