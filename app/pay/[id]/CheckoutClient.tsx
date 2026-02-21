@@ -39,8 +39,9 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
   const [refundSaved, setRefundSaved] = useState(false);
   const eventSourceRef = useRef<EventSource | null>(null);
 
-  // Honor ?theme=dark|light from the redirect URL
+  // Honor ?theme=dark|light and ?return_url from the redirect URL
   const searchParams = useSearchParams();
+  const returnUrl = searchParams.get('return_url') || null;
   const { theme, toggleTheme, mounted } = useTheme();
   useEffect(() => {
     if (!mounted) return;
@@ -216,6 +217,15 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
                   <div className="memo-label">TXID</div>
                   <div style={{ fontSize: 9, color: 'var(--cp-cyan)', wordBreak: 'break-all' }}>{invoice.detected_txid}</div>
                 </div>
+              )}
+              {returnUrl && (
+                <a
+                  href={returnUrl}
+                  className="btn"
+                  style={{ display: 'block', width: '100%', marginTop: 20, textDecoration: 'none', textAlign: 'center', textTransform: 'uppercase' }}
+                >
+                  ← Back to Store
+                </a>
               )}
             </>
           )}
