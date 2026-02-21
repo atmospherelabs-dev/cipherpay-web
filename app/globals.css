@@ -479,36 +479,3 @@ body {
   }
 }
 
-/* ── Checkout two-panel layout ── */
-
-.cp-checkout-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 32px;
-  align-items: start;
-}
-
-.cp-checkout-summary {
-  background: var(--cp-surface);
-  border: 1px solid var(--cp-border);
-  border-radius: 6px;
-  padding: 24px;
-}
-
-.cp-checkout-pay {
-  background: var(--cp-surface);
-  border: 1px solid var(--cp-border);
-  border-radius: 6px;
-  padding: 24px;
-}
-
-@media (max-width: 680px) {
-  .cp-checkout-grid {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-
-  .cp-checkout-pay {
-    order: -1;
-  }
-}
