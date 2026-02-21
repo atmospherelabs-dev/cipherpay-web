@@ -45,6 +45,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
 
   // Settings
   const [editName, setEditName] = useState(merchant.name || '');
+  const [editWebhookUrl, setEditWebhookUrl] = useState(merchant.webhook_url || '');
   const [editEmail, setEditEmail] = useState('');
   const [revealedKey, setRevealedKey] = useState<{ type: string; value: string } | null>(null);
 
@@ -163,6 +164,13 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
       await api.updateMe({ name: editName });
       showToast('Name updated');
     } catch { showToast('Failed to update name', true); }
+  };
+
+  const saveWebhookUrl = async () => {
+    try {
+      await api.updateMe({ webhook_url: editWebhookUrl || '' });
+      showToast(editWebhookUrl ? 'Webhook URL saved' : 'Webhook URL removed');
+    } catch { showToast('Failed to update webhook URL', true); }
   };
 
   const saveEmail = async () => {
@@ -608,6 +616,18 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                       </div>
                     </>
                   )}
+
+                  <div className="divider" />
+
+                  {/* Webhook URL */}
+                  <div className="section-title">Webhook URL</div>
+                  <div className="form-group" style={{ display: 'flex', gap: 8 }}>
+                    <input type="url" value={editWebhookUrl} onChange={(e) => setEditWebhookUrl(e.target.value)} placeholder="https://your-store.com/api/webhook" className="input" style={{ flex: 1, fontSize: 10 }} />
+                    <button onClick={saveWebhookUrl} className="btn btn-small">SAVE</button>
+                  </div>
+                  <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 4 }}>
+                    CipherPay will POST invoice events (confirmed, expired) to this URL.
+                  </div>
 
                   <div className="divider" />
 
