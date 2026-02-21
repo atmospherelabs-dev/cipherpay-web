@@ -1,45 +1,51 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import { useTheme } from '@/contexts/ThemeContext';
-import QRCodeLib from 'qrcode';
 
 interface QRCodeProps {
   data: string;
   size?: number;
   className?: string;
-  forceLight?: boolean;
 }
 
-export function QRCode({ data, size = 240, className = '', forceLight = false }: QRCodeProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { theme, mounted } = useTheme();
+export function QRCode({ data, size = 240, className = '' }: QRCodeProps) {
+  const { mounted } = useTheme();
 
-  useEffect(() => {
-    if (!canvasRef.current || !mounted || !data) return;
+  if (!mounted || !data) return null;
 
-    const isDark = !forceLight && theme === 'dark';
-
-    QRCodeLib.toCanvas(canvasRef.current, data, {
-      width: size,
-      margin: 2,
-      color: {
-        dark: isDark ? '#ffffff' : '#0f172a',
-        light: isDark ? '#111118' : '#ffffff',
-      },
-      errorCorrectionLevel: 'M',
-    }).catch((err: unknown) => {
-      console.error('QR code generation failed:', err);
-    });
-  }, [data, size, theme, mounted, forceLight]);
+  const logoSize = Math.round(size * 0.14);
+  const clearZone = Math.round(size * 0.22);
 
   return (
-    <canvas
-      ref={canvasRef}
-      className={className}
-      width={size}
-      height={size}
-      style={{ display: 'block' }}
-    />
+    <div style={{ position: 'relative', width: size, height: size }} className={className}>
+      <QRCodeSVG
+        value={data}
+        size={size}
+        level="H"
+        marginSize={2}
+        bgColor="#ffffff"
+        fgColor="#0f172a"
+        imageSettings={{
+          src: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
+          height: clearZone,
+          width: clearZone,
+          excavate: true,
+        }}
+      />
+      <img
+        src="/logo-mark.png"
+        alt=""
+        width={logoSize}
+        height={Math.round(logoSize * 1.4)}
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          display: 'block',
+        }}
+      />
+    </div>
   );
 }

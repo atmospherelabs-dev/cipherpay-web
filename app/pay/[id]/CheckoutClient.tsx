@@ -129,7 +129,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
 
               {zcashUri && (
                 <div className="qr-container">
-                  <QRCode data={zcashUri} size={180} forceLight />
+                  <QRCode data={zcashUri} size={200} />
                 </div>
               )}
 

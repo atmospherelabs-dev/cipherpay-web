@@ -393,6 +393,7 @@ body {
   border-radius: 8px;
   display: inline-block;
   padding: 10px;
+  border: 1px solid var(--cp-border);
 }
 
 /* ── Empty state ── */
