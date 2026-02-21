@@ -1,5 +1,4 @@
 import { Logo } from '@/components/Logo';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import { NavLinks } from '@/components/NavLinks';
 import Link from 'next/link';
 import type { Metadata } from 'next';
@@ -132,7 +131,6 @@ export default function FAQPage() {
       <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid var(--cp-border)' }}>
         <Link href="/"><Logo size="md" /></Link>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <ThemeToggle />
           <NavLinks />
         </div>
       </header>

@@ -1,6 +1,6 @@
 import { Logo } from '@/components/Logo';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import { NavLinks } from '@/components/NavLinks';
+import { SmartCTA } from '@/components/SmartCTA';
 import Link from 'next/link';
 
 const codeSnippet = `curl -X POST https://api.cipherpay.app/api/invoices \\
@@ -25,10 +25,6 @@ export default function LandingPage() {
       <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid var(--cp-border)' }}>
         <Logo size="md" />
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <Link href="/faq" style={{ fontSize: 11, color: 'var(--cp-text-muted)', textDecoration: 'none', letterSpacing: 1 }}>
-            FAQ
-          </Link>
-          <ThemeToggle />
           <NavLinks />
         </div>
       </header>
@@ -48,9 +44,9 @@ export default function LandingPage() {
           </p>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-            <Link href="/dashboard/register" className="btn-primary" style={{ padding: '12px 28px', fontSize: 12, textDecoration: 'none' }}>
+            <SmartCTA className="btn-primary" style={{ padding: '12px 28px', fontSize: 12 }}>
               START ACCEPTING ZEC
-            </Link>
+            </SmartCTA>
             <a href="#how-it-works" className="btn" style={{ padding: '12px 28px', fontSize: 12, textDecoration: 'none' }}>
               HOW IT WORKS
             </a>
@@ -202,9 +198,9 @@ export default function LandingPage() {
           <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', marginBottom: 24, lineHeight: 1.8 }}>
             Set up in under a minute. No KYC. No middleman. Just ZEC.
           </p>
-          <Link href="/dashboard/register" className="btn-primary" style={{ padding: '12px 32px', fontSize: 12, textDecoration: 'none' }}>
+          <SmartCTA className="btn-primary" style={{ padding: '12px 32px', fontSize: 12 }}>
             CREATE YOUR MERCHANT ACCOUNT
-          </Link>
+          </SmartCTA>
         </div>
       </section>
 
@@ -215,6 +211,7 @@ export default function LandingPage() {
           <span>Powered by CipherScan</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 10 }}>
+          <Link href="/docs" style={{ color: 'var(--cp-text-muted)', textDecoration: 'none' }}>Docs</Link>
           <Link href="/faq" style={{ color: 'var(--cp-text-muted)', textDecoration: 'none' }}>FAQ</Link>
           <a href="https://cipherscan.app" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-text-muted)', textDecoration: 'none' }}>CipherScan</a>
           <a href="https://github.com" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-text-muted)', textDecoration: 'none' }}>GitHub</a>

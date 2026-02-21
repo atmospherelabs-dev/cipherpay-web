@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { api, type Invoice, type MerchantInfo, type Product, type CreateProductRequest } from '@/lib/api';
+import { api, type Invoice, type MerchantInfo, type Product, type CreateProductRequest, type UpdateProductRequest } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { Logo } from '@/components/Logo';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -28,6 +28,14 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
   const [newVariants, setNewVariants] = useState('');
   const [creating, setCreating] = useState(false);
 
+  // Product editing
+  const [editingProduct, setEditingProduct] = useState<string | null>(null);
+  const [editProdName, setEditProdName] = useState('');
+  const [editProdDesc, setEditProdDesc] = useState('');
+  const [editProdPrice, setEditProdPrice] = useState('');
+  const [editProdVariants, setEditProdVariants] = useState('');
+  const [savingProduct, setSavingProduct] = useState(false);
+
   // POS quick invoice
   const [posProductId, setPosProductId] = useState<string | null>(null);
   const [posCreating, setPosCreating] = useState(false);
@@ -37,6 +45,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
 
   // Settings
   const [editName, setEditName] = useState(merchant.name || '');
+  const [editEmail, setEditEmail] = useState('');
   const [revealedKey, setRevealedKey] = useState<{ type: string; value: string } | null>(null);
 
   const { logout } = useAuth();
@@ -91,6 +100,41 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
     catch { showToast('Failed to deactivate', true); }
   };
 
+  const startEditProduct = (product: Product) => {
+    setEditingProduct(product.id);
+    setEditProdName(product.name);
+    setEditProdDesc(product.description || '');
+    setEditProdPrice(product.price_eur.toString());
+    setEditProdVariants(parseVariants(product.variants).join(', '));
+  };
+
+  const cancelEditProduct = () => {
+    setEditingProduct(null);
+  };
+
+  const saveProduct = async (productId: string) => {
+    if (!editProdName || !editProdPrice || parseFloat(editProdPrice) <= 0) {
+      showToast('Name and valid price required', true);
+      return;
+    }
+    setSavingProduct(true);
+    try {
+      const req: UpdateProductRequest = {
+        name: editProdName,
+        description: editProdDesc || undefined,
+        price_eur: parseFloat(editProdPrice),
+        variants: editProdVariants ? editProdVariants.split(',').map(v => v.trim()).filter(Boolean) : [],
+      };
+      await api.updateProduct(productId, req);
+      setEditingProduct(null);
+      loadProducts();
+      showToast('Product updated');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to update', true);
+    }
+    setSavingProduct(false);
+  };
+
   const quickPOS = async (productId: string) => {
     setPosProductId(productId);
     setPosCreating(true);
@@ -119,6 +163,15 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
       await api.updateMe({ name: editName });
       showToast('Name updated');
     } catch { showToast('Failed to update name', true); }
+  };
+
+  const saveEmail = async () => {
+    if (!editEmail.includes('@')) { showToast('Enter a valid email', true); return; }
+    try {
+      await api.updateMe({ recovery_email: editEmail });
+      showToast('Recovery email saved');
+      setEditEmail('');
+    } catch { showToast('Failed to save email', true); }
   };
 
   const regenApiKey = async () => {
@@ -290,35 +343,64 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                 ) : (
                   products.filter(p => p.active === 1).map((product) => {
                     const variants = parseVariants(product.variants);
+                    const isEditing = editingProduct === product.id;
                     return (
                       <div key={product.id} className="invoice-card">
-                        <div className="invoice-header">
-                          <span className="invoice-id">{product.name}</span>
-                          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--cp-text)' }}>€{product.price_eur.toFixed(2)}</span>
-                        </div>
-                        <div className="invoice-meta">
-                          <span style={{ color: 'var(--cp-text-dim)', fontSize: 10 }}>/{product.slug}</span>
-                          {variants.length > 0 && (
-                            <span style={{ fontSize: 10 }}>{variants.join(' · ')}</span>
-                          )}
-                        </div>
-                        {product.description && (
-                          <div style={{ fontSize: 11, color: 'var(--cp-text-muted)', marginTop: 4 }}>{product.description}</div>
+                        {isEditing ? (
+                          <div onClick={(e) => e.stopPropagation()}>
+                            <div className="form-group">
+                              <label className="form-label">Name</label>
+                              <input type="text" value={editProdName} onChange={(e) => setEditProdName(e.target.value)} className="input" />
+                            </div>
+                            <div className="form-group">
+                              <label className="form-label">Price (EUR)</label>
+                              <input type="number" value={editProdPrice} onChange={(e) => setEditProdPrice(e.target.value)} step="any" min="0.001" className="input" />
+                            </div>
+                            <div className="form-group">
+                              <label className="form-label">Description</label>
+                              <input type="text" value={editProdDesc} onChange={(e) => setEditProdDesc(e.target.value)} placeholder="Optional" className="input" />
+                            </div>
+                            <div className="form-group">
+                              <label className="form-label">Variants (comma-separated)</label>
+                              <input type="text" value={editProdVariants} onChange={(e) => setEditProdVariants(e.target.value)} placeholder="S, M, L, XL" className="input" />
+                            </div>
+                            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                              <button onClick={() => saveProduct(product.id)} disabled={savingProduct} className="btn-primary" style={{ flex: 1, opacity: savingProduct ? 0.5 : 1 }}>
+                                {savingProduct ? 'SAVING...' : 'SAVE'}
+                              </button>
+                              <button onClick={cancelEditProduct} className="btn" style={{ flex: 1 }}>CANCEL</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="invoice-header">
+                              <span className="invoice-id">{product.name}</span>
+                              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--cp-text)' }}>€{product.price_eur.toFixed(2)}</span>
+                            </div>
+                            <div className="invoice-meta">
+                              <span style={{ color: 'var(--cp-text-dim)', fontSize: 10 }}>/{product.slug}</span>
+                              {variants.length > 0 && (
+                                <span style={{ fontSize: 10 }}>{variants.join(' · ')}</span>
+                              )}
+                            </div>
+                            {product.description && (
+                              <div style={{ fontSize: 11, color: 'var(--cp-text-muted)', marginTop: 4 }}>{product.description}</div>
+                            )}
+                            <div className="invoice-actions">
+                              <CopyButton text={`${checkoutOrigin}/buy/${product.id}`} label="Buy Link" />
+                              <button onClick={() => startEditProduct(product)} className="btn btn-small">EDIT</button>
+                              <button
+                                onClick={() => quickPOS(product.id)}
+                                disabled={posCreating && posProductId === product.id}
+                                className="btn btn-small"
+                                style={{ color: 'var(--cp-green)', borderColor: 'rgba(34,197,94,0.5)' }}
+                              >
+                                {posCreating && posProductId === product.id ? 'CREATING...' : 'QUICK POS'}
+                              </button>
+                              <button onClick={() => deactivateProduct(product.id)} className="btn btn-small btn-cancel">REMOVE</button>
+                            </div>
+                          </>
                         )}
-                        <div className="invoice-actions">
-                          <CopyButton text={`${checkoutOrigin}/buy/${product.id}`} label="Buy Link" />
-                          <button
-                            onClick={() => quickPOS(product.id)}
-                            disabled={posCreating && posProductId === product.id}
-                            className="btn btn-small"
-                            style={{ color: 'var(--cp-green)', borderColor: 'rgba(34,197,94,0.5)' }}
-                          >
-                            {posCreating && posProductId === product.id ? 'CREATING...' : 'QUICK POS'}
-                          </button>
-                          <button onClick={() => deactivateProduct(product.id)} className="btn btn-small btn-cancel">
-                            REMOVE
-                          </button>
-                        </div>
                       </div>
                     );
                   })
@@ -491,6 +573,41 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                     <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="My Store" className="input" style={{ flex: 1 }} />
                     <button onClick={saveName} className="btn btn-small">SAVE</button>
                   </div>
+
+                  <div className="divider" />
+
+                  {/* Payment Address (locked) */}
+                  <div className="section-title">Payment Address</div>
+                  <div className="stat-row">
+                    <span style={{ fontSize: 9, color: 'var(--cp-cyan)', wordBreak: 'break-all', maxWidth: '75%' }}>
+                      {merchant.payment_address}
+                    </span>
+                    <CopyButton text={merchant.payment_address} label="" />
+                  </div>
+                  <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 4, lineHeight: 1.5 }}>
+                    Locked at registration. Your payment address is cryptographically tied to your viewing key (UFVK) — changing it would break payment detection. To use a different address, register a new merchant account with the matching UFVK.
+                  </div>
+
+                  <div className="divider" />
+
+                  {/* Recovery Email */}
+                  <div className="section-title">Recovery Email</div>
+                  {merchant.recovery_email_preview ? (
+                    <div className="stat-row">
+                      <span style={{ fontSize: 11, color: 'var(--cp-green)' }}>{merchant.recovery_email_preview}</span>
+                      <span className="status-badge status-confirmed" style={{ fontSize: 8 }}>SET</span>
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginBottom: 8 }}>
+                        Add an email to recover your account if you lose your dashboard token.
+                      </div>
+                      <div className="form-group" style={{ display: 'flex', gap: 8 }}>
+                        <input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} placeholder="your@email.com" className="input" style={{ flex: 1 }} />
+                        <button onClick={saveEmail} className="btn btn-small">SAVE</button>
+                      </div>
+                    </>
+                  )}
 
                   <div className="divider" />
 

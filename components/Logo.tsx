@@ -1,8 +1,8 @@
 export function Logo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
   const config = {
-    sm: { icon: 14, text: 14, gap: 5 },
-    md: { icon: 18, text: 18, gap: 6 },
-    lg: { icon: 26, text: 26, gap: 8 },
+    sm: { icon: 8, text: 14, gap: 4 },
+    md: { icon: 11, text: 17, gap: 5 },
+    lg: { icon: 16, text: 24, gap: 6 },
   }[size];
 
   return (
@@ -16,16 +16,14 @@ export function Logo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
   );
 }
 
-export function LogoMark({ size = 20 }: { size?: number }) {
+export function LogoMark({ size = 10 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <path
-        d="M8 4L18 12L8 20"
-        stroke="var(--cp-cyan)"
-        strokeWidth="3.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+    <img
+      src="/logo-mark.png"
+      alt="CipherPay"
+      width={size}
+      height={Math.round(size * 1.4)}
+      style={{ display: 'block' }}
+    />
   );
 }

@@ -13,6 +13,7 @@ export default function BuyClient({ productId }: { productId: string }) {
   const [alias, setAlias] = useState('');
   const [address, setAddress] = useState('');
   const [region, setRegion] = useState('');
+  const [refundAddr, setRefundAddr] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
 
@@ -43,6 +44,7 @@ export default function BuyClient({ productId }: { productId: string }) {
         shipping_alias: alias || undefined,
         shipping_address: address || undefined,
         shipping_region: region || undefined,
+        refund_address: refundAddr || undefined,
       };
       const resp = await api.checkout(req);
       router.push(`/pay/${resp.invoice_id}`);
@@ -134,6 +136,18 @@ export default function BuyClient({ productId }: { productId: string }) {
               <div className="form-group">
                 <label className="form-label">Region</label>
                 <input type="text" value={region} onChange={(e) => setRegion(e.target.value)} placeholder="EU / US / APAC" className="input" />
+              </div>
+            </div>
+
+            <div className="divider" />
+
+            <div style={{ textAlign: 'left' }}>
+              <div className="section-title">Refund Address (optional)</div>
+              <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginBottom: 8, lineHeight: 1.5 }}>
+                Provide a Zcash address if you want the option of a refund. Without it, refunds require manual coordination.
+              </div>
+              <div className="form-group">
+                <input type="text" value={refundAddr} onChange={(e) => setRefundAddr(e.target.value)} placeholder="u1..." className="input" style={{ fontSize: 10 }} />
               </div>
             </div>
 

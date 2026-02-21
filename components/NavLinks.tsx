@@ -2,9 +2,11 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { API_URL } from '@/lib/config';
+import { ThemeToggle } from './ThemeToggle';
 
-export function NavLinks() {
+export function useIsLoggedIn() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -15,24 +17,40 @@ export function NavLinks() {
     return () => { cancelled = true; };
   }, []);
 
-  if (isLoggedIn === null) return null;
+  return isLoggedIn;
+}
 
-  if (isLoggedIn) {
-    return (
-      <Link href="/dashboard" className="btn-primary" style={{ textDecoration: 'none' }}>
-        DASHBOARD
-      </Link>
-    );
-  }
+export function NavLinks() {
+  const isLoggedIn = useIsLoggedIn();
+  const pathname = usePathname();
+
+  const linkStyle = (href: string) => ({
+    fontSize: 11,
+    textDecoration: 'none' as const,
+    letterSpacing: 1,
+    color: pathname === href ? 'var(--cp-cyan)' : 'var(--cp-text-muted)',
+    fontWeight: pathname === href ? 600 : 400,
+  });
 
   return (
     <>
-      <Link href="/dashboard/login" className="btn" style={{ textDecoration: 'none' }}>
-        SIGN IN
-      </Link>
-      <Link href="/dashboard/register" className="btn-primary" style={{ textDecoration: 'none' }}>
-        GET STARTED
-      </Link>
+      <Link href="/docs" style={linkStyle('/docs')}>DOCS</Link>
+      <Link href="/faq" style={linkStyle('/faq')}>FAQ</Link>
+      <ThemeToggle />
+      {isLoggedIn === null ? null : isLoggedIn ? (
+        <Link href="/dashboard" className="btn-primary" style={{ textDecoration: 'none' }}>
+          DASHBOARD
+        </Link>
+      ) : (
+        <>
+          <Link href="/dashboard/login" className="btn" style={{ textDecoration: 'none' }}>
+            SIGN IN
+          </Link>
+          <Link href="/dashboard/register" className="btn-primary" style={{ textDecoration: 'none' }}>
+            GET STARTED
+          </Link>
+        </>
+      )}
     </>
   );
 }

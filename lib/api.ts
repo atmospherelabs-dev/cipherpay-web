@@ -7,6 +7,7 @@ export interface MerchantInfo {
   webhook_url: string | null;
   webhook_secret_preview: string;
   has_recovery_email: boolean;
+  recovery_email_preview: string | null;
   created_at: string;
   stats: {
     total_invoices: number;
@@ -117,6 +118,7 @@ export interface CheckoutRequest {
   shipping_alias?: string;
   shipping_address?: string;
   shipping_region?: string;
+  refund_address?: string;
 }
 
 export interface ZecRates {
@@ -153,7 +155,7 @@ export const api = {
 
   myInvoices: () => request<Invoice[]>('/api/merchants/me/invoices'),
 
-  updateMe: (data: { name?: string; payment_address?: string; webhook_url?: string }) =>
+  updateMe: (data: { name?: string; webhook_url?: string; recovery_email?: string }) =>
     request<{ status: string }>('/api/merchants/me', {
       method: 'PATCH',
       body: JSON.stringify(data),

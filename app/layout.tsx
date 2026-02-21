@@ -19,11 +19,19 @@ export const metadata: Metadata = {
   title: 'CipherPay — Shielded Zcash Payments',
   description:
     'Accept shielded Zcash payments. Non-custodial, private, real-time detection. Powered by CipherScan.',
+  icons: {
+    icon: [
+      { url: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-16.png', sizes: '16x16', type: 'image/png' },
+    ],
+    apple: '/apple-touch-icon.png',
+  },
   openGraph: {
     title: 'CipherPay — Shielded Zcash Payments',
     description: 'Accept shielded Zcash payments with zero trust required.',
     siteName: 'CipherPay',
     type: 'website',
+    images: [{ url: '/logo-cyan-bg.png', width: 694, height: 694 }],
   },
 };
 
