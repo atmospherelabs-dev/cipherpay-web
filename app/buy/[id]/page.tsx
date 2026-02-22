@@ -14,12 +14,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     });
     if (res.ok) {
       const product = await res.json();
+      const sym = product.currency === 'USD' ? '$' : '€';
       return {
-        title: `${product.name} — €${product.price_eur.toFixed(2)} — CipherPay`,
+        title: `${product.name} — ${sym}${product.price_eur.toFixed(2)} — CipherPay`,
         description: product.description || `Pay with shielded ZEC`,
         openGraph: {
           title: `${product.name} — CipherPay`,
-          description: `€${product.price_eur.toFixed(2)} · Pay with shielded Zcash`,
+          description: `${sym}${product.price_eur.toFixed(2)} · Pay with shielded Zcash`,
         },
       };
     }

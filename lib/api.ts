@@ -23,27 +23,32 @@ export interface Invoice {
   product_name: string | null;
   size: string | null;
   price_eur: number;
+  price_usd: number | null;
+  currency: string | null;
   price_zec: number;
   zec_rate_at_creation: number;
   payment_address: string;
   zcash_uri: string;
   merchant_name: string | null;
-  status: 'pending' | 'detected' | 'confirmed' | 'expired' | 'shipped';
+  status: 'pending' | 'detected' | 'confirmed' | 'expired' | 'shipped' | 'refunded';
   detected_txid: string | null;
   detected_at: string | null;
   confirmed_at: string | null;
   shipped_at: string | null;
+  refunded_at: string | null;
   expires_at: string;
   created_at: string;
   shipping_alias?: string | null;
   shipping_address?: string | null;
   shipping_region?: string | null;
+  refund_address?: string | null;
 }
 
 export interface CreateInvoiceRequest {
   product_name?: string;
   size?: string;
   price_eur: number;
+  currency?: string;
   shipping_alias?: string;
   shipping_address?: string;
   shipping_region?: string;
@@ -53,6 +58,7 @@ export interface CreateInvoiceResponse {
   invoice_id: string;
   memo_code: string;
   price_eur: number;
+  price_usd: number;
   price_zec: number;
   zec_rate: number;
   payment_address: string;
@@ -82,6 +88,7 @@ export interface Product {
   name: string;
   description: string | null;
   price_eur: number;
+  currency: string;
   variants: string | null;
   active: number;
   created_at: string;
@@ -92,6 +99,7 @@ export interface PublicProduct {
   name: string;
   description: string | null;
   price_eur: number;
+  currency: string;
   variants: string[];
   slug: string;
 }
@@ -101,6 +109,7 @@ export interface CreateProductRequest {
   name: string;
   description?: string;
   price_eur: number;
+  currency?: string;
   variants?: string[];
 }
 
@@ -108,6 +117,7 @@ export interface UpdateProductRequest {
   name?: string;
   description?: string;
   price_eur?: number;
+  currency?: string;
   variants?: string[];
   active?: boolean;
 }
@@ -190,6 +200,9 @@ export const api = {
 
   shipInvoice: (id: string) =>
     request<{ status: string }>(`/api/invoices/${id}/ship`, { method: 'POST' }),
+
+  refundInvoice: (id: string) =>
+    request<{ status: string; refund_address: string | null }>(`/api/invoices/${id}/refund`, { method: 'POST' }),
 
   // Recovery
   recover: (email: string) =>

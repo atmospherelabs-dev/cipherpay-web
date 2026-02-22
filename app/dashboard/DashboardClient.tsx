@@ -9,7 +9,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { CopyButton } from '@/components/CopyButton';
 import Link from 'next/link';
 
-type Tab = 'products' | 'invoices' | 'settings';
+type Tab = 'products' | 'invoices' | 'pos' | 'settings';
 
 export default function DashboardClient({ merchant }: { merchant: MerchantInfo }) {
   const [tab, setTab] = useState<Tab>('products');
@@ -26,6 +26,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
   const [newDesc, setNewDesc] = useState('');
   const [newPrice, setNewPrice] = useState('');
   const [newVariants, setNewVariants] = useState('');
+  const [newCurrency, setNewCurrency] = useState<'EUR' | 'USD'>('EUR');
   const [creating, setCreating] = useState(false);
 
   // Product editing
@@ -34,17 +35,32 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
   const [editProdDesc, setEditProdDesc] = useState('');
   const [editProdPrice, setEditProdPrice] = useState('');
   const [editProdVariants, setEditProdVariants] = useState('');
+  const [editProdCurrency, setEditProdCurrency] = useState<'EUR' | 'USD'>('EUR');
   const [savingProduct, setSavingProduct] = useState(false);
 
   // POS quick invoice
   const [posProductId, setPosProductId] = useState<string | null>(null);
   const [posCreating, setPosCreating] = useState(false);
 
+  // POS cart
+  const [cart, setCart] = useState<Record<string, number>>({});
+  const [posCheckingOut, setPosCheckingOut] = useState(false);
+
   // Invoice detail expansion
   const [expandedInvoice, setExpandedInvoice] = useState<string | null>(null);
 
+  // Payment link creation
+  const [showPayLinkForm, setShowPayLinkForm] = useState(false);
+  const [payLinkAmount, setPayLinkAmount] = useState('');
+  const [payLinkDesc, setPayLinkDesc] = useState('');
+  const [payLinkCurrency, setPayLinkCurrency] = useState<'EUR' | 'USD'>('EUR');
+  const [payLinkCreating, setPayLinkCreating] = useState(false);
+  const [payLinkResult, setPayLinkResult] = useState<string | null>(null);
+
   // Settings
+  const [editingName, setEditingName] = useState(!merchant.name);
   const [editName, setEditName] = useState(merchant.name || '');
+  const [editingWebhook, setEditingWebhook] = useState(!merchant.webhook_url);
   const [editWebhookUrl, setEditWebhookUrl] = useState(merchant.webhook_url || '');
   const [editEmail, setEditEmail] = useState('');
   const [revealedKey, setRevealedKey] = useState<{ type: string; value: string } | null>(null);
@@ -82,11 +98,12 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
         slug: newSlug.toLowerCase().replace(/\s+/g, '-'),
         name: newName,
         price_eur: parseFloat(newPrice),
+        currency: newCurrency,
         description: newDesc || undefined,
         variants: newVariants ? newVariants.split(',').map(v => v.trim()).filter(Boolean) : undefined,
       };
       await api.createProduct(req);
-      setNewSlug(''); setNewName(''); setNewDesc(''); setNewPrice(''); setNewVariants('');
+      setNewSlug(''); setNewName(''); setNewDesc(''); setNewPrice(''); setNewVariants(''); setNewCurrency('EUR');
       setShowAddForm(false);
       loadProducts();
       showToast('Product added');
@@ -106,6 +123,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
     setEditProdName(product.name);
     setEditProdDesc(product.description || '');
     setEditProdPrice(product.price_eur.toString());
+    setEditProdCurrency((product.currency === 'USD' ? 'USD' : 'EUR') as 'EUR' | 'USD');
     setEditProdVariants(parseVariants(product.variants).join(', '));
   };
 
@@ -124,6 +142,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
         name: editProdName,
         description: editProdDesc || undefined,
         price_eur: parseFloat(editProdPrice),
+        currency: editProdCurrency,
         variants: editProdVariants ? editProdVariants.split(',').map(v => v.trim()).filter(Boolean) : [],
       };
       await api.updateProduct(productId, req);
@@ -149,6 +168,76 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
     setPosProductId(null);
   };
 
+  const cartAdd = (productId: string) => {
+    setCart(prev => ({ ...prev, [productId]: (prev[productId] || 0) + 1 }));
+  };
+  const cartRemove = (productId: string) => {
+    setCart(prev => {
+      const qty = (prev[productId] || 0) - 1;
+      if (qty <= 0) { const { [productId]: _, ...rest } = prev; return rest; }
+      return { ...prev, [productId]: qty };
+    });
+  };
+  const cartTotal = Object.entries(cart).reduce((sum, [pid, qty]) => {
+    const product = products.find(p => p.id === pid);
+    return sum + (product ? product.price_eur * qty : 0);
+  }, 0);
+  const cartItemCount = Object.values(cart).reduce((a, b) => a + b, 0);
+  const cartCurrencies = [...new Set(Object.keys(cart).map(pid => {
+    const p = products.find(pr => pr.id === pid);
+    return p?.currency || 'EUR';
+  }))];
+  const cartCurrency = cartCurrencies.length === 1 ? cartCurrencies[0] : 'EUR';
+  const cartMixedCurrency = cartCurrencies.length > 1;
+  const cartSymbol = cartCurrency === 'USD' ? '$' : '€';
+  const cartSummary = Object.entries(cart)
+    .map(([pid, qty]) => {
+      const product = products.find(p => p.id === pid);
+      return product ? `${qty}x ${product.name}` : '';
+    })
+    .filter(Boolean)
+    .join(', ');
+
+  const posCartCheckout = async () => {
+    if (cartTotal <= 0 || cartMixedCurrency) return;
+    setPosCheckingOut(true);
+    try {
+      const resp = await api.createInvoice({
+        product_name: cartSummary,
+        price_eur: Math.round(cartTotal * 100) / 100,
+        currency: cartCurrency,
+      });
+      setCart({});
+      router.push(`/pay/${resp.invoice_id}`);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Checkout failed', true);
+    }
+    setPosCheckingOut(false);
+  };
+
+  const createPaymentLink = async () => {
+    const amount = parseFloat(payLinkAmount);
+    if (!amount || amount <= 0) {
+      showToast('Enter a valid amount', true);
+      return;
+    }
+    setPayLinkCreating(true);
+    try {
+      const resp = await api.createInvoice({
+        product_name: payLinkDesc || undefined,
+        price_eur: Math.round(amount * 100) / 100,
+        currency: payLinkCurrency,
+      });
+      const link = `${checkoutOrigin}/pay/${resp.invoice_id}`;
+      setPayLinkResult(link);
+      loadInvoices();
+      showToast('Payment link created');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to create link', true);
+    }
+    setPayLinkCreating(false);
+  };
+
   const cancelInvoice = async (id: string) => {
     try { await api.cancelInvoice(id); loadInvoices(); showToast('Invoice cancelled'); }
     catch { showToast('Failed to cancel', true); }
@@ -159,9 +248,18 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
     catch { showToast('Failed to mark as shipped', true); }
   };
 
+  const refundInvoice = async (id: string) => {
+    try {
+      const resp = await api.refundInvoice(id);
+      loadInvoices();
+      showToast(resp.refund_address ? 'Marked as refunded — see refund address below' : 'Marked as refunded');
+    } catch { showToast('Failed to mark as refunded', true); }
+  };
+
   const saveName = async () => {
     try {
       await api.updateMe({ name: editName });
+      setEditingName(false);
       showToast('Name updated');
     } catch { showToast('Failed to update name', true); }
   };
@@ -169,6 +267,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
   const saveWebhookUrl = async () => {
     try {
       await api.updateMe({ webhook_url: editWebhookUrl || '' });
+      setEditingWebhook(!editWebhookUrl);
       showToast(editWebhookUrl ? 'Webhook URL saved' : 'Webhook URL removed');
     } catch { showToast('Failed to update webhook URL', true); }
   };
@@ -275,25 +374,32 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
             </div>
 
             {/* Tab Switcher */}
-            <div style={{ display: 'flex', gap: 0, marginTop: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0, marginTop: 16 }}>
               <button
                 onClick={() => setTab('products')}
                 className={tab === 'products' ? 'btn-primary' : 'btn'}
-                style={{ borderRadius: '4px 0 0 0', flex: 1 }}
+                style={{ borderRadius: '4px 0 0 0' }}
               >
                 PRODUCTS
               </button>
               <button
+                onClick={() => setTab('pos')}
+                className={tab === 'pos' ? 'btn-primary' : 'btn'}
+                style={{ borderRadius: 0 }}
+              >
+                POS{cartItemCount > 0 ? ` (${cartItemCount})` : ''}
+              </button>
+              <button
                 onClick={() => setTab('invoices')}
                 className={tab === 'invoices' ? 'btn-primary' : 'btn'}
-                style={{ borderRadius: 0, flex: 1 }}
+                style={{ borderRadius: 0 }}
               >
                 INVOICES
               </button>
               <button
                 onClick={() => setTab('settings')}
                 className={tab === 'settings' ? 'btn-primary' : 'btn'}
-                style={{ borderRadius: '0 4px 0 0', flex: 1 }}
+                style={{ borderRadius: '0 4px 0 0' }}
               >
                 SETTINGS
               </button>
@@ -326,12 +432,43 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                       <textarea value={newDesc} onChange={(e) => setNewDesc(e.target.value)} placeholder="Premium privacy tee" rows={2} className="input" style={{ resize: 'vertical', minHeight: 50 }} />
                     </div>
                     <div className="form-group">
-                      <label className="form-label">Price (EUR)</label>
-                      <input type="number" value={newPrice} onChange={(e) => setNewPrice(e.target.value)} placeholder="65" step="any" min="0.001" className="input" />
+                      <label className="form-label">Price</label>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <input type="number" value={newPrice} onChange={(e) => setNewPrice(e.target.value)} placeholder="65" step="any" min="0.001" className="input" style={{ flex: 1 }} />
+                        <select
+                          value={newCurrency}
+                          onChange={(e) => setNewCurrency(e.target.value as 'EUR' | 'USD')}
+                          className="input"
+                          style={{ width: 80, textAlign: 'center' }}
+                        >
+                          <option value="EUR">EUR</option>
+                          <option value="USD">USD</option>
+                        </select>
+                      </div>
                     </div>
                     <div className="form-group">
-                      <label className="form-label">Variants (comma-separated, optional)</label>
-                      <input type="text" value={newVariants} onChange={(e) => setNewVariants(e.target.value)} placeholder="S, M, L, XL" className="input" />
+                      <label className="form-label">Variants (optional)</label>
+                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+                        {['XS', 'S', 'M', 'L', 'XL', 'XXL'].map((size) => {
+                          const selected = newVariants.split(',').map(v => v.trim()).filter(Boolean).includes(size);
+                          return (
+                            <button
+                              key={size}
+                              type="button"
+                              onClick={() => {
+                                const current = newVariants.split(',').map(v => v.trim()).filter(Boolean);
+                                const next = selected ? current.filter(v => v !== size) : [...current, size];
+                                setNewVariants(next.join(', '));
+                              }}
+                              className={selected ? 'btn-primary' : 'btn'}
+                              style={{ minWidth: 40, padding: '6px 10px', fontSize: 11 }}
+                            >
+                              {size}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <input type="text" value={newVariants} onChange={(e) => setNewVariants(e.target.value)} placeholder="Custom: Red, Blue, Green" className="input" style={{ fontSize: 10 }} />
                     </div>
                     <button onClick={addProduct} disabled={creating} className="btn-primary" style={{ width: '100%', opacity: creating ? 0.5 : 1 }}>
                       {creating ? 'ADDING...' : 'ADD PRODUCT'}
@@ -361,16 +498,47 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                               <input type="text" value={editProdName} onChange={(e) => setEditProdName(e.target.value)} className="input" />
                             </div>
                             <div className="form-group">
-                              <label className="form-label">Price (EUR)</label>
-                              <input type="number" value={editProdPrice} onChange={(e) => setEditProdPrice(e.target.value)} step="any" min="0.001" className="input" />
+                              <label className="form-label">Price</label>
+                              <div style={{ display: 'flex', gap: 8 }}>
+                                <input type="number" value={editProdPrice} onChange={(e) => setEditProdPrice(e.target.value)} step="any" min="0.001" className="input" style={{ flex: 1 }} />
+                                <select
+                                  value={editProdCurrency}
+                                  onChange={(e) => setEditProdCurrency(e.target.value as 'EUR' | 'USD')}
+                                  className="input"
+                                  style={{ width: 80, textAlign: 'center' }}
+                                >
+                                  <option value="EUR">EUR</option>
+                                  <option value="USD">USD</option>
+                                </select>
+                              </div>
                             </div>
                             <div className="form-group">
                               <label className="form-label">Description</label>
                               <input type="text" value={editProdDesc} onChange={(e) => setEditProdDesc(e.target.value)} placeholder="Optional" className="input" />
                             </div>
                             <div className="form-group">
-                              <label className="form-label">Variants (comma-separated)</label>
-                              <input type="text" value={editProdVariants} onChange={(e) => setEditProdVariants(e.target.value)} placeholder="S, M, L, XL" className="input" />
+                              <label className="form-label">Variants</label>
+                              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+                                {['XS', 'S', 'M', 'L', 'XL', 'XXL'].map((size) => {
+                                  const selected = editProdVariants.split(',').map(v => v.trim()).filter(Boolean).includes(size);
+                                  return (
+                                    <button
+                                      key={size}
+                                      type="button"
+                                      onClick={() => {
+                                        const current = editProdVariants.split(',').map(v => v.trim()).filter(Boolean);
+                                        const next = selected ? current.filter(v => v !== size) : [...current, size];
+                                        setEditProdVariants(next.join(', '));
+                                      }}
+                                      className={selected ? 'btn-primary' : 'btn'}
+                                      style={{ minWidth: 40, padding: '6px 10px', fontSize: 11 }}
+                                    >
+                                      {size}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                              <input type="text" value={editProdVariants} onChange={(e) => setEditProdVariants(e.target.value)} placeholder="Custom: Red, Blue, Green" className="input" style={{ fontSize: 10 }} />
                             </div>
                             <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
                               <button onClick={() => saveProduct(product.id)} disabled={savingProduct} className="btn-primary" style={{ flex: 1, opacity: savingProduct ? 0.5 : 1 }}>
@@ -383,7 +551,10 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                           <>
                             <div className="invoice-header">
                               <span className="invoice-id">{product.name}</span>
-                              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--cp-text)' }}>€{product.price_eur.toFixed(2)}</span>
+                              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--cp-text)' }}>
+                                {product.currency === 'USD' ? '$' : '€'}{product.price_eur.toFixed(2)}
+                                {product.currency === 'USD' && <span style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginLeft: 4 }}>USD</span>}
+                              </span>
                             </div>
                             <div className="invoice-meta">
                               <span style={{ color: 'var(--cp-text-dim)', fontSize: 10 }}>/{product.slug}</span>
@@ -414,12 +585,169 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                   })
                 )}
               </div>
+            ) : tab === 'pos' ? (
+              <div className="panel">
+                <div className="panel-header">
+                  <span className="panel-title">POS // Point of Sale</span>
+                  {cartItemCount > 0 && (
+                    <button onClick={() => setCart({})} className="btn btn-small btn-cancel">CLEAR</button>
+                  )}
+                </div>
+
+                {loadingProducts ? (
+                  <div className="empty-state">
+                    <div className="w-5 h-5 border-2 rounded-full animate-spin mx-auto" style={{ borderColor: 'var(--cp-cyan)', borderTopColor: 'transparent' }} />
+                  </div>
+                ) : products.filter(p => p.active === 1).length === 0 ? (
+                  <div className="empty-state">
+                    <div className="icon">&#9744;</div>
+                    <div>Add products first to use POS.</div>
+                  </div>
+                ) : (
+                  <>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 8, padding: 16 }}>
+                      {products.filter(p => p.active === 1).map((product) => {
+                        const qty = cart[product.id] || 0;
+                        return (
+                          <div
+                            key={product.id}
+                            style={{
+                              border: `1px solid ${qty > 0 ? 'var(--cp-cyan)' : 'var(--cp-border)'}`,
+                              borderRadius: 4,
+                              padding: 12,
+                              background: qty > 0 ? 'rgba(6, 182, 212, 0.05)' : 'transparent',
+                              transition: 'all 0.15s',
+                            }}
+                          >
+                            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, color: 'var(--cp-text)' }}>
+                              {product.name}
+                            </div>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--cp-text)', marginBottom: 8 }}>
+                              {product.currency === 'USD' ? '$' : '€'}{product.price_eur.toFixed(2)}
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <button
+                                onClick={() => cartRemove(product.id)}
+                                disabled={qty === 0}
+                                style={{
+                                  width: 28, height: 28, border: '1px solid var(--cp-border)',
+                                  borderRadius: 4, background: 'transparent', color: 'var(--cp-text)',
+                                  fontSize: 16, cursor: qty === 0 ? 'not-allowed' : 'pointer',
+                                  opacity: qty === 0 ? 0.3 : 1, fontFamily: 'inherit',
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                }}
+                              >
+                                −
+                              </button>
+                              <span style={{ fontSize: 14, fontWeight: 700, minWidth: 20, textAlign: 'center', color: qty > 0 ? 'var(--cp-cyan)' : 'var(--cp-text-dim)' }}>
+                                {qty}
+                              </span>
+                              <button
+                                onClick={() => cartAdd(product.id)}
+                                style={{
+                                  width: 28, height: 28, border: '1px solid var(--cp-cyan)',
+                                  borderRadius: 4, background: 'transparent', color: 'var(--cp-cyan)',
+                                  fontSize: 16, cursor: 'pointer', fontFamily: 'inherit',
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                }}
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Cart summary + checkout */}
+                    <div style={{ padding: '16px', borderTop: '1px solid var(--cp-border)' }}>
+                      {cartItemCount > 0 && (
+                        <div style={{ marginBottom: 12 }}>
+                          <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', letterSpacing: 1, marginBottom: 6 }}>ORDER SUMMARY</div>
+                          {Object.entries(cart).map(([pid, qty]) => {
+                            const product = products.find(p => p.id === pid);
+                            if (!product) return null;
+                            return (
+                              <div key={pid} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '3px 0', color: 'var(--cp-text-muted)' }}>
+                                <span>{qty}x {product.name}</span>
+                                <span>{product.currency === 'USD' ? '$' : '€'}{(product.price_eur * qty).toFixed(2)}</span>
+                              </div>
+                            );
+                          })}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, fontWeight: 700, marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--cp-border)' }}>
+                            <span>TOTAL</span>
+                            <span>{cartSymbol}{cartTotal.toFixed(2)}</span>
+                          </div>
+                          {cartMixedCurrency && (
+                            <div style={{ fontSize: 10, color: '#f59e0b', marginTop: 6 }}>
+                              Mixed currencies in cart. Remove items until all are the same currency.
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      <button
+                        onClick={posCartCheckout}
+                        disabled={cartItemCount === 0 || posCheckingOut || cartMixedCurrency}
+                        className="btn-primary"
+                        style={{
+                          width: '100%', padding: '14px 0', fontSize: 13, letterSpacing: 2,
+                          opacity: cartItemCount === 0 || posCheckingOut || cartMixedCurrency ? 0.4 : 1,
+                        }}
+                      >
+                        {posCheckingOut ? 'CREATING INVOICE...' : cartItemCount === 0 ? 'ADD ITEMS TO CHECKOUT' : `CHECKOUT — ${cartSymbol}${cartTotal.toFixed(2)}`}
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
             ) : tab === 'invoices' ? (
               <div className="panel">
                 <div className="panel-header">
                   <span className="panel-title">03 // Invoices</span>
-                  <button onClick={loadInvoices} className="btn btn-small">REFRESH</button>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button onClick={() => { setShowPayLinkForm(!showPayLinkForm); setPayLinkResult(null); }} className="btn btn-small">
+                      {showPayLinkForm ? 'CANCEL' : '+ PAYMENT LINK'}
+                    </button>
+                    <button onClick={loadInvoices} className="btn btn-small">REFRESH</button>
+                  </div>
                 </div>
+
+                {showPayLinkForm && (
+                  <div className="panel-body" style={{ borderBottom: '1px solid var(--cp-border)' }}>
+                    <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', letterSpacing: 1, marginBottom: 8 }}>CREATE PAYMENT LINK</div>
+                    <div className="form-group">
+                      <label className="form-label">Amount</label>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <input type="number" value={payLinkAmount} onChange={(e) => setPayLinkAmount(e.target.value)} placeholder="50.00" step="any" min="0.001" className="input" style={{ flex: 1 }} />
+                        <select
+                          value={payLinkCurrency}
+                          onChange={(e) => setPayLinkCurrency(e.target.value as 'EUR' | 'USD')}
+                          className="input"
+                          style={{ width: 80, textAlign: 'center' }}
+                        >
+                          <option value="EUR">EUR</option>
+                          <option value="USD">USD</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Description (optional)</label>
+                      <input type="text" value={payLinkDesc} onChange={(e) => setPayLinkDesc(e.target.value)} placeholder="Consulting session, donation, etc." className="input" />
+                    </div>
+                    <button onClick={createPaymentLink} disabled={payLinkCreating} className="btn-primary" style={{ width: '100%', opacity: payLinkCreating ? 0.5 : 1 }}>
+                      {payLinkCreating ? 'CREATING...' : 'CREATE LINK'}
+                    </button>
+                    {payLinkResult && (
+                      <div style={{ marginTop: 12, background: 'var(--cp-bg)', border: '1px solid var(--cp-green)', borderRadius: 4, padding: 12 }}>
+                        <div style={{ fontSize: 10, letterSpacing: 1, color: 'var(--cp-green)', marginBottom: 6 }}>PAYMENT LINK READY</div>
+                        <div style={{ fontSize: 10, color: 'var(--cp-text)', wordBreak: 'break-all', fontFamily: 'monospace', marginBottom: 8 }}>
+                          {payLinkResult}
+                        </div>
+                        <CopyButton text={payLinkResult} label="Copy Link" />
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {loadingInvoices ? (
                   <div className="empty-state">
@@ -531,10 +859,34 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                                 <span style={{ fontSize: 10 }}>{new Date(inv.shipped_at).toLocaleString()}</span>
                               </div>
                             )}
+                            {inv.refunded_at && (
+                              <div className="stat-row">
+                                <span style={{ color: '#f59e0b' }}>Refunded</span>
+                                <span style={{ fontSize: 10 }}>{new Date(inv.refunded_at).toLocaleString()}</span>
+                              </div>
+                            )}
                             <div className="stat-row">
                               <span style={{ color: 'var(--cp-text-muted)' }}>Expires</span>
                               <span style={{ fontSize: 10 }}>{new Date(inv.expires_at).toLocaleString()}</span>
                             </div>
+
+                            {/* Refund Address */}
+                            {inv.refund_address && (inv.status === 'confirmed' || inv.status === 'shipped' || inv.status === 'refunded') && (
+                              <>
+                                <div className="section-title" style={{ marginTop: 12 }}>REFUND ADDRESS</div>
+                                <div className="stat-row">
+                                  <span style={{ fontSize: 9, color: '#f59e0b', wordBreak: 'break-all', maxWidth: '80%' }}>
+                                    {inv.refund_address}
+                                  </span>
+                                  <CopyButton text={inv.refund_address} label="" />
+                                </div>
+                                {inv.status !== 'refunded' && (
+                                  <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 4 }}>
+                                    Send ZEC to this address to refund the buyer, then mark as refunded.
+                                  </div>
+                                )}
+                              </>
+                            )}
 
                             {/* Actions */}
                             <div className="invoice-actions" style={{ marginTop: 12 }}>
@@ -542,6 +894,11 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                               {inv.status === 'confirmed' && (
                                 <button onClick={() => shipInvoice(inv.id)} className="btn btn-small" style={{ color: 'var(--cp-cyan)', borderColor: 'var(--cp-cyan)' }}>
                                   MARK SHIPPED
+                                </button>
+                              )}
+                              {(inv.status === 'confirmed' || inv.status === 'shipped') && (
+                                <button onClick={() => refundInvoice(inv.id)} className="btn btn-small" style={{ color: '#f59e0b', borderColor: 'rgba(245,158,11,0.5)' }}>
+                                  REFUND
                                 </button>
                               )}
                               {inv.status === 'pending' && (
@@ -557,6 +914,11 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                             {inv.status === 'confirmed' && (
                               <button onClick={(e) => { e.stopPropagation(); shipInvoice(inv.id); }} className="btn btn-small" style={{ color: 'var(--cp-cyan)', borderColor: 'var(--cp-cyan)' }}>
                                 MARK SHIPPED
+                              </button>
+                            )}
+                            {(inv.status === 'confirmed' || inv.status === 'shipped') && (
+                              <button onClick={(e) => { e.stopPropagation(); refundInvoice(inv.id); }} className="btn btn-small" style={{ color: '#f59e0b', borderColor: 'rgba(245,158,11,0.5)' }}>
+                                REFUND
                               </button>
                             )}
                             {inv.status === 'pending' && (
@@ -577,10 +939,18 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                 <div className="panel-body">
                   {/* Store Name */}
                   <div className="section-title">Store Name</div>
-                  <div className="form-group" style={{ display: 'flex', gap: 8 }}>
-                    <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="My Store" className="input" style={{ flex: 1 }} />
-                    <button onClick={saveName} className="btn btn-small">SAVE</button>
-                  </div>
+                  {editingName ? (
+                    <div className="form-group" style={{ display: 'flex', gap: 8 }}>
+                      <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="My Store" className="input" style={{ flex: 1 }} />
+                      <button onClick={saveName} className="btn btn-small">SAVE</button>
+                      {editName && <button onClick={() => { setEditName(merchant.name || ''); setEditingName(false); }} className="btn btn-small btn-cancel">CANCEL</button>}
+                    </div>
+                  ) : (
+                    <div className="stat-row">
+                      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--cp-text)' }}>{editName}</span>
+                      <button onClick={() => setEditingName(true)} className="btn btn-small">EDIT</button>
+                    </div>
+                  )}
 
                   <div className="divider" />
 
@@ -621,13 +991,30 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
 
                   {/* Webhook URL */}
                   <div className="section-title">Webhook URL</div>
-                  <div className="form-group" style={{ display: 'flex', gap: 8 }}>
-                    <input type="url" value={editWebhookUrl} onChange={(e) => setEditWebhookUrl(e.target.value)} placeholder="https://your-store.com/api/webhook" className="input" style={{ flex: 1, fontSize: 10 }} />
-                    <button onClick={saveWebhookUrl} className="btn btn-small">SAVE</button>
-                  </div>
-                  <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 4 }}>
-                    CipherPay will POST invoice events (confirmed, expired) to this URL.
-                  </div>
+                  {editingWebhook ? (
+                    <>
+                      <div className="form-group" style={{ display: 'flex', gap: 8 }}>
+                        <input type="url" value={editWebhookUrl} onChange={(e) => setEditWebhookUrl(e.target.value)} placeholder="https://your-store.com/api/webhook" className="input" style={{ flex: 1, fontSize: 10 }} />
+                        <button onClick={saveWebhookUrl} className="btn btn-small">SAVE</button>
+                        {merchant.webhook_url && <button onClick={() => { setEditWebhookUrl(merchant.webhook_url || ''); setEditingWebhook(false); }} className="btn btn-small btn-cancel">CANCEL</button>}
+                      </div>
+                      <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 4 }}>
+                        CipherPay will POST invoice events (confirmed, expired) to this URL.
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="stat-row">
+                        <span style={{ fontSize: 10, color: 'var(--cp-cyan)', wordBreak: 'break-all', maxWidth: '75%' }}>
+                          {editWebhookUrl}
+                        </span>
+                        <button onClick={() => setEditingWebhook(true)} className="btn btn-small">EDIT</button>
+                      </div>
+                      <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 4 }}>
+                        CipherPay will POST invoice events (confirmed, expired) to this URL.
+                      </div>
+                    </>
+                  )}
 
                   <div className="divider" />
 

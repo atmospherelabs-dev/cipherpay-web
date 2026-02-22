@@ -90,7 +90,7 @@ export default function BuyClient({ productId }: { productId: string }) {
           <div className="checkout-preview">
             <div style={{ fontSize: 10, letterSpacing: 1, color: 'var(--cp-text-dim)' }}>PAY WITH SHIELDED ZEC</div>
             <div className="price">{product.name}</div>
-            <div className="price-zec">€{product.price_eur.toFixed(2)}</div>
+            <div className="price-zec">{product.currency === 'USD' ? '$' : '€'}{product.price_eur.toFixed(2)}</div>
 
             {product.description && (
               <div style={{ fontSize: 11, color: 'var(--cp-text-muted)', marginTop: 4, marginBottom: 16 }}>

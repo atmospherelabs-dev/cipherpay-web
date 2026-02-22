@@ -125,7 +125,11 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
     );
   }
 
+  const isUsd = invoice.currency === 'USD';
   const eurStr = invoice.price_eur < 0.01 ? `€${invoice.price_eur}` : `€${invoice.price_eur.toFixed(2)}`;
+  const usdStr = invoice.price_usd ? (invoice.price_usd < 0.01 ? `$${invoice.price_usd}` : `$${invoice.price_usd.toFixed(2)}`) : null;
+  const primaryPrice = isUsd && usdStr ? usdStr : eurStr;
+  const secondaryPrice = isUsd ? eurStr : usdStr;
   const showReceipt = invoice.status === 'detected' || invoice.status === 'confirmed';
 
   return (
@@ -158,7 +162,9 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
                     {invoice.product_name}{invoice.size ? ` · ${invoice.size}` : ''}
                   </div>
                 )}
-                <div style={{ fontSize: 32, fontWeight: 700, color: 'var(--cp-text)' }}>{eurStr}</div>
+                <div style={{ fontSize: 32, fontWeight: 700, color: 'var(--cp-text)' }}>
+                  {primaryPrice}{secondaryPrice && <span style={{ fontSize: 16, color: 'var(--cp-text-muted)', fontWeight: 400, marginLeft: 8 }}>{secondaryPrice}</span>}
+                </div>
                 <div style={{ fontSize: 13, color: 'var(--cp-cyan)', marginTop: 4 }}>≈ {invoice.price_zec.toFixed(8)} ZEC</div>
               </div>
 
@@ -326,7 +332,11 @@ function ConfirmedReceipt({ invoice, returnUrl }: { invoice: Invoice; returnUrl:
     }
   }, [redirectIn, returnUrl]);
 
+  const isUsd = invoice.currency === 'USD';
   const eurStr = invoice.price_eur < 0.01 ? `€${invoice.price_eur}` : `€${invoice.price_eur.toFixed(2)}`;
+  const usdStr = invoice.price_usd ? (invoice.price_usd < 0.01 ? `$${invoice.price_usd}` : `$${invoice.price_usd.toFixed(2)}`) : null;
+  const primaryPrice = isUsd && usdStr ? usdStr : eurStr;
+  const secondaryPrice = isUsd ? eurStr : usdStr;
 
   const row: React.CSSProperties = {
     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -363,7 +373,7 @@ function ConfirmedReceipt({ invoice, returnUrl }: { invoice: Invoice; returnUrl:
 
         <div style={row}>
           <span style={label}>AMOUNT</span>
-          <span style={{ fontWeight: 700, fontSize: 14 }}>{eurStr}</span>
+          <span style={{ fontWeight: 700, fontSize: 14 }}>{primaryPrice}{secondaryPrice && <span style={{ fontWeight: 400, fontSize: 11, color: 'var(--cp-text-muted)', marginLeft: 6 }}>{secondaryPrice}</span>}</span>
         </div>
 
         <div style={row}>
