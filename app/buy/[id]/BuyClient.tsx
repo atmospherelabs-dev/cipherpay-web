@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, type PublicProduct, type CheckoutRequest } from '@/lib/api';
+import { validateZcashAddress } from '@/lib/validation';
 import { Logo } from '@/components/Logo';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
@@ -10,9 +11,6 @@ export default function BuyClient({ productId }: { productId: string }) {
   const [product, setProduct] = useState<PublicProduct | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedVariant, setSelectedVariant] = useState('');
-  const [alias, setAlias] = useState('');
-  const [address, setAddress] = useState('');
-  const [region, setRegion] = useState('');
   const [refundAddr, setRefundAddr] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
@@ -36,14 +34,16 @@ export default function BuyClient({ productId }: { productId: string }) {
       return;
     }
 
+    if (refundAddr) {
+      const e = validateZcashAddress(refundAddr);
+      if (e) { setFormError(`Refund address: ${e}`); return; }
+    }
+
     setSubmitting(true);
     try {
       const req: CheckoutRequest = {
         product_id: productId,
         variant: selectedVariant || undefined,
-        shipping_alias: alias || undefined,
-        shipping_address: address || undefined,
-        shipping_region: region || undefined,
         refund_address: refundAddr || undefined,
       };
       const resp = await api.checkout(req);
@@ -117,27 +117,6 @@ export default function BuyClient({ productId }: { productId: string }) {
                 </div>
               </div>
             )}
-
-            <div className="divider" />
-
-            <div style={{ textAlign: 'left' }}>
-              <div className="section-title">Shipping Details (optional)</div>
-
-              <div className="form-group">
-                <label className="form-label">Name / Alias</label>
-                <input type="text" value={alias} onChange={(e) => setAlias(e.target.value)} placeholder="anon_buyer_42" className="input" />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Address</label>
-                <textarea value={address} onChange={(e) => setAddress(e.target.value)} placeholder="123 Privacy St, Zurich CH-8001" rows={2} className="input" style={{ resize: 'vertical', minHeight: 50 }} />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Region</label>
-                <input type="text" value={region} onChange={(e) => setRegion(e.target.value)} placeholder="EU / US / APAC" className="input" />
-              </div>
-            </div>
 
             <div className="divider" />
 

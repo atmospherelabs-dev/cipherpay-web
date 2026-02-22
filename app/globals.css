@@ -36,6 +36,9 @@
   --cp-red: #dc2626;
 }
 
+.hero-gradient { opacity: 0.2; }
+.light .hero-gradient { opacity: 0.7; }
+
 body {
   background: var(--cp-bg);
   color: var(--cp-text);
@@ -123,12 +126,6 @@ body {
   background: rgba(239, 68, 68, 0.15);
   color: var(--cp-red);
   border: 1px solid rgba(239, 68, 68, 0.3);
-}
-
-.status-shipped {
-  background: rgba(6, 182, 212, 0.15);
-  color: var(--cp-cyan);
-  border: 1px solid rgba(6, 182, 212, 0.3);
 }
 
 /* ── Buttons (exact POC) ── */
@@ -316,40 +313,6 @@ body {
   margin-bottom: 16px;
 }
 
-.checkout-preview .memo-label {
-  font-size: 10px;
-  color: var(--cp-text-muted);
-  letter-spacing: 1px;
-  margin-bottom: 4px;
-}
-
-.checkout-preview .memo-box {
-  background: var(--cp-bg);
-  border: 1px solid var(--cp-border);
-  border-radius: 4px;
-  padding: 10px;
-  margin: 0 0 12px;
-  cursor: pointer;
-  transition: border-color 0.15s;
-}
-
-.checkout-preview .memo-box:hover {
-  border-color: var(--cp-purple);
-}
-
-.checkout-preview .memo-box.address {
-  font-size: 9px;
-  word-break: break-all;
-  color: var(--cp-cyan);
-  letter-spacing: 0;
-}
-
-.checkout-preview .memo-box.memo {
-  font-size: 14px;
-  letter-spacing: 2px;
-  color: var(--cp-purple);
-}
-
 .checkout-preview .timer {
   font-size: 11px;
   color: var(--cp-text-dim);
@@ -479,4 +442,3 @@ body {
     grid-template-columns: 1fr;
   }
 }
-

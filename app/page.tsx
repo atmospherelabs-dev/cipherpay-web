@@ -30,17 +30,33 @@ export default function LandingPage() {
       </header>
 
       {/* Hero */}
-      <section style={{ padding: '80px 24px 60px', textAlign: 'center' }}>
-        <div style={{ maxWidth: 700, margin: '0 auto' }}>
+      <section style={{ padding: '80px 24px 60px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+        <div
+          aria-hidden="true"
+          className="hero-gradient"
+          style={{
+            position: 'absolute',
+            top: '-40%',
+            right: '-10%',
+            width: '80%',
+            height: '120%',
+            backgroundImage: 'url(/hero-gradient.png)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            pointerEvents: 'none',
+            transform: 'rotate(35deg)',
+          }}
+        />
+        <div style={{ maxWidth: 700, margin: '0 auto', position: 'relative' }}>
           <span className="tag" style={{ marginBottom: 24, display: 'inline-block' }}>POWERED BY CIPHERSCAN</span>
 
           <h1 style={{ fontSize: 42, fontWeight: 700, letterSpacing: -1, marginBottom: 16, lineHeight: 1.1 }}>
-            Accept <span style={{ color: 'var(--cp-purple)' }}>shielded</span> Zcash payments
+            <span style={{ color: 'var(--cp-purple)' }}>Private</span> payments for the internet.
           </h1>
 
           <p style={{ fontSize: 14, color: 'var(--cp-text-muted)', maxWidth: 520, margin: '0 auto 32px', lineHeight: 1.8 }}>
-            Non-custodial payment gateway with real-time mempool detection.
-            Your keys, your privacy, your commerce.
+            Accept Zcash in minutes. Non-custodial. Zero buyer data. No middleman.
           </p>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
@@ -190,8 +206,25 @@ export default function LandingPage() {
       </section>
 
       {/* CTA */}
-      <section style={{ borderTop: '1px solid var(--cp-border)', padding: '60px 24px' }}>
-        <div style={{ maxWidth: 500, margin: '0 auto', textAlign: 'center' }}>
+      <section style={{ borderTop: '1px solid var(--cp-border)', padding: '60px 24px', position: 'relative', overflow: 'hidden' }}>
+        <div
+          aria-hidden="true"
+          className="hero-gradient"
+          style={{
+            position: 'absolute',
+            bottom: '-36%',
+            left: '-10%',
+            width: '80%',
+            height: '110%',
+            backgroundImage: 'url(/hero-gradient.png)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            pointerEvents: 'none',
+            transform: 'rotate(199deg) scaleX(-1)',
+          }}
+        />
+        <div style={{ maxWidth: 500, margin: '0 auto', textAlign: 'center', position: 'relative' }}>
           <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 12 }}>
             Ready to accept private payments?
           </h2>

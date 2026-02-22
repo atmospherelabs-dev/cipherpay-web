@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { api } from '@/lib/api';
+import { validateEmail } from '@/lib/validation';
 import { Logo } from '@/components/Logo';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import Link from 'next/link';
@@ -16,6 +17,9 @@ export default function RecoverPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    const emailErr = validateEmail(email);
+    if (emailErr) { setError(emailErr); setLoading(false); return; }
 
     try {
       await api.recover(email);

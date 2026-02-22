@@ -316,13 +316,13 @@ def verify_webhook(headers, body, webhook_secret):
   Pay with Zcash
 </a>`} />
           <p style={{ fontSize: 11, color: 'var(--cp-text-dim)' }}>
-            The buyer selects a variant, enters shipping info, and is redirected to the payment page. Pricing is always set server-side — buyers can&apos;t tamper with it.
+            The buyer selects a variant and is redirected to the payment page. Pricing is always set server-side — buyers can&apos;t tamper with it.
           </p>
         </Step>
 
-        <Step n={3} title="Track orders in the dashboard">
+        <Step n={3} title="Track payments in the dashboard">
           <p style={{ fontSize: 11, color: 'var(--cp-text-dim)' }}>
-            View invoices, shipping details, and payment status in your dashboard. Mark orders as shipped when fulfilled.
+            View invoices and payment status in your dashboard. Use webhooks to integrate with your own order management.
           </p>
         </Step>
       </>
@@ -484,7 +484,7 @@ export default function DocsPage() {
             <span style={{ color: 'var(--cp-cyan)' }}>Get</span> Started
           </h1>
           <p style={{ fontSize: 11, color: 'var(--cp-text-dim)', marginTop: 4 }}>
-            Accept shielded Zcash payments on your website, app, or store.
+            Private payments for the internet. Accept Zcash in minutes.
           </p>
         </div>
 

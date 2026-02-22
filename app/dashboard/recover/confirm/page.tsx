@@ -23,6 +23,8 @@ function RecoverConfirmInner() {
       return;
     }
 
+    window.history.replaceState({}, '', '/dashboard/recover/confirm');
+
     api.recoverConfirm(token)
       .then((res) => {
         setDashboardToken(res.dashboard_token);

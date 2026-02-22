@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { api, type RegisterResponse } from '@/lib/api';
+import { validateEmail, validateWebhookUrl, validateLength } from '@/lib/validation';
 import { Logo } from '@/components/Logo';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { CopyButton } from '@/components/CopyButton';
@@ -10,7 +11,6 @@ import Link from 'next/link';
 export default function RegisterPage() {
   const [name, setName] = useState('');
   const [ufvk, setUfvk] = useState('');
-  const [address, setAddress] = useState('');
   const [webhookUrl, setWebhookUrl] = useState('');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,11 +22,30 @@ export default function RegisterPage() {
     setLoading(true);
     setError('');
 
+    if (name) {
+      const nameErr = validateLength(name, 100, 'Store name');
+      if (nameErr) { setError(nameErr); setLoading(false); return; }
+    }
+    const ufvkLen = validateLength(ufvk, 2000, 'UFVK');
+    if (ufvkLen) { setError(ufvkLen); setLoading(false); return; }
+    if (!ufvk.startsWith('uview') && !ufvk.startsWith('utest')) {
+      setError('UFVK must start with "uview" (mainnet) or "utest" (testnet)');
+      setLoading(false);
+      return;
+    }
+    if (webhookUrl) {
+      const urlErr = validateWebhookUrl(webhookUrl);
+      if (urlErr) { setError(`Webhook URL: ${urlErr}`); setLoading(false); return; }
+    }
+    if (email) {
+      const emailErr = validateEmail(email);
+      if (emailErr) { setError(`Email: ${emailErr}`); setLoading(false); return; }
+    }
+
     try {
       const res = await api.register({
         name: name || undefined,
         ufvk,
-        payment_address: address,
         webhook_url: webhookUrl || undefined,
         email: email || undefined,
       });
@@ -114,12 +133,6 @@ export default function RegisterPage() {
                   <p style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 4 }}>Read-only key for payment detection. Cannot spend funds.</p>
                 </div>
 
-                <div className="form-group">
-                  <label className="form-label">Payment Address <span style={{ color: 'var(--cp-red)' }}>*</span></label>
-                  <input type="text" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="u1..." className="input" style={{ fontSize: 10 }} required />
-                  <p style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 4 }}>Must be from the same wallet as the UFVK above.</p>
-                </div>
-
                 <div className="divider" />
                 <div className="section-title">OPTIONAL</div>
 
@@ -138,7 +151,7 @@ export default function RegisterPage() {
                   <div style={{ color: 'var(--cp-red)', fontSize: 11, marginBottom: 12 }}>{error}</div>
                 )}
 
-                <button type="submit" disabled={loading || !ufvk || !address} className="btn-primary" style={{ width: '100%', opacity: loading || !ufvk || !address ? 0.5 : 1 }}>
+                <button type="submit" disabled={loading || !ufvk} className="btn-primary" style={{ width: '100%', opacity: loading || !ufvk ? 0.5 : 1 }}>
                   {loading ? 'CREATING...' : 'CREATE MERCHANT ACCOUNT'}
                 </button>
               </form>

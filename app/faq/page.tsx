@@ -19,7 +19,7 @@ const sections = [
       },
       {
         q: 'What data does CipherPay have access to?',
-        a: `When using the hosted service, CipherPay can see: your Unified Full Viewing Key (read-only, cannot spend funds), payment amounts, product names, and shipping information you attach to invoices. We cannot see the buyer's wallet balance, other transactions, or identity. We never hold your ZEC — payments go directly to your shielded address.`,
+        a: `When using the hosted service, CipherPay can see: your Unified Full Viewing Key (read-only, cannot spend funds), payment amounts, and product names. We cannot see the buyer's wallet balance, other transactions, or identity. We never hold your ZEC — payments go directly to your shielded address. No shipping addresses or buyer PII are stored.`,
       },
       {
         q: 'How do I get maximum privacy?',
@@ -59,11 +59,11 @@ const sections = [
     questions: [
       {
         q: 'How does CipherPay detect payments?',
-        a: `CipherPay continuously scans the Zcash mempool and new blocks using your UFVK. It performs Orchard trial decryption on every shielded transaction to check if it's addressed to your wallet. When a match is found, it reads the encrypted memo field to identify which invoice was paid. This provides sub-minute payment detection — often within seconds of the buyer sending the transaction.`,
+        a: `Each invoice gets a unique payment address derived from your viewing key (UFVK). CipherPay scans the Zcash mempool and new blocks, performing Orchard trial decryption on shielded transactions. When a payment is detected to an invoice's unique address, it is automatically matched — no memo required. This provides sub-minute payment detection, often within seconds.`,
       },
       {
-        q: 'What is the memo code (e.g. CP-C6CDB775)?',
-        a: `Each invoice gets a unique memo code that the buyer includes in their Zcash transaction memo field. This is how CipherPay matches a payment to a specific invoice. The QR code and Zcash URI automatically include the memo, so the buyer doesn't need to type it manually.`,
+        q: 'What is the reference code (e.g. CP-C6CDB775)?',
+        a: `Each invoice gets a reference code for identification purposes. It is included in the Zcash URI as an informational memo, but payment detection does not depend on it. CipherPay matches payments by their unique cryptographic address, so the buyer just scans the QR code and sends — nothing to copy or type.`,
       },
       {
         q: 'What happens if the buyer sends the wrong amount?',
@@ -88,8 +88,8 @@ const sections = [
         a: `The "penny exploit" (sending 0.00001 ZEC to trigger a confirmation) is blocked by server-side amount verification with a 0.5% slippage tolerance. Webhooks use HMAC-SHA256 signatures with timestamps, preventing both forgery and replay attacks (5-minute replay window). Changing the payment address requires re-authentication with your dashboard token.`,
       },
       {
-        q: 'Is buyer shipping data protected?',
-        a: `Shipping data is stored in the database and only accessible to the authenticated merchant. The public checkout API never exposes shipping information. After the configurable data purge period (default 30 days), shipping data is automatically overwritten with NULL — if the database is compromised months later, there's nothing to steal.`,
+        q: 'Does CipherPay store buyer personal data?',
+        a: `No. CipherPay does not collect or store shipping addresses, names, or any buyer PII. It is a pure payment processor. Merchants who need shipping information should collect it through their own store and integrate with CipherPay via webhooks for payment confirmation.`,
       },
       {
         q: 'What are the Content Security Policy headers?',

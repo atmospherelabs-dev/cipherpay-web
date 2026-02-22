@@ -16,9 +16,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'CipherPay — Shielded Zcash Payments',
+  title: 'CipherPay — Private Payments for the Internet',
   description:
-    'Accept shielded Zcash payments. Non-custodial, private, real-time detection. Powered by CipherScan.',
+    'Accept Zcash in minutes. Non-custodial. Zero buyer data. No middleman.',
   icons: {
     icon: [
       { url: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
@@ -27,8 +27,8 @@ export const metadata: Metadata = {
     apple: '/apple-touch-icon.png',
   },
   openGraph: {
-    title: 'CipherPay — Shielded Zcash Payments',
-    description: 'Accept shielded Zcash payments with zero trust required.',
+    title: 'CipherPay — Private Payments for the Internet',
+    description: 'Accept Zcash in minutes. Non-custodial. Zero buyer data. No middleman.',
     siteName: 'CipherPay',
     type: 'website',
     images: [{ url: '/logo-dark-bg.png', width: 694, height: 694 }],

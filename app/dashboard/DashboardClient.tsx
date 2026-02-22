@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, type Invoice, type MerchantInfo, type Product, type CreateProductRequest, type UpdateProductRequest, type BillingSummary } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { validateEmail, validateWebhookUrl, validateLength } from '@/lib/validation';
 import { Logo } from '@/components/Logo';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { CopyButton } from '@/components/CopyButton';
@@ -118,6 +119,10 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
       showToast('Slug, name and valid price required', true);
       return;
     }
+    const slugErr = validateLength(newSlug, 100, 'Slug');
+    if (slugErr) { showToast(slugErr, true); return; }
+    const nameErr = validateLength(newName, 200, 'Name');
+    if (nameErr) { showToast(nameErr, true); return; }
     setCreating(true);
     try {
       const req: CreateProductRequest = {
@@ -269,11 +274,6 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
     catch { showToast('Failed to cancel', true); }
   };
 
-  const shipInvoice = async (id: string) => {
-    try { await api.shipInvoice(id); loadInvoices(); showToast('Marked as shipped'); }
-    catch { showToast('Failed to mark as shipped', true); }
-  };
-
   const refundInvoice = async (id: string) => {
     try {
       const resp = await api.refundInvoice(id);
@@ -283,6 +283,8 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
   };
 
   const saveName = async () => {
+    const err = validateLength(editName, 100, 'Store name');
+    if (err) { showToast(err, true); return; }
     try {
       await api.updateMe({ name: editName });
       setEditingName(false);
@@ -291,6 +293,10 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
   };
 
   const saveWebhookUrl = async () => {
+    if (editWebhookUrl) {
+      const err = validateWebhookUrl(editWebhookUrl);
+      if (err) { showToast(err, true); return; }
+    }
     try {
       await api.updateMe({ webhook_url: editWebhookUrl || '' });
       setEditingWebhook(!editWebhookUrl);
@@ -299,7 +305,8 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
   };
 
   const saveEmail = async () => {
-    if (!editEmail.includes('@')) { showToast('Enter a valid email', true); return; }
+    const emailErr = validateEmail(editEmail);
+    if (emailErr) { showToast(emailErr, true); return; }
     try {
       await api.updateMe({ recovery_email: editEmail });
       showToast('Recovery email saved');
@@ -864,9 +871,8 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
 
                         {isExpanded && (
                           <div onClick={(e) => e.stopPropagation()} style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--cp-border)' }}>
-                            {/* Full memo */}
                             <div className="stat-row">
-                              <span style={{ color: 'var(--cp-text-muted)' }}>Memo</span>
+                              <span style={{ color: 'var(--cp-text-muted)' }}>Reference</span>
                               <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--cp-purple)' }}>
                                 {inv.memo_code} <CopyButton text={inv.memo_code} label="" />
                               </span>
@@ -888,31 +894,6 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                                 <span style={{ color: 'var(--cp-text-muted)' }}>Product</span>
                                 <span>{inv.product_name}{inv.size ? ` · ${inv.size}` : ''}</span>
                               </div>
-                            )}
-
-                            {/* Shipping */}
-                            {(inv.shipping_alias || inv.shipping_address || inv.shipping_region) && (
-                              <>
-                                <div className="section-title" style={{ marginTop: 12 }}>SHIPPING</div>
-                                {inv.shipping_alias && (
-                                  <div className="stat-row">
-                                    <span style={{ color: 'var(--cp-text-muted)' }}>Alias</span>
-                                    <span>{inv.shipping_alias}</span>
-                                  </div>
-                                )}
-                                {inv.shipping_address && (
-                                  <div className="stat-row">
-                                    <span style={{ color: 'var(--cp-text-muted)' }}>Address</span>
-                                    <span style={{ maxWidth: 200, textAlign: 'right', wordBreak: 'break-word' }}>{inv.shipping_address}</span>
-                                  </div>
-                                )}
-                                {inv.shipping_region && (
-                                  <div className="stat-row">
-                                    <span style={{ color: 'var(--cp-text-muted)' }}>Region</span>
-                                    <span>{inv.shipping_region}</span>
-                                  </div>
-                                )}
-                              </>
                             )}
 
                             {/* Timeline */}
@@ -942,12 +923,6 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                                 <span style={{ fontSize: 10 }}>{new Date(inv.confirmed_at).toLocaleString()}</span>
                               </div>
                             )}
-                            {inv.shipped_at && (
-                              <div className="stat-row">
-                                <span style={{ color: 'var(--cp-cyan)' }}>Shipped</span>
-                                <span style={{ fontSize: 10 }}>{new Date(inv.shipped_at).toLocaleString()}</span>
-                              </div>
-                            )}
                             {inv.refunded_at && (
                               <div className="stat-row">
                                 <span style={{ color: '#f59e0b' }}>Refunded</span>
@@ -960,7 +935,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                             </div>
 
                             {/* Refund Address */}
-                            {inv.refund_address && (inv.status === 'confirmed' || inv.status === 'shipped' || inv.status === 'refunded') && (
+                            {inv.refund_address && (inv.status === 'confirmed' || inv.status === 'refunded') && (
                               <>
                                 <div className="section-title" style={{ marginTop: 12 }}>REFUND ADDRESS</div>
                                 <div className="stat-row">
@@ -981,11 +956,6 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                             <div className="invoice-actions" style={{ marginTop: 12 }}>
                               <CopyButton text={`${checkoutOrigin}/pay/${inv.id}`} label="Payment Link" />
                               {inv.status === 'confirmed' && (
-                                <button onClick={() => shipInvoice(inv.id)} className="btn btn-small" style={{ color: 'var(--cp-cyan)', borderColor: 'var(--cp-cyan)' }}>
-                                  MARK SHIPPED
-                                </button>
-                              )}
-                              {(inv.status === 'confirmed' || inv.status === 'shipped') && (
                                 <button onClick={() => refundInvoice(inv.id)} className="btn btn-small" style={{ color: '#f59e0b', borderColor: 'rgba(245,158,11,0.5)' }}>
                                   REFUND
                                 </button>
@@ -1001,11 +971,6 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                           <div className="invoice-actions">
                             <CopyButton text={`${checkoutOrigin}/pay/${inv.id}`} label="Payment Link" />
                             {inv.status === 'confirmed' && (
-                              <button onClick={(e) => { e.stopPropagation(); shipInvoice(inv.id); }} className="btn btn-small" style={{ color: 'var(--cp-cyan)', borderColor: 'var(--cp-cyan)' }}>
-                                MARK SHIPPED
-                              </button>
-                            )}
-                            {(inv.status === 'confirmed' || inv.status === 'shipped') && (
                               <button onClick={(e) => { e.stopPropagation(); refundInvoice(inv.id); }} className="btn btn-small" style={{ color: '#f59e0b', borderColor: 'rgba(245,158,11,0.5)' }}>
                                 REFUND
                               </button>
@@ -1148,8 +1113,8 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
 
                   <div className="divider" />
 
-                  {/* Payment Address (locked) */}
-                  <div className="section-title">Payment Address</div>
+                  {/* Derived Payment Address (read-only) */}
+                  <div className="section-title">Derived Address</div>
                   <div className="stat-row">
                     <span style={{ fontSize: 9, color: 'var(--cp-cyan)', wordBreak: 'break-all', maxWidth: '75%' }}>
                       {merchant.payment_address}
@@ -1157,7 +1122,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                     <CopyButton text={merchant.payment_address} label="" />
                   </div>
                   <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 4, lineHeight: 1.5 }}>
-                    Locked at registration. Your payment address is cryptographically tied to your viewing key (UFVK) — changing it would break payment detection. To use a different address, register a new merchant account with the matching UFVK.
+                    Auto-derived from your UFVK. Each invoice gets its own unique payment address for privacy and reliable detection.
                   </div>
 
                   <div className="divider" />

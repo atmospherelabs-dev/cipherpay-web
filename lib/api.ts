@@ -30,17 +30,13 @@ export interface Invoice {
   payment_address: string;
   zcash_uri: string;
   merchant_name: string | null;
-  status: 'pending' | 'detected' | 'confirmed' | 'expired' | 'shipped' | 'refunded';
+  status: 'pending' | 'detected' | 'confirmed' | 'expired' | 'refunded';
   detected_txid: string | null;
   detected_at: string | null;
   confirmed_at: string | null;
-  shipped_at: string | null;
   refunded_at: string | null;
   expires_at: string;
   created_at: string;
-  shipping_alias?: string | null;
-  shipping_address?: string | null;
-  shipping_region?: string | null;
   refund_address?: string | null;
 }
 
@@ -49,9 +45,6 @@ export interface CreateInvoiceRequest {
   size?: string;
   price_eur: number;
   currency?: string;
-  shipping_alias?: string;
-  shipping_address?: string;
-  shipping_region?: string;
 }
 
 export interface CreateInvoiceResponse {
@@ -69,7 +62,6 @@ export interface CreateInvoiceResponse {
 export interface RegisterRequest {
   name?: string;
   ufvk: string;
-  payment_address: string;
   webhook_url?: string;
   email?: string;
 }
@@ -125,9 +117,6 @@ export interface UpdateProductRequest {
 export interface CheckoutRequest {
   product_id: string;
   variant?: string;
-  shipping_alias?: string;
-  shipping_address?: string;
-  shipping_region?: string;
   refund_address?: string;
 }
 
@@ -228,9 +217,6 @@ export const api = {
 
   cancelInvoice: (id: string) =>
     request<{ status: string }>(`/api/invoices/${id}/cancel`, { method: 'POST' }),
-
-  shipInvoice: (id: string) =>
-    request<{ status: string }>(`/api/invoices/${id}/ship`, { method: 'POST' }),
 
   refundInvoice: (id: string) =>
     request<{ status: string; refund_address: string | null }>(`/api/invoices/${id}/refund`, { method: 'POST' }),

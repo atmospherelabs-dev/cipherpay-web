@@ -1,17 +1,13 @@
 'use client';
 
-import { useEffect, useState, useRef, useMemo } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { api, type Invoice } from '@/lib/api';
+import { validateZcashAddress } from '@/lib/validation';
 import { QRCode } from '@/components/QRCode';
 import { Logo } from '@/components/Logo';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useTheme } from '@/contexts/ThemeContext';
-
-function buildZcashUri(address: string, amount: number, memo: string): string {
-  const memoB64 = btoa(memo).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  return `zcash:${address}?amount=${amount.toFixed(8)}&memo=${memoB64}`;
-}
 
 function useCountdown(expiresAt: string) {
   const [text, setText] = useState('');
@@ -45,6 +41,15 @@ function CopyIcon({ size = 12 }: { size?: number }) {
   );
 }
 
+function isSafeReturnUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+  } catch {
+    return false;
+  }
+}
+
 function getShopOrigin(returnUrl: string | null): string | null {
   if (!returnUrl) return null;
   try { return new URL(returnUrl).origin; } catch { return null; }
@@ -59,7 +64,8 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
   const eventSourceRef = useRef<EventSource | null>(null);
 
   const searchParams = useSearchParams();
-  const returnUrl = searchParams.get('return_url') || null;
+  const rawReturnUrl = searchParams.get('return_url') || null;
+  const returnUrl = rawReturnUrl && isSafeReturnUrl(rawReturnUrl) ? rawReturnUrl : null;
   const shopOrigin = getShopOrigin(returnUrl);
   const { theme, toggleTheme, mounted } = useTheme();
 
@@ -90,12 +96,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
   }, [invoice?.status, invoiceId]);
 
   const address = invoice?.payment_address || '';
-  const zcashUri = useMemo(() => {
-    if (!invoice) return '';
-    if (invoice.zcash_uri) return invoice.zcash_uri;
-    if (address) return buildZcashUri(address, invoice.price_zec, invoice.memo_code);
-    return '';
-  }, [invoice, address]);
+  const zcashUri = invoice?.zcash_uri || '';
 
   const countdown = useCountdown(invoice?.expires_at || new Date().toISOString());
 
@@ -218,32 +219,6 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
                 </div>
               </div>
 
-              {/* Memo — CRITICAL */}
-              <div style={{ textAlign: 'left', marginBottom: 20 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <span style={{ fontSize: 10, color: 'var(--cp-purple)', letterSpacing: 1, fontWeight: 600 }}>⚠ REQUIRED MEMO</span>
-                  <button
-                    onClick={() => copy(invoice.memo_code, 'Memo')}
-                    style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', color: 'var(--cp-purple)', cursor: 'pointer', fontSize: 9, letterSpacing: 1, fontFamily: 'inherit', padding: 0 }}
-                  >
-                    <CopyIcon size={11} /> COPY
-                  </button>
-                </div>
-                <div style={{ fontSize: 9, color: 'var(--cp-text-muted)', marginBottom: 6, lineHeight: 1.5 }}>
-                  You must include this memo in your transaction or your payment will not be detected.
-                </div>
-                <div
-                  onClick={() => copy(invoice.memo_code, 'Memo')}
-                  style={{
-                    background: 'var(--cp-bg)', border: '1px solid rgba(168, 85, 247, 0.3)', borderRadius: 4,
-                    padding: '12px', cursor: 'pointer', fontSize: 16, letterSpacing: 3, color: 'var(--cp-purple)',
-                    fontWeight: 700, textAlign: 'center', transition: 'border-color 0.15s',
-                  }}
-                >
-                  {invoice.memo_code}
-                </div>
-              </div>
-
               {/* Refund address */}
               <div style={{ borderTop: '1px solid var(--cp-border)', paddingTop: 16, marginBottom: 16, textAlign: 'left' }}>
                 <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', letterSpacing: 1, marginBottom: 6 }}>
@@ -261,6 +236,8 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
                   <button
                     onClick={async () => {
                       if (!refundAddr.trim()) return;
+                      const addrErr = validateZcashAddress(refundAddr.trim());
+                      if (addrErr) { setToast(addrErr); return; }
                       setRefundSaved(true);
                       setTimeout(() => setRefundSaved(false), 2000);
                     }}
@@ -382,7 +359,7 @@ function ConfirmedReceipt({ invoice, returnUrl }: { invoice: Invoice; returnUrl:
         </div>
 
         <div style={row}>
-          <span style={label}>MEMO</span>
+          <span style={label}>REFERENCE</span>
           <span style={{ fontFamily: 'monospace', fontSize: 11, letterSpacing: 1 }}>{invoice.memo_code}</span>
         </div>
 
@@ -400,10 +377,11 @@ function ConfirmedReceipt({ invoice, returnUrl }: { invoice: Invoice; returnUrl:
         <div style={{ marginTop: 24 }}>
           <a
             href={returnUrl}
+            rel="noopener noreferrer"
             className="btn-primary"
             style={{ display: 'block', width: '100%', textDecoration: 'none', textAlign: 'center', textTransform: 'uppercase', padding: '14px 0' }}
           >
-            ← Back to Store
+            ← Back to {returnUrl ? (() => { try { return new URL(returnUrl).hostname; } catch { return 'Store'; } })() : 'Store'}
           </a>
           <div style={{ textAlign: 'center', marginTop: 10, fontSize: 10, color: 'var(--cp-text-dim)', letterSpacing: 1 }}>
             {redirectIn > 0 ? `REDIRECTING IN ${redirectIn}s...` : 'REDIRECTING...'}
