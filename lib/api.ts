@@ -137,6 +137,37 @@ export interface ZecRates {
   updated_at: string;
 }
 
+export interface BillingCycle {
+  id: string;
+  merchant_id: string;
+  period_start: string;
+  period_end: string;
+  total_fees_zec: number;
+  auto_collected_zec: number;
+  outstanding_zec: number;
+  settlement_invoice_id: string | null;
+  status: 'open' | 'invoiced' | 'paid' | 'past_due' | 'suspended';
+  grace_until: string | null;
+  created_at: string;
+}
+
+export interface BillingSummary {
+  fee_enabled: boolean;
+  fee_rate: number;
+  trust_tier: string;
+  billing_status: string;
+  current_cycle: BillingCycle | null;
+  total_fees_zec: number;
+  auto_collected_zec: number;
+  outstanding_zec: number;
+}
+
+export interface SettleResponse {
+  invoice_id: string;
+  outstanding_zec: number;
+  message: string;
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     credentials: 'include',
@@ -246,6 +277,14 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+
+  // Billing
+  getBilling: () => request<BillingSummary>('/api/merchants/me/billing'),
+
+  getBillingHistory: () => request<BillingCycle[]>('/api/merchants/me/billing/history'),
+
+  settleBilling: () =>
+    request<SettleResponse>('/api/merchants/me/billing/settle', { method: 'POST' }),
 
   // SSE stream for invoice status
   streamInvoice: (invoiceId: string): EventSource =>

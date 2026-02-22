@@ -2,14 +2,14 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { api, type Invoice, type MerchantInfo, type Product, type CreateProductRequest, type UpdateProductRequest } from '@/lib/api';
+import { api, type Invoice, type MerchantInfo, type Product, type CreateProductRequest, type UpdateProductRequest, type BillingSummary } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { Logo } from '@/components/Logo';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { CopyButton } from '@/components/CopyButton';
 import Link from 'next/link';
 
-type Tab = 'products' | 'invoices' | 'pos' | 'settings';
+type Tab = 'products' | 'invoices' | 'pos' | 'billing' | 'settings';
 
 export default function DashboardClient({ merchant }: { merchant: MerchantInfo }) {
   const [tab, setTab] = useState<Tab>('products');
@@ -65,6 +65,10 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
   const [editEmail, setEditEmail] = useState('');
   const [revealedKey, setRevealedKey] = useState<{ type: string; value: string } | null>(null);
 
+  // Billing
+  const [billing, setBilling] = useState<BillingSummary | null>(null);
+  const [billingSettling, setBillingSettling] = useState(false);
+
   const { logout } = useAuth();
   const router = useRouter();
 
@@ -83,9 +87,31 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
     setLoadingInvoices(false);
   }, []);
 
-  useEffect(() => { loadProducts(); loadInvoices(); }, [loadProducts, loadInvoices]);
+  const loadBilling = useCallback(async () => {
+    try { setBilling(await api.getBilling()); } catch { /* billing not available */ }
+  }, []);
+
+  useEffect(() => { loadProducts(); loadInvoices(); loadBilling(); }, [loadProducts, loadInvoices, loadBilling]);
 
   const handleLogout = async () => { await logout(); router.push('/dashboard/login'); };
+
+  const settleBilling = async () => {
+    setBillingSettling(true);
+    try {
+      const resp = await api.settleBilling();
+      showToast(`Settlement invoice created: ${resp.outstanding_zec.toFixed(6)} ZEC`);
+      if (resp.invoice_id) {
+        window.open(`/pay/${resp.invoice_id}`, '_blank');
+      }
+      loadBilling();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to settle', true);
+    }
+    setBillingSettling(false);
+  };
+
+  const billingBlocked = billing?.fee_enabled &&
+    (billing.billing_status === 'past_due' || billing.billing_status === 'suspended');
 
   const addProduct = async () => {
     if (!newSlug || !newName || !newPrice || parseFloat(newPrice) <= 0) {
@@ -326,6 +352,34 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
         </div>
       </header>
 
+      {/* Billing status banners */}
+      {billing?.fee_enabled && billing.billing_status === 'suspended' && (
+        <div style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.5)', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#ef4444', letterSpacing: 1 }}>ACCOUNT SUSPENDED</div>
+            <div style={{ fontSize: 10, color: 'var(--cp-text-muted)', marginTop: 4 }}>
+              Outstanding balance: {billing.outstanding_zec.toFixed(6)} ZEC. Pay to restore service.
+            </div>
+          </div>
+          <button onClick={settleBilling} disabled={billingSettling} className="btn" style={{ color: '#ef4444', borderColor: 'rgba(239,68,68,0.5)' }}>
+            {billingSettling ? 'CREATING...' : 'PAY NOW'}
+          </button>
+        </div>
+      )}
+      {billing?.fee_enabled && billing.billing_status === 'past_due' && (
+        <div style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.4)', padding: '12px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#f59e0b', letterSpacing: 1 }}>PAST DUE</div>
+            <div style={{ fontSize: 10, color: 'var(--cp-text-muted)', marginTop: 2 }}>
+              Outstanding: {billing.outstanding_zec.toFixed(6)} ZEC. Invoice/product creation is blocked until paid.
+            </div>
+          </div>
+          <button onClick={settleBilling} disabled={billingSettling} className="btn" style={{ color: '#f59e0b', borderColor: 'rgba(245,158,11,0.5)' }}>
+            {billingSettling ? 'CREATING...' : 'PAY NOW'}
+          </button>
+        </div>
+      )}
+
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: 24 }}>
         <div className="grid-layout">
 
@@ -373,37 +427,72 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
               </div>
             </div>
 
-            {/* Tab Switcher */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0, marginTop: 16 }}>
-              <button
-                onClick={() => setTab('products')}
-                className={tab === 'products' ? 'btn-primary' : 'btn'}
-                style={{ borderRadius: '4px 0 0 0' }}
-              >
-                PRODUCTS
-              </button>
-              <button
-                onClick={() => setTab('pos')}
-                className={tab === 'pos' ? 'btn-primary' : 'btn'}
-                style={{ borderRadius: 0 }}
-              >
-                POS{cartItemCount > 0 ? ` (${cartItemCount})` : ''}
-              </button>
-              <button
-                onClick={() => setTab('invoices')}
-                className={tab === 'invoices' ? 'btn-primary' : 'btn'}
-                style={{ borderRadius: 0 }}
-              >
-                INVOICES
-              </button>
-              <button
-                onClick={() => setTab('settings')}
-                className={tab === 'settings' ? 'btn-primary' : 'btn'}
-                style={{ borderRadius: '0 4px 0 0' }}
-              >
-                SETTINGS
-              </button>
-            </div>
+            {/* Navigation */}
+            <nav style={{ marginTop: 16 }}>
+              <div style={{ fontSize: 9, letterSpacing: 2, color: 'var(--cp-text-dim)', padding: '8px 14px 4px', fontWeight: 600 }}><span style={{ color: 'var(--cp-cyan)', opacity: 0.4 }}>//</span> STORE</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {([
+                  { key: 'products' as Tab, label: 'PRODUCTS' },
+                  { key: 'pos' as Tab, label: `POS${cartItemCount > 0 ? ` (${cartItemCount})` : ''}` },
+                  { key: 'invoices' as Tab, label: 'INVOICES' },
+                ]).map(({ key, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => setTab(key)}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '10px 14px',
+                      background: tab === key ? 'var(--cp-surface)' : 'transparent',
+                      border: tab === key ? '1px solid var(--cp-border)' : '1px solid transparent',
+                      borderRadius: 4,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit', fontSize: 11, letterSpacing: 1.5, fontWeight: tab === key ? 600 : 400,
+                      color: tab === key ? 'var(--cp-cyan)' : 'var(--cp-text-muted)',
+                      textAlign: 'left',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              <div style={{ borderTop: '1px solid var(--cp-border)', margin: '8px 0' }} />
+
+              <div style={{ fontSize: 9, letterSpacing: 2, color: 'var(--cp-text-dim)', padding: '4px 14px 4px', fontWeight: 600 }}><span style={{ color: 'var(--cp-cyan)', opacity: 0.4 }}>//</span> ACCOUNT</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {([
+                  { key: 'billing' as Tab, label: 'BILLING' },
+                  { key: 'settings' as Tab, label: 'SETTINGS' },
+                ]).map(({ key, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => setTab(key)}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '10px 14px',
+                      background: tab === key ? 'var(--cp-surface)' : 'transparent',
+                      border: tab === key ? '1px solid var(--cp-border)' : '1px solid transparent',
+                      borderRadius: 4,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit', fontSize: 11, letterSpacing: 1.5, fontWeight: tab === key ? 600 : 400,
+                      color: tab === key ? 'var(--cp-cyan)' : 'var(--cp-text-muted)',
+                      textAlign: 'left',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {label}
+                    {key === 'billing' && billing?.fee_enabled && billing.outstanding_zec > 0.00001 && (
+                      <span style={{
+                        width: 7, height: 7, borderRadius: '50%',
+                        background: billing.billing_status === 'active' ? '#f59e0b' : '#ef4444',
+                        flexShrink: 0,
+                      }} />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </nav>
           </div>
 
           {/* Right Column */}
@@ -931,10 +1020,115 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                   })
                 )}
               </div>
+            ) : tab === 'billing' ? (
+              <div className="panel">
+                <div className="panel-header">
+                  <span className="panel-title">04 // Billing</span>
+                  {billing?.fee_enabled && (
+                    <span className={`status-badge ${billing.billing_status === 'active' ? 'status-confirmed' : billing.billing_status === 'past_due' ? 'status-detected' : 'status-expired'}`} style={{ fontSize: 8 }}>
+                      {billing.billing_status.toUpperCase().replace('_', ' ')}
+                    </span>
+                  )}
+                </div>
+                <div className="panel-body">
+                  {!billing?.fee_enabled ? (
+                    <div style={{ textAlign: 'center', padding: '32px 16px' }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--cp-green)', marginBottom: 8 }}>NO FEES</div>
+                      <div style={{ fontSize: 11, color: 'var(--cp-text-muted)', lineHeight: 1.6 }}>
+                        This instance is running in self-hosted mode.<br />
+                        No transaction fees are applied.
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Overview */}
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 16 }}>
+                        <div style={{ background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4, padding: 12, textAlign: 'center' }}>
+                          <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Fee Rate</div>
+                          <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--cp-text)' }}>{(billing.fee_rate * 100).toFixed(1)}%</div>
+                        </div>
+                        <div style={{ background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4, padding: 12, textAlign: 'center' }}>
+                          <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Trust Tier</div>
+                          <div style={{ fontSize: 18, fontWeight: 700, color: billing.trust_tier === 'trusted' ? 'var(--cp-green)' : billing.trust_tier === 'standard' ? 'var(--cp-cyan)' : 'var(--cp-text-muted)' }}>
+                            {billing.trust_tier.toUpperCase()}
+                          </div>
+                        </div>
+                        <div style={{ background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4, padding: 12, textAlign: 'center' }}>
+                          <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Status</div>
+                          <div style={{
+                            fontSize: 18, fontWeight: 700,
+                            color: billing.billing_status === 'active' ? 'var(--cp-green)' :
+                              billing.billing_status === 'past_due' ? '#f59e0b' : '#ef4444'
+                          }}>
+                            {billing.billing_status.toUpperCase().replace('_', ' ')}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Current Cycle */}
+                      {billing.current_cycle ? (
+                        <div style={{ background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4, padding: 16, marginBottom: 16 }}>
+                          <div style={{ fontSize: 10, letterSpacing: 1, color: 'var(--cp-cyan)', marginBottom: 12, fontWeight: 600 }}>CURRENT CYCLE</div>
+                          <div className="stat-row" style={{ marginBottom: 6 }}>
+                            <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>Period</span>
+                            <span style={{ fontSize: 11 }}>
+                              {new Date(billing.current_cycle.period_start).toLocaleDateString()} — {new Date(billing.current_cycle.period_end).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <div className="stat-row" style={{ marginBottom: 6 }}>
+                            <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>Total Fees</span>
+                            <span style={{ fontSize: 11, fontFamily: 'monospace' }}>{billing.total_fees_zec.toFixed(8)} ZEC</span>
+                          </div>
+                          <div className="stat-row" style={{ marginBottom: 6 }}>
+                            <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>Auto-Collected</span>
+                            <span style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--cp-green)' }}>{billing.auto_collected_zec.toFixed(8)} ZEC</span>
+                          </div>
+                          <div className="stat-row" style={{ marginBottom: 6 }}>
+                            <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>Outstanding</span>
+                            <span style={{ fontSize: 11, fontFamily: 'monospace', fontWeight: 600, color: billing.outstanding_zec > 0.00001 ? '#f59e0b' : 'var(--cp-green)' }}>
+                              {billing.outstanding_zec.toFixed(8)} ZEC
+                            </span>
+                          </div>
+                          {billing.current_cycle.grace_until && (
+                            <div className="stat-row">
+                              <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>Grace Until</span>
+                              <span style={{ fontSize: 11, color: '#f59e0b' }}>
+                                {new Date(billing.current_cycle.grace_until).toLocaleDateString()}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div style={{ background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4, padding: 16, marginBottom: 16, textAlign: 'center' }}>
+                          <div style={{ fontSize: 11, color: 'var(--cp-text-muted)' }}>
+                            No active billing cycle yet. A cycle starts when your first invoice is confirmed.
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Settle button */}
+                      {billing.outstanding_zec > 0.00001 && (
+                        <button onClick={settleBilling} disabled={billingSettling} className="btn" style={{ width: '100%', marginBottom: 16 }}>
+                          {billingSettling ? 'CREATING INVOICE...' : `SETTLE NOW — ${billing.outstanding_zec.toFixed(6)} ZEC`}
+                        </button>
+                      )}
+
+                      {/* How it works */}
+                      <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', lineHeight: 1.7 }}>
+                        <div style={{ fontSize: 10, letterSpacing: 1, color: 'var(--cp-text-muted)', marginBottom: 6, fontWeight: 600 }}>HOW IT WORKS</div>
+                        A {(billing.fee_rate * 100).toFixed(1)}% fee is added as a second output in payment QR codes (ZIP 321).
+                        When buyers scan the QR, the fee is auto-collected. If a buyer copies the address manually,
+                        the fee accrues and is billed at cycle end. Consistent on-time payment upgrades your trust tier,
+                        extending billing cycles and grace periods.
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
             ) : (
               <div className="panel">
                 <div className="panel-header">
-                  <span className="panel-title">04 // Settings</span>
+                  <span className="panel-title">05 // Settings</span>
                 </div>
                 <div className="panel-body">
                   {/* Store Name */}

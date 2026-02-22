@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     description: 'Accept shielded Zcash payments with zero trust required.',
     siteName: 'CipherPay',
     type: 'website',
-    images: [{ url: '/logo-cyan-bg.png', width: 694, height: 694 }],
+    images: [{ url: '/logo-dark-bg.png', width: 694, height: 694 }],
   },
 };
 
