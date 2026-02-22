@@ -1,4 +1,4 @@
-import { Logo } from '@/components/Logo';
+import { LogoMark } from '@/components/Logo';
 import { NavLinks } from '@/components/NavLinks';
 import { SmartCTA } from '@/components/SmartCTA';
 import Link from 'next/link';
@@ -23,7 +23,10 @@ export default function LandingPage() {
     <div style={{ minHeight: '100vh', fontFamily: 'var(--font-geist-mono), monospace', fontSize: 13, lineHeight: 1.6 }}>
       {/* Header */}
       <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid var(--cp-border)' }}>
-        <Logo size="md" />
+        <span style={{ fontSize: 17, fontWeight: 700, letterSpacing: -0.5 }}>
+          <span style={{ color: 'var(--cp-cyan)' }}>Cipher</span>
+          <span style={{ color: 'var(--cp-text)' }}>Pay</span>
+        </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <NavLinks />
         </div>
@@ -31,27 +34,9 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section style={{ padding: '80px 24px 60px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
-        <div
-          aria-hidden="true"
-          className="hero-gradient"
-          style={{
-            position: 'absolute',
-            top: '-40%',
-            right: '-10%',
-            width: '80%',
-            height: '120%',
-            backgroundImage: 'url(/hero-gradient.png)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            pointerEvents: 'none',
-            transform: 'rotate(35deg)',
-          }}
-        />
+        <div aria-hidden="true" className="hero-gradient hero-gradient-top" />
         <div style={{ maxWidth: 700, margin: '0 auto', position: 'relative' }}>
-          <span className="tag" style={{ marginBottom: 24, display: 'inline-block' }}>POWERED BY CIPHERSCAN</span>
-
-          <h1 style={{ fontSize: 42, fontWeight: 700, letterSpacing: -1, marginBottom: 16, lineHeight: 1.1 }}>
+          <h1 className="hero-title" style={{ fontWeight: 700, letterSpacing: -1, marginBottom: 16, lineHeight: 1.1 }}>
             <span style={{ color: 'var(--cp-purple)' }}>Private</span> payments for the internet.
           </h1>
 
@@ -59,7 +44,7 @@ export default function LandingPage() {
             Accept Zcash in minutes. Non-custodial. Zero buyer data. No middleman.
           </p>
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+          <div className="hero-cta">
             <SmartCTA className="btn-primary" style={{ padding: '12px 28px', fontSize: 12 }}>
               START ACCEPTING ZEC
             </SmartCTA>
@@ -73,7 +58,7 @@ export default function LandingPage() {
       {/* Features */}
       <section style={{ borderTop: '1px solid var(--cp-border)', padding: '60px 24px' }}>
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
-          <div className="section-title" style={{ textAlign: 'center', marginBottom: 32 }}>WHY CIPHERPAY</div>
+          <div className="section-title" style={{ textAlign: 'center', marginBottom: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><LogoMark size={8} /> WHY CIPHERPAY</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
             <div className="panel">
               <div className="panel-header">
@@ -114,23 +99,23 @@ export default function LandingPage() {
       {/* How it works */}
       <section style={{ borderTop: '1px solid var(--cp-border)', padding: '60px 24px' }}>
         <div style={{ maxWidth: 700, margin: '0 auto' }}>
-          <div className="section-title" style={{ textAlign: 'center', marginBottom: 8 }}>HOW IT WORKS</div>
+          <div className="section-title" style={{ textAlign: 'center', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><LogoMark size={8} /> HOW IT WORKS</div>
           <h2 style={{ fontSize: 24, fontWeight: 700, textAlign: 'center', marginBottom: 32 }}>
             Three steps. Zero middlemen.
           </h2>
 
           <div className="panel" style={{ marginBottom: 24 }}>
             <div className="panel-body">
-              <div className="stat-row">
-                <span style={{ color: 'var(--cp-cyan)', fontWeight: 600 }}>1. Register</span>
-                <span style={{ color: 'var(--cp-text-muted)' }}>Provide your viewing key + payment address</span>
+              <div className="step-row">
+                <span style={{ color: 'var(--cp-cyan)', fontWeight: 600, whiteSpace: 'nowrap' }}>1. Register</span>
+                <span style={{ color: 'var(--cp-text-muted)' }}>Provide your viewing key</span>
               </div>
-              <div className="stat-row">
-                <span style={{ color: 'var(--cp-cyan)', fontWeight: 600 }}>2. Add Products</span>
+              <div className="step-row">
+                <span style={{ color: 'var(--cp-cyan)', fontWeight: 600, whiteSpace: 'nowrap' }}>2. Add Products</span>
                 <span style={{ color: 'var(--cp-text-muted)' }}>Create your catalog in the dashboard</span>
               </div>
-              <div className="stat-row">
-                <span style={{ color: 'var(--cp-cyan)', fontWeight: 600 }}>3. Get Paid</span>
+              <div className="step-row">
+                <span style={{ color: 'var(--cp-cyan)', fontWeight: 600, whiteSpace: 'nowrap' }}>3. Get Paid</span>
                 <span style={{ color: 'var(--cp-text-muted)' }}>Share links or integrate via API</span>
               </div>
             </div>
@@ -141,7 +126,7 @@ export default function LandingPage() {
       {/* Code Example */}
       <section id="how-it-works" style={{ borderTop: '1px solid var(--cp-border)', padding: '60px 24px' }}>
         <div style={{ maxWidth: 700, margin: '0 auto' }}>
-          <div className="section-title" style={{ textAlign: 'center', marginBottom: 8 }}>FOR DEVELOPERS</div>
+          <div className="section-title" style={{ textAlign: 'center', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><LogoMark size={8} /> FOR DEVELOPERS</div>
           <h2 style={{ fontSize: 24, fontWeight: 700, textAlign: 'center', marginBottom: 32 }}>
             One API call to get paid
           </h2>
@@ -163,12 +148,12 @@ export default function LandingPage() {
       {/* Integrations */}
       <section style={{ borderTop: '1px solid var(--cp-border)', padding: '60px 24px' }}>
         <div style={{ maxWidth: 700, margin: '0 auto' }}>
-          <div className="section-title" style={{ textAlign: 'center', marginBottom: 8 }}>INTEGRATIONS</div>
+          <div className="section-title" style={{ textAlign: 'center', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><LogoMark size={8} /> INTEGRATIONS</div>
           <h2 style={{ fontSize: 24, fontWeight: 700, textAlign: 'center', marginBottom: 32 }}>
             Works with your stack
           </h2>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div className="integrations-grid">
             <div className="panel">
               <div className="panel-body">
                 <div style={{ fontSize: 11, color: 'var(--cp-cyan)', letterSpacing: 1, marginBottom: 8 }}>HOSTED CHECKOUT</div>
@@ -207,23 +192,7 @@ export default function LandingPage() {
 
       {/* CTA */}
       <section style={{ borderTop: '1px solid var(--cp-border)', padding: '60px 24px', position: 'relative', overflow: 'hidden' }}>
-        <div
-          aria-hidden="true"
-          className="hero-gradient"
-          style={{
-            position: 'absolute',
-            bottom: '-36%',
-            left: '-10%',
-            width: '80%',
-            height: '110%',
-            backgroundImage: 'url(/hero-gradient.png)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            pointerEvents: 'none',
-            transform: 'rotate(199deg) scaleX(-1)',
-          }}
-        />
+        <div aria-hidden="true" className="hero-gradient hero-gradient-bottom" />
         <div style={{ maxWidth: 500, margin: '0 auto', textAlign: 'center', position: 'relative' }}>
           <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 12 }}>
             Ready to accept private payments?
@@ -238,12 +207,11 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer style={{ borderTop: '1px solid var(--cp-border)', padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10, color: 'var(--cp-text-muted)' }}>
-          <Logo size="sm" />
-          <span>Powered by CipherScan</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 10 }}>
+      <footer className="site-footer">
+        <span style={{ fontWeight: 600, fontSize: 10 }}>
+          <span style={{ color: 'var(--cp-cyan)' }}>Cipher</span><span>Pay</span>
+        </span>
+        <div className="footer-links">
           <Link href="/docs" style={{ color: 'var(--cp-text-muted)', textDecoration: 'none' }}>Docs</Link>
           <Link href="/faq" style={{ color: 'var(--cp-text-muted)', textDecoration: 'none' }}>FAQ</Link>
           <a href="https://cipherscan.app" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-text-muted)', textDecoration: 'none' }}>CipherScan</a>
