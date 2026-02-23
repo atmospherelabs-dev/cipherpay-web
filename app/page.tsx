@@ -88,7 +88,7 @@ export default function LandingPage() {
               </div>
               <div className="panel-body">
                 <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>
-                  Mempool scanning with trial decryption catches payments in seconds, not minutes.
+                  Payments are detected in seconds and confirmed within minutes. No delays, no manual checks.
                 </p>
               </div>
             </div>
