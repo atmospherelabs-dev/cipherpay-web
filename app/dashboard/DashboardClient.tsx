@@ -20,6 +20,38 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
   const [loadingInvoices, setLoadingInvoices] = useState(true);
   const [toast, setToast] = useState<{ msg: string; error?: boolean } | null>(null);
 
+  // Currency preference
+  const [displayCurrency, setDisplayCurrency] = useState<'EUR' | 'USD'>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('cp_currency') as 'EUR' | 'USD') || 'EUR';
+    }
+    return 'EUR';
+  });
+  const [zecRates, setZecRates] = useState<{ zec_eur: number; zec_usd: number } | null>(null);
+  const currencySymbol = displayCurrency === 'USD' ? '$' : '€';
+  const toggleCurrency = () => {
+    const next = displayCurrency === 'EUR' ? 'USD' : 'EUR';
+    setDisplayCurrency(next);
+    localStorage.setItem('cp_currency', next);
+  };
+  const fiatPrice = (inv: Invoice) => {
+    if (displayCurrency === 'USD' && inv.price_usd) return inv.price_usd;
+    return inv.price_eur;
+  };
+  const fiatStr = (inv: Invoice) => {
+    const p = fiatPrice(inv);
+    return p < 0.01 ? `${currencySymbol}${p}` : `${currencySymbol}${p.toFixed(2)}`;
+  };
+  const zecToFiat = (zec: number) => {
+    if (!zecRates) return null;
+    const rate = displayCurrency === 'USD' ? zecRates.zec_usd : zecRates.zec_eur;
+    return rate > 0 ? zec * rate : null;
+  };
+  const fiatLabel = (fiat: number | null) => {
+    if (fiat === null) return '';
+    return ` (~${currencySymbol}${fiat < 0.01 ? fiat.toFixed(6) : fiat.toFixed(2)})`;
+  };
+
   // Add product form
   const [showAddForm, setShowAddForm] = useState(false);
   const [newSlug, setNewSlug] = useState('');
@@ -69,38 +101,6 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
   // Billing
   const [billing, setBilling] = useState<BillingSummary | null>(null);
   const [billingSettling, setBillingSettling] = useState(false);
-
-  // Currency preference
-  const [displayCurrency, setDisplayCurrency] = useState<'EUR' | 'USD'>(() => {
-    if (typeof window !== 'undefined') {
-      return (localStorage.getItem('cp_currency') as 'EUR' | 'USD') || 'EUR';
-    }
-    return 'EUR';
-  });
-  const [zecRates, setZecRates] = useState<{ zec_eur: number; zec_usd: number } | null>(null);
-  const currencySymbol = displayCurrency === 'USD' ? '$' : '€';
-  const toggleCurrency = () => {
-    const next = displayCurrency === 'EUR' ? 'USD' : 'EUR';
-    setDisplayCurrency(next);
-    localStorage.setItem('cp_currency', next);
-  };
-  const fiatPrice = (inv: Invoice) => {
-    if (displayCurrency === 'USD' && inv.price_usd) return inv.price_usd;
-    return inv.price_eur;
-  };
-  const fiatStr = (inv: Invoice) => {
-    const p = fiatPrice(inv);
-    return p < 0.01 ? `${currencySymbol}${p}` : `${currencySymbol}${p.toFixed(2)}`;
-  };
-  const zecToFiat = (zec: number) => {
-    if (!zecRates) return null;
-    const rate = displayCurrency === 'USD' ? zecRates.zec_usd : zecRates.zec_eur;
-    return rate > 0 ? zec * rate : null;
-  };
-  const fiatLabel = (fiat: number | null) => {
-    if (fiat === null) return '';
-    return ` (~${currencySymbol}${fiat < 0.01 ? fiat.toFixed(6) : fiat.toFixed(2)})`;
-  };
 
   const { logout } = useAuth();
   const router = useRouter();
