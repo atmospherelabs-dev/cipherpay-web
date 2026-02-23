@@ -27,7 +27,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
   const [newDesc, setNewDesc] = useState('');
   const [newPrice, setNewPrice] = useState('');
   const [newVariants, setNewVariants] = useState('');
-  const [newCurrency, setNewCurrency] = useState<'EUR' | 'USD'>('EUR');
+  const [newCurrency, setNewCurrency] = useState<'EUR' | 'USD'>(displayCurrency);
   const [creating, setCreating] = useState(false);
 
   // Product editing
@@ -54,7 +54,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
   const [showPayLinkForm, setShowPayLinkForm] = useState(false);
   const [payLinkAmount, setPayLinkAmount] = useState('');
   const [payLinkDesc, setPayLinkDesc] = useState('');
-  const [payLinkCurrency, setPayLinkCurrency] = useState<'EUR' | 'USD'>('EUR');
+  const [payLinkCurrency, setPayLinkCurrency] = useState<'EUR' | 'USD'>(displayCurrency);
   const [payLinkCreating, setPayLinkCreating] = useState(false);
   const [payLinkResult, setPayLinkResult] = useState<string | null>(null);
 
@@ -70,6 +70,38 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
   const [billing, setBilling] = useState<BillingSummary | null>(null);
   const [billingSettling, setBillingSettling] = useState(false);
 
+  // Currency preference
+  const [displayCurrency, setDisplayCurrency] = useState<'EUR' | 'USD'>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('cp_currency') as 'EUR' | 'USD') || 'EUR';
+    }
+    return 'EUR';
+  });
+  const [zecRates, setZecRates] = useState<{ zec_eur: number; zec_usd: number } | null>(null);
+  const currencySymbol = displayCurrency === 'USD' ? '$' : '€';
+  const toggleCurrency = () => {
+    const next = displayCurrency === 'EUR' ? 'USD' : 'EUR';
+    setDisplayCurrency(next);
+    localStorage.setItem('cp_currency', next);
+  };
+  const fiatPrice = (inv: Invoice) => {
+    if (displayCurrency === 'USD' && inv.price_usd) return inv.price_usd;
+    return inv.price_eur;
+  };
+  const fiatStr = (inv: Invoice) => {
+    const p = fiatPrice(inv);
+    return p < 0.01 ? `${currencySymbol}${p}` : `${currencySymbol}${p.toFixed(2)}`;
+  };
+  const zecToFiat = (zec: number) => {
+    if (!zecRates) return null;
+    const rate = displayCurrency === 'USD' ? zecRates.zec_usd : zecRates.zec_eur;
+    return rate > 0 ? zec * rate : null;
+  };
+  const fiatLabel = (fiat: number | null) => {
+    if (fiat === null) return '';
+    return ` (~${currencySymbol}${fiat < 0.01 ? fiat.toFixed(6) : fiat.toFixed(2)})`;
+  };
+
   const { logout } = useAuth();
   const router = useRouter();
 
@@ -77,6 +109,11 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
     setToast({ msg, error });
     setTimeout(() => setToast(null), 3000);
   };
+
+  useEffect(() => {
+    setNewCurrency(displayCurrency);
+    setPayLinkCurrency(displayCurrency);
+  }, [displayCurrency]);
 
   const loadProducts = useCallback(async () => {
     try { setProducts(await api.listProducts()); } catch { /* */ }
@@ -92,7 +129,10 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
     try { setBilling(await api.getBilling()); } catch { /* billing not available */ }
   }, []);
 
-  useEffect(() => { loadProducts(); loadInvoices(); loadBilling(); }, [loadProducts, loadInvoices, loadBilling]);
+  useEffect(() => {
+    loadProducts(); loadInvoices(); loadBilling();
+    api.getRates().then(r => setZecRates({ zec_eur: r.zec_eur, zec_usd: r.zec_usd })).catch(() => {});
+  }, [loadProducts, loadInvoices, loadBilling]);
 
   const handleLogout = async () => { await logout(); router.push('/dashboard/login'); };
 
@@ -352,6 +392,13 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
         <Link href="/"><Logo size="sm" /></Link>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <span className="tag">DASHBOARD // TESTNET</span>
+          <button
+            onClick={toggleCurrency}
+            title={`Switch to ${displayCurrency === 'EUR' ? 'USD' : 'EUR'}`}
+            style={{ fontSize: 10, color: 'var(--cp-cyan)', background: 'none', border: '1px solid var(--cp-cyan)', borderRadius: 4, padding: '2px 8px', cursor: 'pointer', letterSpacing: 1, fontFamily: 'inherit', fontWeight: 700 }}
+          >
+            {displayCurrency}
+          </button>
           <ThemeToggle />
           <button onClick={handleLogout} style={{ fontSize: 11, color: 'var(--cp-text-muted)', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: 1, fontFamily: 'inherit' }}>
             SIGN OUT
@@ -856,9 +903,9 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                   </div>
                 ) : (
                   invoices.map((inv) => {
-                    const eurStr = inv.price_eur < 0.01 ? `€${inv.price_eur}` : `€${inv.price_eur.toFixed(2)}`;
+                    const priceStr = fiatStr(inv);
                     const isExpanded = expandedInvoice === inv.id;
-                    const isOverpaid = inv.received_zatoshis > inv.price_zatoshis && inv.price_zatoshis > 0;
+                    const isOverpaid = inv.received_zatoshis > inv.price_zatoshis + 1000 && inv.price_zatoshis > 0;
                     return (
                       <div key={inv.id} className="invoice-card" style={{ cursor: 'pointer' }} onClick={() => setExpandedInvoice(isExpanded ? null : inv.id)}>
                         <div className="invoice-header">
@@ -872,7 +919,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                         </div>
                         <div className="invoice-meta">
                           <span>{inv.product_name || '—'} {inv.size || ''}</span>
-                          <span><strong>{eurStr}</strong> / {inv.price_zec.toFixed(8)} ZEC</span>
+                          <span><strong>{priceStr}</strong> / {inv.price_zec.toFixed(8)} ZEC</span>
                         </div>
                         {(inv.status === 'underpaid' || isOverpaid) && inv.received_zatoshis > 0 && (
                           <div style={{ fontSize: 10, color: inv.status === 'underpaid' ? '#f97316' : 'var(--cp-text-muted)', marginTop: 4 }}>
@@ -892,7 +939,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                             {/* Pricing */}
                             <div className="stat-row">
                               <span style={{ color: 'var(--cp-text-muted)' }}>Price</span>
-                              <span>{eurStr} / {inv.price_zec.toFixed(8)} ZEC</span>
+                              <span>{priceStr} / {inv.price_zec.toFixed(8)} ZEC</span>
                             </div>
                             {inv.received_zatoshis > 0 && (
                               <div className="stat-row">
@@ -904,7 +951,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                             )}
                             <div className="stat-row">
                               <span style={{ color: 'var(--cp-text-muted)' }}>Rate at Creation</span>
-                              <span>1 ZEC = €{inv.zec_rate_at_creation.toFixed(2)}</span>
+                              <span>1 ZEC = {currencySymbol}{inv.zec_rate_at_creation.toFixed(2)}</span>
                             </div>
 
                             {/* Product info */}
@@ -1052,7 +1099,14 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                       {/* Current Cycle */}
                       {billing.current_cycle ? (
                         <div style={{ background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4, padding: 16, marginBottom: 16 }}>
-                          <div style={{ fontSize: 10, letterSpacing: 1, color: 'var(--cp-cyan)', marginBottom: 12, fontWeight: 600 }}>CURRENT CYCLE</div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                            <span style={{ fontSize: 10, letterSpacing: 1, color: 'var(--cp-cyan)', fontWeight: 600 }}>CURRENT CYCLE</span>
+                            {zecRates && (
+                              <span style={{ fontSize: 9, color: 'var(--cp-text-dim)', fontFamily: 'monospace' }}>
+                                1 ZEC = {currencySymbol}{(displayCurrency === 'USD' ? zecRates.zec_usd : zecRates.zec_eur).toFixed(2)}
+                              </span>
+                            )}
+                          </div>
                           <div className="stat-row" style={{ marginBottom: 6 }}>
                             <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>Period</span>
                             <span style={{ fontSize: 11 }}>
@@ -1061,16 +1115,16 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                           </div>
                           <div className="stat-row" style={{ marginBottom: 6 }}>
                             <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>Total Fees</span>
-                            <span style={{ fontSize: 11, fontFamily: 'monospace' }}>{billing.total_fees_zec.toFixed(8)} ZEC</span>
+                            <span style={{ fontSize: 11, fontFamily: 'monospace' }}>{billing.total_fees_zec.toFixed(8)} ZEC{fiatLabel(zecToFiat(billing.total_fees_zec))}</span>
                           </div>
                           <div className="stat-row" style={{ marginBottom: 6 }}>
                             <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>Auto-Collected</span>
-                            <span style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--cp-green)' }}>{billing.auto_collected_zec.toFixed(8)} ZEC</span>
+                            <span style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--cp-green)' }}>{billing.auto_collected_zec.toFixed(8)} ZEC{fiatLabel(zecToFiat(billing.auto_collected_zec))}</span>
                           </div>
                           <div className="stat-row" style={{ marginBottom: 6 }}>
                             <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>Outstanding</span>
                             <span style={{ fontSize: 11, fontFamily: 'monospace', fontWeight: 600, color: billing.outstanding_zec > 0.00001 ? '#f59e0b' : 'var(--cp-green)' }}>
-                              {billing.outstanding_zec.toFixed(8)} ZEC
+                              {billing.outstanding_zec.toFixed(8)} ZEC{fiatLabel(zecToFiat(billing.outstanding_zec))}
                             </span>
                           </div>
                           {billing.current_cycle.grace_until && (
@@ -1093,7 +1147,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                       {/* Settle button */}
                       {billing.outstanding_zec > 0.00001 && (
                         <button onClick={settleBilling} disabled={billingSettling} className="btn" style={{ width: '100%', marginBottom: 16 }}>
-                          {billingSettling ? 'CREATING INVOICE...' : `SETTLE NOW — ${billing.outstanding_zec.toFixed(6)} ZEC`}
+                          {billingSettling ? 'CREATING INVOICE...' : `SETTLE NOW — ${billing.outstanding_zec.toFixed(6)} ZEC${fiatLabel(zecToFiat(billing.outstanding_zec))}`}
                         </button>
                       )}
 
