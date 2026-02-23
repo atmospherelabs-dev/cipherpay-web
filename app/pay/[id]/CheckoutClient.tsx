@@ -41,10 +41,14 @@ function CopyIcon({ size = 12 }: { size?: number }) {
   );
 }
 
-function isSafeReturnUrl(url: string): boolean {
+function isSafeReturnUrl(url: string, merchantOrigin?: string | null): boolean {
   try {
     const parsed = new URL(url);
-    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return false;
+    if (merchantOrigin) {
+      return parsed.origin === merchantOrigin;
+    }
+    return true;
   } catch {
     return false;
   }
@@ -65,7 +69,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
 
   const searchParams = useSearchParams();
   const rawReturnUrl = searchParams.get('return_url') || null;
-  const returnUrl = rawReturnUrl && isSafeReturnUrl(rawReturnUrl) ? rawReturnUrl : null;
+  const returnUrl = rawReturnUrl && isSafeReturnUrl(rawReturnUrl, invoice?.merchant_origin) ? rawReturnUrl : null;
   const shopOrigin = getShopOrigin(returnUrl);
   const { theme, toggleTheme, mounted } = useTheme();
 

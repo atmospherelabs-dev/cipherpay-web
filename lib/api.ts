@@ -30,6 +30,7 @@ export interface Invoice {
   payment_address: string;
   zcash_uri: string;
   merchant_name: string | null;
+  merchant_origin?: string | null;
   status: 'pending' | 'underpaid' | 'detected' | 'confirmed' | 'expired' | 'refunded';
   detected_txid: string | null;
   detected_at: string | null;
