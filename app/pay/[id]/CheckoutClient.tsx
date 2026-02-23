@@ -97,7 +97,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
             price_zatoshis: data.price_zatoshis ?? prev.price_zatoshis,
           };
         });
-        if (data.status === 'confirmed' || data.status === 'expired') es.close();
+        if (data.status === 'detected' || data.status === 'confirmed' || data.status === 'expired') es.close();
       } catch { /* ignore */ }
     });
     es.onerror = () => {};
@@ -407,7 +407,6 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
 }
 
 function ConfirmedReceipt({ invoice, returnUrl }: { invoice: Invoice; returnUrl: string | null }) {
-  const isConfirmed = invoice.status === 'confirmed';
   const [redirectIn, setRedirectIn] = useState(returnUrl ? 5 : -1);
 
   useEffect(() => {
@@ -437,13 +436,8 @@ function ConfirmedReceipt({ invoice, returnUrl }: { invoice: Invoice; returnUrl:
 
   return (
     <div>
-      <div className={`checkout-status ${isConfirmed ? 'confirmed' : 'detected'}`} style={{ marginBottom: 24, padding: 20 }}>
-        <div style={{ fontSize: 15, fontWeight: 700 }}>{isConfirmed ? 'PAYMENT CONFIRMED' : 'PAYMENT SUCCESSFUL'}</div>
-        {!isConfirmed && (
-          <div className="pulse" style={{ fontSize: 10, marginTop: 8, color: 'var(--cp-text-muted)', fontWeight: 400 }}>
-            Confirming on blockchain...
-          </div>
-        )}
+      <div className="checkout-status confirmed" style={{ marginBottom: 24, padding: 20 }}>
+        <div style={{ fontSize: 15, fontWeight: 700 }}>PAYMENT ACCEPTED</div>
       </div>
 
       <div style={{ border: '1px solid var(--cp-border)', borderRadius: 6, padding: '0 24px' }}>
