@@ -29,11 +29,6 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
   });
   const [zecRates, setZecRates] = useState<{ zec_eur: number; zec_usd: number } | null>(null);
   const currencySymbol = displayCurrency === 'USD' ? '$' : '€';
-  const toggleCurrency = () => {
-    const next = displayCurrency === 'EUR' ? 'USD' : 'EUR';
-    setDisplayCurrency(next);
-    localStorage.setItem('cp_currency', next);
-  };
   const fiatPrice = (inv: Invoice) => {
     if (displayCurrency === 'USD' && inv.price_usd) return inv.price_usd;
     return inv.price_eur;
@@ -390,17 +385,12 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
       {/* Header */}
       <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid var(--cp-border)' }}>
         <Link href="/"><Logo size="sm" /></Link>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span className="tag">DASHBOARD // TESTNET</span>
-          <button
-            onClick={toggleCurrency}
-            title={`Switch to ${displayCurrency === 'EUR' ? 'USD' : 'EUR'}`}
-            style={{ fontSize: 10, color: 'var(--cp-cyan)', background: 'none', border: '1px solid var(--cp-cyan)', borderRadius: 4, padding: '2px 8px', cursor: 'pointer', letterSpacing: 1, fontFamily: 'inherit', fontWeight: 700 }}
-          >
-            {displayCurrency}
-          </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span className="tag">
+            DASHBOARD // {merchant.payment_address.startsWith('utest') ? 'TESTNET' : 'MAINNET'}
+          </span>
           <ThemeToggle />
-          <button onClick={handleLogout} style={{ fontSize: 11, color: 'var(--cp-text-muted)', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: 1, fontFamily: 'inherit' }}>
+          <button onClick={handleLogout} style={{ fontSize: 10, color: 'var(--cp-text-muted)', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: 1, fontFamily: 'inherit' }}>
             SIGN OUT
           </button>
         </div>
@@ -1262,6 +1252,38 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                   </div>
                   <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 4 }}>
                     Full secret is only shown when regenerated. Copy it immediately.
+                  </div>
+
+                  <div className="divider" />
+
+                  {/* Display Currency */}
+                  <div className="section-title">Display Currency</div>
+                  <div style={{ display: 'flex', gap: 0, marginBottom: 8 }}>
+                    {(['EUR', 'USD'] as const).map((c) => (
+                      <button
+                        key={c}
+                        onClick={() => { setDisplayCurrency(c); localStorage.setItem('cp_currency', c); }}
+                        style={{
+                          flex: 1,
+                          padding: '8px 0',
+                          fontSize: 11,
+                          fontWeight: 600,
+                          letterSpacing: 1,
+                          fontFamily: 'inherit',
+                          cursor: 'pointer',
+                          border: '1px solid var(--cp-border)',
+                          borderRadius: c === 'EUR' ? '4px 0 0 4px' : '0 4px 4px 0',
+                          background: displayCurrency === c ? 'var(--cp-cyan)' : 'transparent',
+                          color: displayCurrency === c ? '#000' : 'var(--cp-text-muted)',
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        {c === 'EUR' ? '€ EUR' : '$ USD'}
+                      </button>
+                    ))}
+                  </div>
+                  <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', lineHeight: 1.5 }}>
+                    Controls how fiat amounts and ZEC rates are displayed across the dashboard. Does not affect product prices or invoice amounts.
                   </div>
 
                   <div className="divider" />
