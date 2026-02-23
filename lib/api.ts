@@ -30,7 +30,7 @@ export interface Invoice {
   payment_address: string;
   zcash_uri: string;
   merchant_name: string | null;
-  status: 'pending' | 'detected' | 'confirmed' | 'expired' | 'refunded';
+  status: 'pending' | 'underpaid' | 'detected' | 'confirmed' | 'expired' | 'refunded';
   detected_txid: string | null;
   detected_at: string | null;
   confirmed_at: string | null;
@@ -38,6 +38,10 @@ export interface Invoice {
   expires_at: string;
   created_at: string;
   refund_address?: string | null;
+  received_zec: number | null;
+  price_zatoshis: number;
+  received_zatoshis: number;
+  overpaid?: boolean;
 }
 
 export interface CreateInvoiceRequest {
@@ -220,6 +224,12 @@ export const api = {
 
   refundInvoice: (id: string) =>
     request<{ status: string; refund_address: string | null }>(`/api/invoices/${id}/refund`, { method: 'POST' }),
+
+  saveRefundAddress: (id: string, refund_address: string) =>
+    request<{ status: string; refund_address: string }>(`/api/invoices/${id}/refund-address`, {
+      method: 'PATCH',
+      body: JSON.stringify({ refund_address }),
+    }),
 
   // Recovery
   recover: (email: string) =>

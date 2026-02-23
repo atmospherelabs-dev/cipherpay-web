@@ -858,16 +858,27 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                   invoices.map((inv) => {
                     const eurStr = inv.price_eur < 0.01 ? `€${inv.price_eur}` : `€${inv.price_eur.toFixed(2)}`;
                     const isExpanded = expandedInvoice === inv.id;
+                    const isOverpaid = inv.received_zatoshis > inv.price_zatoshis && inv.price_zatoshis > 0;
                     return (
                       <div key={inv.id} className="invoice-card" style={{ cursor: 'pointer' }} onClick={() => setExpandedInvoice(isExpanded ? null : inv.id)}>
                         <div className="invoice-header">
                           <span className="invoice-id">{inv.memo_code}</span>
-                          <span className={`status-badge status-${inv.status}`}>{inv.status.toUpperCase()}</span>
+                          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                            {isOverpaid && inv.status === 'confirmed' && (
+                              <span className="status-badge" style={{ background: 'rgba(249,115,22,0.15)', color: '#f97316', border: '1px solid rgba(249,115,22,0.3)', fontSize: 8 }}>OVERPAID</span>
+                            )}
+                            <span className={`status-badge status-${inv.status}`}>{inv.status.toUpperCase()}</span>
+                          </div>
                         </div>
                         <div className="invoice-meta">
                           <span>{inv.product_name || '—'} {inv.size || ''}</span>
                           <span><strong>{eurStr}</strong> / {inv.price_zec.toFixed(8)} ZEC</span>
                         </div>
+                        {(inv.status === 'underpaid' || isOverpaid) && inv.received_zatoshis > 0 && (
+                          <div style={{ fontSize: 10, color: inv.status === 'underpaid' ? '#f97316' : 'var(--cp-text-muted)', marginTop: 4 }}>
+                            Received: {(inv.received_zatoshis / 1e8).toFixed(8)} / {inv.price_zec.toFixed(8)} ZEC
+                          </div>
+                        )}
 
                         {isExpanded && (
                           <div onClick={(e) => e.stopPropagation()} style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--cp-border)' }}>
@@ -883,6 +894,14 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                               <span style={{ color: 'var(--cp-text-muted)' }}>Price</span>
                               <span>{eurStr} / {inv.price_zec.toFixed(8)} ZEC</span>
                             </div>
+                            {inv.received_zatoshis > 0 && (
+                              <div className="stat-row">
+                                <span style={{ color: isOverpaid ? '#f97316' : 'var(--cp-cyan)' }}>Received</span>
+                                <span style={{ color: isOverpaid ? '#f97316' : 'var(--cp-cyan)', fontWeight: 600 }}>
+                                  {(inv.received_zatoshis / 1e8).toFixed(8)} ZEC
+                                </span>
+                              </div>
+                            )}
                             <div className="stat-row">
                               <span style={{ color: 'var(--cp-text-muted)' }}>Rate at Creation</span>
                               <span>1 ZEC = €{inv.zec_rate_at_creation.toFixed(2)}</span>

@@ -153,6 +153,18 @@ body {
   border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
+.status-underpaid {
+  background: rgba(249, 115, 22, 0.15);
+  color: #f97316;
+  border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+.checkout-status.underpaid {
+  background: rgba(249, 115, 22, 0.1);
+  border: 1px solid rgba(249, 115, 22, 0.3);
+  color: #f97316;
+}
+
 /* ── Buttons (exact POC) ── */
 
 .btn {

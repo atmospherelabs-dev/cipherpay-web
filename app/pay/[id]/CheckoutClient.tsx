@@ -87,7 +87,16 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
     es.addEventListener('status', (event) => {
       try {
         const data = JSON.parse(event.data);
-        setInvoice((prev) => prev ? { ...prev, status: data.status, detected_txid: data.txid || prev.detected_txid } : prev);
+        setInvoice((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            status: data.status,
+            detected_txid: data.txid || prev.detected_txid,
+            received_zatoshis: data.received_zatoshis ?? prev.received_zatoshis,
+            price_zatoshis: data.price_zatoshis ?? prev.price_zatoshis,
+          };
+        });
         if (data.status === 'confirmed' || data.status === 'expired') es.close();
       } catch { /* ignore */ }
     });
@@ -132,13 +141,16 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
   const primaryPrice = isUsd && usdStr ? usdStr : eurStr;
   const secondaryPrice = isUsd ? eurStr : usdStr;
   const showReceipt = invoice.status === 'detected' || invoice.status === 'confirmed';
+  const isUnderpaid = invoice.status === 'underpaid';
+  const remainingZatoshis = invoice.price_zatoshis - invoice.received_zatoshis;
+  const remainingZec = remainingZatoshis > 0 ? remainingZatoshis / 1e8 : 0;
 
   return (
     <div className="min-h-screen flex flex-col" style={{ fontFamily: 'var(--font-geist-mono), monospace', fontSize: 13, lineHeight: 1.6 }}>
       <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid var(--cp-border)' }}>
         <Logo size="sm" />
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {invoice.status === 'pending' && <span className="tag">{countdown.text}</span>}
+          {(invoice.status === 'pending' || isUnderpaid) && <span className="tag">{countdown.text}</span>}
           {showReceipt && <span className="tag">PAID</span>}
           <ThemeToggle />
         </div>
@@ -238,8 +250,13 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
                       if (!refundAddr.trim()) return;
                       const addrErr = validateZcashAddress(refundAddr.trim());
                       if (addrErr) { setToast(addrErr); return; }
-                      setRefundSaved(true);
-                      setTimeout(() => setRefundSaved(false), 2000);
+                      try {
+                        await api.saveRefundAddress(invoiceId, refundAddr.trim());
+                        setRefundSaved(true);
+                        setTimeout(() => setRefundSaved(false), 2000);
+                      } catch (e: unknown) {
+                        setToast(e instanceof Error ? e.message : 'Failed to save');
+                      }
                     }}
                     className="btn"
                     style={{ fontSize: 10, whiteSpace: 'nowrap' }}
@@ -256,6 +273,65 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
             </div>
           )}
 
+          {/* ── Underpaid: partial payment received ── */}
+          {isUnderpaid && (
+            <div style={{ textAlign: 'center' }}>
+              <div className="checkout-status underpaid" style={{ marginBottom: 24, padding: 20 }}>
+                <div style={{ fontSize: 15, fontWeight: 700 }}>PARTIAL PAYMENT RECEIVED</div>
+                <div style={{ fontSize: 11, marginTop: 8, color: 'var(--cp-text-muted)', fontWeight: 400 }}>
+                  Received {(invoice.received_zatoshis / 1e8).toFixed(8)} / {invoice.price_zec.toFixed(8)} ZEC
+                </div>
+                <div style={{ fontSize: 12, marginTop: 12, color: '#f97316', fontWeight: 600 }}>
+                  Send the remaining {remainingZec.toFixed(8)} ZEC to complete your payment
+                </div>
+              </div>
+
+              {/* Updated QR for remaining amount */}
+              {address && remainingZec > 0 && (
+                <div className="qr-container" style={{ marginBottom: 12 }}>
+                  <QRCode data={`zcash:${address}?amount=${remainingZec.toFixed(8)}`} size={200} />
+                </div>
+              )}
+
+              <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', letterSpacing: 1, marginBottom: 16 }}>
+                SCAN TO SEND REMAINING BALANCE
+              </div>
+
+              {address && remainingZec > 0 && (
+                <a href={`zcash:${address}?amount=${remainingZec.toFixed(8)}`} className="btn-primary" style={{ width: '100%', textDecoration: 'none', textTransform: 'uppercase', marginBottom: 24 }}>
+                  Open in Wallet
+                </a>
+              )}
+
+              {/* Payment Address */}
+              <div style={{ textAlign: 'left', marginBottom: 16 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <span style={{ fontSize: 10, color: 'var(--cp-text-muted)', letterSpacing: 1 }}>PAYMENT ADDRESS</span>
+                  <button
+                    onClick={() => copy(address, 'Address')}
+                    style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', color: 'var(--cp-cyan)', cursor: 'pointer', fontSize: 9, letterSpacing: 1, fontFamily: 'inherit', padding: 0 }}
+                  >
+                    <CopyIcon size={11} /> COPY
+                  </button>
+                </div>
+                <div
+                  onClick={() => copy(address, 'Address')}
+                  style={{
+                    background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4,
+                    padding: '10px 12px', cursor: 'pointer', fontSize: 10, color: 'var(--cp-cyan)',
+                    wordBreak: 'break-all', lineHeight: 1.5,
+                  }}
+                >
+                  {truncateAddress(address)}
+                </div>
+              </div>
+
+              <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', letterSpacing: 1 }}>
+                Expires in {countdown.text}
+              </div>
+            </div>
+          )}
+
           {/* ── Receipt ── */}
           {showReceipt && (
             <ConfirmedReceipt invoice={invoice} returnUrl={returnUrl} />
@@ -265,9 +341,46 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
           {invoice.status === 'expired' && (
             <div className="checkout-status expired">
               <div>INVOICE EXPIRED</div>
-              <div style={{ fontSize: 10, marginTop: 6, color: 'var(--cp-text-muted)', fontWeight: 400 }}>
-                This invoice has expired. Please create a new order.
-              </div>
+              {invoice.received_zatoshis > 0 ? (
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ fontSize: 10, color: 'var(--cp-text-muted)', fontWeight: 400, marginBottom: 12 }}>
+                    A partial payment of {(invoice.received_zatoshis / 1e8).toFixed(8)} ZEC was received.
+                    Enter your refund address below to request a refund from the merchant.
+                  </div>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <input
+                      type="text"
+                      value={refundAddr}
+                      onChange={(e) => { setRefundAddr(e.target.value); setRefundSaved(false); }}
+                      placeholder="u1..."
+                      className="input"
+                      style={{ fontSize: 10, flex: 1 }}
+                    />
+                    <button
+                      onClick={async () => {
+                        if (!refundAddr.trim()) return;
+                        const addrErr = validateZcashAddress(refundAddr.trim());
+                        if (addrErr) { setToast(addrErr); return; }
+                        try {
+                          await api.saveRefundAddress(invoiceId, refundAddr.trim());
+                          setRefundSaved(true);
+                          setTimeout(() => setRefundSaved(false), 3000);
+                        } catch (e: unknown) {
+                          setToast(e instanceof Error ? e.message : 'Failed to save');
+                        }
+                      }}
+                      className="btn"
+                      style={{ fontSize: 10, whiteSpace: 'nowrap' }}
+                    >
+                      {refundSaved ? 'SAVED ✓' : 'SAVE'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ fontSize: 10, marginTop: 6, color: 'var(--cp-text-muted)', fontWeight: 400 }}>
+                  This invoice has expired. Please create a new order.
+                </div>
+              )}
               {shopOrigin && (
                 <a
                   href={shopOrigin}
@@ -355,7 +468,9 @@ function ConfirmedReceipt({ invoice, returnUrl }: { invoice: Invoice; returnUrl:
 
         <div style={row}>
           <span style={label}>ZEC PAID</span>
-          <span style={{ color: 'var(--cp-cyan)', fontWeight: 600 }}>{invoice.price_zec.toFixed(8)}</span>
+          <span style={{ color: 'var(--cp-cyan)', fontWeight: 600 }}>
+            {invoice.received_zatoshis > 0 ? (invoice.received_zatoshis / 1e8).toFixed(8) : invoice.price_zec.toFixed(8)}
+          </span>
         </div>
 
         <div style={row}>
@@ -372,6 +487,17 @@ function ConfirmedReceipt({ invoice, returnUrl }: { invoice: Invoice; returnUrl:
           </div>
         )}
       </div>
+
+      {invoice.overpaid && invoice.received_zatoshis > invoice.price_zatoshis && (
+        <div style={{
+          marginTop: 16, padding: '14px 20px', borderRadius: 6,
+          background: 'rgba(249, 115, 22, 0.1)', border: '1px solid rgba(249, 115, 22, 0.3)',
+          fontSize: 11, color: '#f97316', lineHeight: 1.6,
+        }}>
+          An overpayment of {((invoice.received_zatoshis - invoice.price_zatoshis) / 1e8).toFixed(8)} ZEC was detected.
+          Contact the merchant for a refund of the excess.
+        </div>
+      )}
 
       {returnUrl && (
         <div style={{ marginTop: 24 }}>

@@ -1,5 +1,6 @@
 const statusConfig = {
   pending: { label: 'Pending', color: 'bg-cp-yellow/15 text-cp-yellow border-cp-yellow/30' },
+  underpaid: { label: 'Underpaid', color: 'bg-orange-500/15 text-orange-500 border-orange-500/30' },
   detected: { label: 'Detected', color: 'bg-cp-purple/15 text-cp-purple border-cp-purple/30' },
   confirmed: { label: 'Confirmed', color: 'bg-cp-green/15 text-cp-green border-cp-green/30' },
   expired: { label: 'Expired', color: 'bg-cp-red/15 text-cp-red border-cp-red/30' },
