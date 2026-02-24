@@ -77,8 +77,19 @@ export default function RegisterPage() {
                 </p>
 
                 <CredentialBlock label="API KEY (SERVER-SIDE ONLY)" value={result.api_key} />
+                <p style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: -8, marginBottom: 16, paddingLeft: 2 }}>
+                  Use this in your server code to create invoices. Never expose it in frontend code.
+                </p>
+
                 <CredentialBlock label="DASHBOARD TOKEN" value={result.dashboard_token} />
+                <p style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: -8, marginBottom: 16, paddingLeft: 2 }}>
+                  This is your <strong style={{ color: 'var(--cp-text)' }}>login password</strong> for the dashboard. You&apos;ll need it every time you sign in.
+                </p>
+
                 <CredentialBlock label="WEBHOOK SECRET" value={result.webhook_secret} />
+                <p style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: -8, marginBottom: 16, paddingLeft: 2 }}>
+                  Used to verify that incoming webhooks are from CipherPay. Add it to your server config.
+                </p>
 
                 <div style={{ marginTop: 16, padding: 12, background: 'rgba(234,179,8,0.1)', border: '1px solid rgba(234,179,8,0.3)', borderRadius: 4 }}>
                   <p style={{ fontSize: 10, color: 'var(--cp-yellow)', fontWeight: 600, letterSpacing: 1 }}>

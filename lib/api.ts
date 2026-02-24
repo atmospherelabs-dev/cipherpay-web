@@ -283,6 +283,10 @@ export const api = {
   settleBilling: () =>
     request<SettleResponse>('/api/merchants/me/billing/settle', { method: 'POST' }),
 
+  // Account
+  deleteAccount: () =>
+    request<{ status: string; message: string }>('/api/merchants/me/delete', { method: 'POST' }),
+
   // SSE stream for invoice status
   streamInvoice: (invoiceId: string): EventSource =>
     new EventSource(`${API_URL}/api/invoices/${invoiceId}/stream`, {

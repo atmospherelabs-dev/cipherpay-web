@@ -1310,6 +1310,32 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                       <CopyButton text={revealedKey.value} label="Copy" />
                     </div>
                   )}
+
+                  {/* Danger Zone */}
+                  <div style={{ marginTop: 32, paddingTop: 20, borderTop: '1px solid rgba(239,68,68,0.2)' }}>
+                    <div style={{ fontSize: 10, letterSpacing: 1, color: '#ef4444', fontWeight: 600, marginBottom: 8 }}>DANGER ZONE</div>
+                    <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginBottom: 12 }}>
+                      Permanently delete your account, products, and all data. This cannot be undone.
+                      You must settle any outstanding billing balance before deleting.
+                    </div>
+                    <button
+                      onClick={async () => {
+                        if (!confirm('Are you sure you want to permanently delete your account? This cannot be undone.')) return;
+                        if (!confirm('This will delete ALL your products, invoices, and billing data. Type OK to confirm.')) return;
+                        try {
+                          await api.deleteAccount();
+                          window.location.href = '/';
+                        } catch (e: unknown) {
+                          const msg = e instanceof Error ? e.message : 'Failed to delete account';
+                          setToast({ msg, error: true });
+                        }
+                      }}
+                      className="btn"
+                      style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444' }}
+                    >
+                      DELETE ACCOUNT
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
