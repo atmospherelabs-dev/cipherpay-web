@@ -15,7 +15,7 @@ const sections = [
     questions: [
       {
         q: 'Is CipherPay truly private?',
-        a: `CipherPay uses Zcash shielded transactions exclusively. On the blockchain, all payments are fully encrypted — no outside observer can see the sender, receiver, amount, or memo. However, CipherPay (as the payment processor) does see the transaction details because it performs trial decryption using your viewing key. This is the same trade-off as any payment processor: Stripe sees your transactions too. The difference is that the blockchain layer is completely dark.`,
+        a: `CipherPay uses Zcash shielded transactions exclusively. On the blockchain, all payments are fully encrypted, no outside observer can see the sender, receiver, amount, or memo. However, CipherPay (as the payment processor) does see the transaction details because it performs trial decryption using your viewing key. This is the same trade-off as any payment processor: Stripe sees your transactions too. The difference is that the blockchain layer is completely dark.`,
       },
       {
         q: 'What data does CipherPay have access to?',
@@ -23,7 +23,7 @@ const sections = [
       },
       {
         q: 'How do I get maximum privacy?',
-        a: `Self-host CipherPay. The entire codebase is open-source. When you run your own instance, only your server holds the viewing key, and CipherPay (the company) sees nothing. You get the same features — mempool scanning, trial decryption, webhooks — with zero third-party data exposure.`,
+        a: `Self-host CipherPay. The entire codebase is open-source. When you run your own instance, only your server holds the viewing key, and CipherPay (the company) sees nothing. You get the same features — mempool scanning, trial decryption, webhooks, with zero third-party data exposure.`,
       },
       {
         q: 'Can CipherPay spend my funds?',
@@ -41,7 +41,7 @@ const sections = [
       },
       {
         q: 'What is the recommended wallet setup?',
-        a: `1. Create a brand new wallet (using Zingo, YWallet, or zcashd) dedicated to your store.\n2. Export the Unified Full Viewing Key (UFVK) from that wallet.\n3. Use that UFVK when registering on CipherPay.\n4. Periodically sweep received funds to your main cold storage wallet.\n5. Never reuse this wallet for personal transactions.`,
+        a: `1. Create a brand new wallet (using Zodl, Zipher (coming soon), or Ywallet) dedicated to your store.\n2. Export the Unified Full Viewing Key (UFVK) from that wallet.\n3. Use that UFVK when registering on CipherPay.\n4. Periodically sweep received funds to your main cold storage wallet.\n5. Never reuse this wallet for personal transactions.`,
       },
       {
         q: 'Can I change my payment address?',
@@ -63,7 +63,7 @@ const sections = [
       },
       {
         q: 'What is the reference code (e.g. CP-C6CDB775)?',
-        a: `Each invoice gets a reference code for identification purposes. It is included in the Zcash URI as an informational memo, but payment detection does not depend on it. CipherPay matches payments by their unique cryptographic address, so the buyer just scans the QR code and sends — nothing to copy or type.`,
+        a: `Each invoice gets a reference code for identification purposes. It is included in the Zcash URI as an informational memo, but payment detection does not depend on it. CipherPay matches payments by their unique cryptographic address, so the buyer just scans the QR code and sends. There is nothing to copy or type.`,
       },
       {
         q: 'What happens if the buyer sends the wrong amount?',
@@ -71,7 +71,7 @@ const sections = [
       },
       {
         q: 'How long do invoices last?',
-        a: `By default, 30 minutes. This window locks the ZEC/EUR exchange rate at the time of invoice creation, protecting both the merchant and buyer from price volatility. If the invoice expires, a new one must be created (with a fresh rate).`,
+        a: `By default, 30 minutes. This window locks the ZEC/EUR or ZEC/USD exchange rate at the time of invoice creation, protecting both the merchant and buyer from price volatility. If the invoice expires, a new one must be created (with a fresh rate).`,
       },
     ],
   },
@@ -81,7 +81,7 @@ const sections = [
     questions: [
       {
         q: 'How is authentication handled?',
-        a: `Merchants authenticate via a dashboard token (cpay_dash_...) exchanged for an HttpOnly session cookie. The token is hashed with SHA-256 before storage — a database breach doesn't leak credentials. Sessions use Secure + SameSite=Lax cookies, preventing XSS cookie theft and CSRF attacks. API keys (cpay_sk_...) are also SHA-256 hashed and used for server-to-server integrations.`,
+        a: `Merchants authenticate via a dashboard token (cpay_dash_...) exchanged for an HttpOnly session cookie. The token is hashed with SHA-256 before storage, a database breach doesn't leak credentials. Sessions use Secure + SameSite=Lax cookies, preventing XSS cookie theft and CSRF attacks. API keys (cpay_sk_...) are also SHA-256 hashed and used for server-to-server integrations.`,
       },
       {
         q: 'What protections exist against payment exploits?',
@@ -91,10 +91,7 @@ const sections = [
         q: 'Does CipherPay store buyer personal data?',
         a: `No. CipherPay does not collect or store shipping addresses, names, or any buyer PII. It is a pure payment processor. Merchants who need shipping information should collect it through their own store and integrate with CipherPay via webhooks for payment confirmation.`,
       },
-      {
-        q: 'What are the Content Security Policy headers?',
-        a: `The Next.js frontend enforces strict CSP: default-src 'self', frame-ancestors 'none' (prevents clickjacking), form-action 'self', and connect-src scoped to the API domain. X-Frame-Options, X-Content-Type-Options, and a strict Referrer-Policy are also set.`,
-      },
+
     ],
   },
   {
@@ -107,19 +104,15 @@ const sections = [
       },
       {
         q: 'What do I need to self-host?',
-        a: `A server with Rust installed (or use the Docker image), access to a CipherScan API instance (public testnet/mainnet endpoints work), and a Zcash wallet to generate your UFVK. The minimum requirements are modest — the Rust binary is lightweight.`,
+        a: `A server with Rust installed (or use the Docker image), access to a CipherScan API instance (public testnet/mainnet endpoints work), and a Zcash wallet to generate your UFVK. The minimum requirements are modest, the Rust binary is lightweight.`,
       },
       {
         q: 'Is CipherPay free?',
-        a: `The current version is free for all users. Subscription tiers with rate limits and premium features are planned for the future. Self-hosting will always remain free.`,
-      },
-      {
-        q: 'Will there be transaction fees?',
-        a: `No. CipherPay does not take a percentage of your sales. The planned monetization model is a flat subscription fee for the hosted service. Your revenue is your revenue.`,
+        a: `No. CipherPay has a 1% fee on each payment. Later, subscription tiers with rate limits and premium features are planned. Self-hosting will always remain free.`,
       },
       {
         q: 'Can I pay for CipherPay with ZEC?',
-        a: `That's the plan. When subscription tiers launch, you'll be able to pay for your CipherPay subscription using CipherPay itself — fully shielded ZEC payments. Dogfooding at its finest.`,
+        a: `That's the plan. When subscription tiers launch, you'll be able to pay for your CipherPay subscription using CipherPay itself, using fully shielded ZEC payments. Dogfooding at its finest.`,
       },
     ],
   },

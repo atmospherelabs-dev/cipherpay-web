@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /dashboard/
+Disallow: /pay/
+Disallow: /api/
+Allow: /
+Allow: /docs

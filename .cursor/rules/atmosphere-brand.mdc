@@ -1,0 +1,43 @@
+---
+description: Atmosphere Labs brand philosophy and design principles — the "Apple meets Linux" approach
+alwaysApply: true
+---
+
+# Atmosphere Labs — Brand & Design Philosophy
+
+## Positioning: "Apple meets Linux Foundation"
+
+- **Apple side:** Obsessive about design, "it just works," invisible complexity, human-centric, premium feel.
+- **Linux side:** Open-source, transparent, community-owned, robust, anti-surveillance, "code is law."
+- **Our edge:** While others fight over who built the protocol, we make Zcash accessible — for users and developers alike.
+
+## Brand Voice
+
+- Confident and short (Apple) + technically precise (Linux).
+- Say: "Making Zcash accessible. For everyone."
+- Don't say: "We use advanced zk-SNARKs to ensure your transaction metadata is obfuscated." (too nerd)
+- Don't say: "Magic money for everyone!" (too vague)
+- Heavy on "We build" — never heavy on "We believe."
+
+## Design Principles
+
+1. **Privacy as a Default** — If it's not private by default, we don't ship it.
+2. **User Sovereign** — Your keys, your data, your terms. Always.
+3. **Radically Accessible** — For users and developers alike. Design is our tool, not our goal. Privacy tools having bad UX is a tradeoff we reject.
+4. **Open Source** — Every line of code is public. We don't ask for trust, we show our work.
+5. **Invisible Complexity** — The best security is the kind you never think about. Make the math disappear behind great UX.
+
+## Visual Language
+
+- Dark, minimal, atmospheric. Deep navy/space backgrounds.
+- Glass morphism, subtle gradients, restrained animation.
+- Typography: Inter (UI) + JetBrains Mono (technical/labels).
+- Colors: White text, blue (#5B9CF6) → cyan (#56D4C8) gradient as accent, warm (#E8C48D) for emphasis.
+- Inspiration: Phantom, Linear, Vercel — not "crypto bro" aesthetic.
+
+## Code Standards
+
+- Clean, readable code. No clever tricks without comments explaining why.
+- Error handling everywhere — never swallow errors silently.
+- Never log secrets (seeds, keys, addresses) in production.
+- Security is non-negotiable: seeds in platform secure storage, keys derived in RAM, wiped on close.
