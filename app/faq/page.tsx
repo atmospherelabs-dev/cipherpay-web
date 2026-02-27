@@ -116,6 +116,32 @@ const sections = [
       },
     ],
   },
+  {
+    id: '06',
+    title: 'x402 Facilitator',
+    questions: [
+      {
+        q: 'What is x402?',
+        a: `x402 is a protocol that revives the HTTP 402 "Payment Required" status code for programmatic payments. When an AI agent or automated client requests a paid resource, the server responds with 402 and includes payment terms (price, address, chain). The agent pays and retries the request with proof of payment. CipherPay acts as the Zcash facilitator — verifying shielded payments so your server doesn't need to understand Zcash internals.`,
+      },
+      {
+        q: 'How does verification work for shielded transactions?',
+        a: `CipherPay uses the same trial decryption mechanism as invoice detection. When your server calls POST /api/x402/verify with a transaction ID, CipherPay fetches the raw transaction from the Zcash network, attempts to decrypt its Orchard outputs using your viewing key (UFVK), and checks if the decrypted amount meets the expected threshold. The sender's identity remains fully private — only the payment amount and recipient are verified.`,
+      },
+      {
+        q: 'Does the agent need a CipherPay account?',
+        a: `No. The agent just needs a Zcash wallet with funds. It sends ZEC to your payment address and includes the transaction ID in its request. Only the resource server (you) needs a CipherPay account to call the verify endpoint. The agent is completely anonymous.`,
+      },
+      {
+        q: 'What about payments on other chains?',
+        a: `CipherPay is the facilitator for Zcash-to-Zcash payments specifically. For other chains (USDC on Base, ETH, SOL), the resource server would use a different facilitator. The x402 protocol supports multiple chains in the "accepts" array, so a server can offer several payment options. AI agents with multichain wallets (e.g. via NEAR Intents) can swap tokens and pay on whichever chain the server accepts.`,
+      },
+      {
+        q: 'Is there a fee for x402 verification?',
+        a: `No. x402 verification is free. CipherPay provides it to drive Zcash adoption for AI and programmatic payments. Revenue comes from the existing invoice-based payment processing. The x402 facilitator and the invoice checkout system serve different use cases — x402 is for programmatic API access, while invoices are for human-facing e-commerce.`,
+      },
+    ],
+  },
 ];
 
 export default function FAQPage() {

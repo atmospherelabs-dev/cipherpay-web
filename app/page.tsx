@@ -84,11 +84,13 @@ export default function LandingPage() {
 
             <div className="panel">
               <div className="panel-header">
-                <span className="panel-title">03 // Real-Time</span>
+                <span className="panel-title">03 // AI-Ready (x402)</span>
               </div>
               <div className="panel-body">
                 <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>
-                  Payments are detected in seconds and confirmed within minutes. No delays, no manual checks.
+                  Accept ZEC from AI agents via the{' '}
+                  <Link href="/docs#x402" style={{ color: 'var(--cp-purple)', textDecoration: 'none' }}>x402 protocol</Link>.
+                  One API call to verify shielded payments programmatically.
                 </p>
               </div>
             </div>

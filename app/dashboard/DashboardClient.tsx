@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { api, type Invoice, type MerchantInfo, type Product, type CreateProductRequest, type UpdateProductRequest, type BillingSummary } from '@/lib/api';
+import { api, type Invoice, type MerchantInfo, type Product, type CreateProductRequest, type UpdateProductRequest, type BillingSummary, type X402Verification } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { validateEmail, validateWebhookUrl, validateLength } from '@/lib/validation';
 import { Logo } from '@/components/Logo';
@@ -10,7 +10,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { CopyButton } from '@/components/CopyButton';
 import Link from 'next/link';
 
-type Tab = 'products' | 'invoices' | 'pos' | 'billing' | 'settings';
+type Tab = 'products' | 'invoices' | 'pos' | 'billing' | 'settings' | 'x402';
 
 export default function DashboardClient({ merchant }: { merchant: MerchantInfo }) {
   const [tab, setTab] = useState<Tab>('products');
@@ -97,6 +97,10 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
   const [billing, setBilling] = useState<BillingSummary | null>(null);
   const [billingSettling, setBillingSettling] = useState(false);
 
+  // x402 Verifications
+  const [x402Verifications, setX402Verifications] = useState<X402Verification[]>([]);
+  const [loadingX402, setLoadingX402] = useState(true);
+
   const { logout } = useAuth();
   const router = useRouter();
 
@@ -124,10 +128,18 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
     try { setBilling(await api.getBilling()); } catch { /* billing not available */ }
   }, []);
 
+  const loadX402 = useCallback(async () => {
+    try {
+      const data = await api.x402History();
+      setX402Verifications(data.verifications || []);
+    } catch { /* x402 not available */ }
+    setLoadingX402(false);
+  }, []);
+
   useEffect(() => {
-    loadProducts(); loadInvoices(); loadBilling();
+    loadProducts(); loadInvoices(); loadBilling(); loadX402();
     api.getRates().then(r => setZecRates({ zec_eur: r.zec_eur, zec_usd: r.zec_usd })).catch(() => {});
-  }, [loadProducts, loadInvoices, loadBilling]);
+  }, [loadProducts, loadInvoices, loadBilling, loadX402]);
 
   const handleLogout = async () => { await logout(); router.push('/dashboard/login'); };
 
@@ -479,6 +491,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                   { key: 'products' as Tab, label: 'PRODUCTS' },
                   { key: 'pos' as Tab, label: `POS${cartItemCount > 0 ? ` (${cartItemCount})` : ''}` },
                   { key: 'invoices' as Tab, label: 'INVOICES' },
+                  ...(x402Verifications.length > 0 ? [{ key: 'x402' as Tab, label: 'X402' }] : []),
                 ]).map(({ key, label }) => (
                   <button
                     key={key}
@@ -1039,6 +1052,49 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                       </div>
                     );
                   })
+                )}
+              </div>
+            ) : tab === 'x402' ? (
+              <div className="panel">
+                <div className="panel-header">
+                  <span className="panel-title">x402 // Verifications</span>
+                  <button onClick={loadX402} className="btn btn-small">REFRESH</button>
+                </div>
+
+                {loadingX402 ? (
+                  <div className="empty-state">
+                    <div className="w-5 h-5 border-2 rounded-full animate-spin mx-auto" style={{ borderColor: 'var(--cp-cyan)', borderTopColor: 'transparent' }} />
+                  </div>
+                ) : x402Verifications.length === 0 ? (
+                  <div className="empty-state">
+                    <div className="icon">&#9632;</div>
+                    <div>No x402 verifications yet</div>
+                  </div>
+                ) : (
+                  x402Verifications.map((v) => (
+                    <div key={v.id} className="invoice-card">
+                      <div className="invoice-header">
+                        <span className="invoice-id" style={{ fontSize: 10 }}>
+                          <CopyButton text={v.txid} label={v.txid.substring(0, 16) + '...'} />
+                        </span>
+                        <span className={`status-badge ${v.status === 'verified' ? 'status-confirmed' : 'status-expired'}`}>
+                          {v.status.toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="invoice-meta">
+                        <span>
+                          <strong>
+                            {v.amount_zec != null ? `${v.amount_zec.toFixed(8)} ZEC` : '—'}
+                          </strong>
+                          {v.amount_zec != null && fiatLabel(zecToFiat(v.amount_zec))}
+                        </span>
+                        <span>{new Date(v.created_at + 'Z').toLocaleString()}</span>
+                      </div>
+                      {v.reason && (
+                        <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: 6 }}>{v.reason}</div>
+                      )}
+                    </div>
+                  ))
                 )}
               </div>
             ) : tab === 'billing' ? (

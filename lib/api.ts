@@ -162,6 +162,16 @@ export interface SettleResponse {
   message: string;
 }
 
+export interface X402Verification {
+  id: string;
+  txid: string;
+  amount_zatoshis: number | null;
+  amount_zec: number | null;
+  status: 'verified' | 'rejected';
+  reason: string | null;
+  created_at: string;
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     credentials: 'include',
@@ -282,6 +292,10 @@ export const api = {
 
   settleBilling: () =>
     request<SettleResponse>('/api/merchants/me/billing/settle', { method: 'POST' }),
+
+  // x402
+  x402History: (limit = 50, offset = 0) =>
+    request<{ verifications: X402Verification[] }>(`/api/merchants/me/x402/history?limit=${limit}&offset=${offset}`),
 
   // Account
   deleteAccount: () =>
