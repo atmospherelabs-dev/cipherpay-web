@@ -553,7 +553,7 @@ ngrok http 3000
 
         <Step n={1} title="Download the plugin">
           <Paragraph>
-            Download <Code>cipherpay-woocommerce.zip</Code> from the <a href="https://github.com/Kenbak/cipherpay-woocommerce" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>GitHub repository</a> (Releases page).
+            Download <Code>cipherpay-woocommerce.zip</Code> from the <a href="https://github.com/atmospherelabs-dev/cipherpay-woocommerce" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>GitHub repository</a> (Releases page).
           </Paragraph>
         </Step>
 

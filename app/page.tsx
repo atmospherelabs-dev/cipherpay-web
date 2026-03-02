@@ -217,7 +217,8 @@ export default function LandingPage() {
           <Link href="/docs" style={{ color: 'var(--cp-text-muted)', textDecoration: 'none' }}>Docs</Link>
           <Link href="/faq" style={{ color: 'var(--cp-text-muted)', textDecoration: 'none' }}>FAQ</Link>
           <a href="https://cipherscan.app" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-text-muted)', textDecoration: 'none' }}>CipherScan</a>
-          <a href="https://github.com/Kenbak/cipherpay-web" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-text-muted)', textDecoration: 'none' }}>GitHub</a>
+          <a href="https://github.com/atmospherelabs-dev/cipherpay-web" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-text-muted)', textDecoration: 'none' }}>GitHub</a>
+          <a href="https://x.com/cipherpay_app" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-text-muted)', textDecoration: 'none' }}>𝕏</a>
         </div>
       </footer>
     </div>

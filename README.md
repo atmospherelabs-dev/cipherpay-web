@@ -76,7 +76,7 @@ lib/
 
 ## Related
 
-- **[CipherPay API](https://github.com/Kenbak/cipherpay-api)** — Rust API server
+- **[CipherPay API](https://github.com/atmospherelabs-dev/cipherpay-api)** — Rust API server
 - **[CipherScan](https://cipherscan.app)** — Zcash blockchain explorer (data source)
 
 ## License
