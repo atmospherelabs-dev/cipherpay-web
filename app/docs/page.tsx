@@ -552,7 +552,7 @@ ngrok http 3000
           5. The app marks the Shopify order as paid automatically
         </div>
 
-        {/* [SCREENSHOT PLACEHOLDER: Thank You page showing the CipherPay payment button] */}
+        
 
         <SectionDivider />
 
@@ -564,7 +564,7 @@ ngrok http 3000
           <Paragraph>
             Replace <Code>yourstore</Code> with your actual Shopify store name. This will redirect you to Shopify to authorize the app.
           </Paragraph>
-          {/* [SCREENSHOT PLACEHOLDER: Shopify OAuth authorization screen] */}
+          
         </Step>
 
         <Step n={2} title="Configure CipherPay credentials">
@@ -577,7 +577,7 @@ ngrok http 3000
             <Code>API URL</Code> — Use <Code>https://api.cipherpay.app</Code> for mainnet,
             or <Code>https://api.testnet.cipherpay.app</Code> for testnet.
           </div>
-          {/* [SCREENSHOT PLACEHOLDER: CipherPay settings page in Shopify] */}
+          
         </Step>
 
         <Step n={3} title="Add a manual payment method">
@@ -589,7 +589,7 @@ ngrok http 3000
             This is the payment option customers will see at checkout. You can add a description like
             &quot;Pay securely with Zcash cryptocurrency via CipherPay.&quot;
           </Paragraph>
-          {/* [SCREENSHOT PLACEHOLDER: Shopify manual payment method setup] */}
+          
         </Step>
 
         <Step n={4} title="Add the payment button to the Thank You page">
@@ -603,7 +603,20 @@ ngrok http 3000
             4. Select <Strong>CipherPay Checkout</Strong> from the app blocks list<br />
             5. Click <Strong>Save</Strong>
           </div>
-          {/* [SCREENSHOT PLACEHOLDER: Checkout editor showing CipherPay block on Thank You page] */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
+            <div style={{ border: '1px solid var(--cp-border)', borderRadius: 6, overflow: 'hidden' }}>
+              <img src="/docs/shopify-checkout-settings.png" alt="Shopify Checkout settings — click Customize" style={{ width: '100%', display: 'block' }} />
+              <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', padding: '6px 10px', background: 'var(--cp-bg)' }}>Settings &rarr; Checkout &rarr; Customize</div>
+            </div>
+            <div style={{ border: '1px solid var(--cp-border)', borderRadius: 6, overflow: 'hidden' }}>
+              <img src="/docs/shopify-thankyou-select.png" alt="Select Thank you page in the checkout editor" style={{ width: '100%', display: 'block' }} />
+              <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', padding: '6px 10px', background: 'var(--cp-bg)' }}>Switch to the &quot;Thank you&quot; page in the dropdown</div>
+            </div>
+            <div style={{ border: '1px solid var(--cp-border)', borderRadius: 6, overflow: 'hidden' }}>
+              <img src="/docs/shopify-add-block.png" alt="Add CipherPay Checkout block" style={{ width: '100%', display: 'block' }} />
+              <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', padding: '6px 10px', background: 'var(--cp-bg)' }}>Click Add block &rarr; select CipherPay Checkout</div>
+            </div>
+          </div>
         </Step>
 
         <Step n={5} title="Set the webhook URL in CipherPay">
