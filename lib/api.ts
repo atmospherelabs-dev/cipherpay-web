@@ -140,7 +140,7 @@ export interface BillingCycle {
   auto_collected_zec: number;
   outstanding_zec: number;
   settlement_invoice_id: string | null;
-  status: 'open' | 'invoiced' | 'paid' | 'past_due' | 'suspended';
+  status: 'open' | 'invoiced' | 'paid' | 'past_due' | 'suspended' | 'carried_over';
   grace_until: string | null;
   created_at: string;
 }

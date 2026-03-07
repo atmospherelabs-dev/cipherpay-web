@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { api, type Invoice, type MerchantInfo, type Product, type CreateProductRequest, type UpdateProductRequest, type BillingSummary, type X402Verification } from '@/lib/api';
+import { api, type Invoice, type MerchantInfo, type Product, type CreateProductRequest, type UpdateProductRequest, type BillingSummary, type BillingCycle, type X402Verification } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { validateEmail, validateWebhookUrl, validateLength } from '@/lib/validation';
 import { Logo } from '@/components/Logo';
@@ -96,6 +96,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
   // Billing
   const [billing, setBilling] = useState<BillingSummary | null>(null);
   const [billingSettling, setBillingSettling] = useState(false);
+  const [billingHistory, setBillingHistory] = useState<BillingCycle[]>([]);
 
   // x402 Verifications
   const [x402Verifications, setX402Verifications] = useState<X402Verification[]>([]);
@@ -125,7 +126,10 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
   }, []);
 
   const loadBilling = useCallback(async () => {
-    try { setBilling(await api.getBilling()); } catch { /* billing not available */ }
+    try {
+      setBilling(await api.getBilling());
+      setBillingHistory(await api.getBillingHistory());
+    } catch { /* billing not available */ }
   }, []);
 
   const loadX402 = useCallback(async () => {
@@ -1195,6 +1199,44 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                         <button onClick={settleBilling} disabled={billingSettling} className="btn" style={{ width: '100%', marginBottom: 16 }}>
                           {billingSettling ? 'CREATING INVOICE...' : `SETTLE NOW — ${billing.outstanding_zec.toFixed(6)} ZEC${fiatLabel(zecToFiat(billing.outstanding_zec))}`}
                         </button>
+                      )}
+
+                      {/* Billing History */}
+                      {billingHistory.filter(c => c.status !== 'open').length > 0 && (
+                        <div style={{ marginBottom: 16 }}>
+                          <div style={{ fontSize: 10, letterSpacing: 1, color: 'var(--cp-text-muted)', marginBottom: 8, fontWeight: 600 }}>PAST CYCLES</div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            {billingHistory.filter(c => c.status !== 'open').map(cycle => {
+                              const statusColors: Record<string, string> = {
+                                paid: 'var(--cp-green)', carried_over: '#a78bfa',
+                                invoiced: '#f59e0b', past_due: '#f59e0b', suspended: '#ef4444',
+                              };
+                              return (
+                                <div key={cycle.id} style={{
+                                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                  padding: '8px 10px', background: 'var(--cp-surface)', borderRadius: 4, fontSize: 11,
+                                }}>
+                                  <div>
+                                    <span style={{ color: 'var(--cp-text-muted)' }}>
+                                      {new Date(cycle.period_start).toLocaleDateString()} — {new Date(cycle.period_end).toLocaleDateString()}
+                                    </span>
+                                  </div>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                    <span style={{ fontFamily: 'monospace', fontSize: 10 }}>
+                                      {cycle.total_fees_zec.toFixed(6)} ZEC
+                                    </span>
+                                    <span style={{
+                                      fontSize: 8, fontWeight: 700, letterSpacing: 1,
+                                      color: statusColors[cycle.status] || 'var(--cp-text-muted)',
+                                    }}>
+                                      {cycle.status === 'carried_over' ? 'CARRIED OVER' : cycle.status.toUpperCase().replace('_', ' ')}
+                                    </span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
                       )}
 
                       {/* How it works */}
