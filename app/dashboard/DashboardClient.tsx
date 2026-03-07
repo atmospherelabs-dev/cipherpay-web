@@ -1341,10 +1341,11 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                   {/* Webhook Secret */}
                   <div className="section-title">Webhook Secret</div>
                   <div className="stat-row">
-                    <span style={{ fontSize: 10, color: 'var(--cp-text-dim)', wordBreak: 'break-all' }}>
+                    <span style={{ fontSize: 10, color: 'var(--cp-text-dim)', wordBreak: 'break-all', fontFamily: 'monospace' }}>
                       {merchant.webhook_secret_preview || 'Not set'}
                     </span>
                     <div style={{ display: 'flex', gap: 6 }}>
+                      {merchant.webhook_secret_preview && <CopyButton text={merchant.webhook_secret_preview} label="Copy Preview" />}
                       <button onClick={regenWebhookSecret} className="btn btn-small">REGENERATE</button>
                     </div>
                   </div>
