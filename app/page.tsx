@@ -182,6 +182,14 @@ export default function LandingPage() {
             </div>
             <div className="panel">
               <div className="panel-body">
+                <div style={{ fontSize: 11, color: 'var(--cp-cyan)', letterSpacing: 1, marginBottom: 8 }}>SHOPIFY</div>
+                <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>
+                  Install the app, add your API key. Accept ZEC on your Shopify store in minutes.
+                </p>
+              </div>
+            </div>
+            <div className="panel">
+              <div className="panel-body">
                 <div style={{ fontSize: 11, color: 'var(--cp-cyan)', letterSpacing: 1, marginBottom: 8 }}>WOOCOMMERCE</div>
                 <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>
                   Install the plugin, enter your API key. Your WordPress store accepts ZEC.
