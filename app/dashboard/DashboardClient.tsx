@@ -1033,7 +1033,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                                   REFUND
                                 </button>
                               )}
-                              {inv.status === 'pending' && (
+                              {inv.status === 'pending' && inv.product_name !== 'Fee Settlement' && (
                                 <button onClick={() => cancelInvoice(inv.id)} className="btn btn-small btn-cancel">CANCEL</button>
                               )}
                             </div>
@@ -1048,7 +1048,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                                 REFUND
                               </button>
                             )}
-                            {inv.status === 'pending' && (
+                            {inv.status === 'pending' && inv.product_name !== 'Fee Settlement' && (
                               <button onClick={(e) => { e.stopPropagation(); cancelInvoice(inv.id); }} className="btn btn-small btn-cancel">CANCEL</button>
                             )}
                           </div>
