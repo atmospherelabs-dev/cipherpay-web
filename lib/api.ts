@@ -48,7 +48,7 @@ export interface Invoice {
 export interface CreateInvoiceRequest {
   product_name?: string;
   size?: string;
-  price_eur: number;
+  amount: number;
   currency?: string;
 }
 

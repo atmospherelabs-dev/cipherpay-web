@@ -286,7 +286,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
     try {
       const resp = await api.createInvoice({
         product_name: cartSummary,
-        price_eur: Math.round(cartTotal * 100) / 100,
+        amount: Math.round(cartTotal * 100) / 100,
         currency: cartCurrency,
       });
       setCart({});
@@ -307,7 +307,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
     try {
       const resp = await api.createInvoice({
         product_name: payLinkDesc || undefined,
-        price_eur: Math.round(amount * 100) / 100,
+        amount: Math.round(amount * 100) / 100,
         currency: payLinkCurrency,
       });
       const link = `${checkoutOrigin}/pay/${resp.invoice_id}`;

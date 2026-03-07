@@ -6,7 +6,7 @@ import Link from 'next/link';
 const codeSnippet = `curl -X POST https://api.cipherpay.app/api/invoices \\
   -H "Authorization: Bearer cpay_sk_..." \\
   -H "Content-Type: application/json" \\
-  -d '{"price_eur": 29.99, "product_name": "T-Shirt"}'
+  -d '{"amount": 29.99, "currency": "USD", "product_name": "T-Shirt"}'
 
 # Response:
 # {

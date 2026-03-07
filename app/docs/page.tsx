@@ -356,7 +356,8 @@ const sections: Section[] = [
   -H "Authorization: Bearer cpay_sk_YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
-    "price_eur": 10.00,
+    "amount": 10.00,
+    "currency": "EUR",
     "product_name": "Test Product"
   }'`} />
             <Paragraph>
@@ -652,13 +653,14 @@ ngrok http 3000
         <Step n={1} title="Create an invoice (server-side)">
           <Paragraph>
             When a customer clicks &quot;Pay&quot; on your site, your server creates a CipherPay invoice.
-            You send the price in your currency (EUR or USD), and CipherPay converts it to ZEC at the current exchange rate.
+            You send the amount in your currency (EUR, USD, etc.), and CipherPay converts it to ZEC at the current exchange rate.
           </Paragraph>
           <CodeBlock lang="bash" code={`curl -X POST https://api.cipherpay.app/api/invoices \\
   -H "Authorization: Bearer cpay_sk_YOUR_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
-    "price_eur": 65.00,
+    "amount": 65.00,
+    "currency": "EUR",
     "product_name": "Privacy Tee",
     "size": "L"
   }'`} />
@@ -757,9 +759,8 @@ window.location.href = \`https://cipherpay.app/pay/\${invoiceId}?return_url=\${r
               </thead>
               <tbody>
                 {[
-                  { field: 'price_eur', req: 'Yes*', desc: 'Price in EUR. CipherPay converts to ZEC at the current exchange rate.' },
-                  { field: 'price_usd', req: 'Yes*', desc: 'Price in USD. Use instead of price_eur if your currency is dollars.' },
-                  { field: 'currency', req: 'No', desc: 'Currency code: "EUR" or "USD". Defaults to "EUR".' },
+                  { field: 'amount', req: 'Yes', desc: 'Price in your currency. CipherPay converts to ZEC at the current exchange rate.' },
+                  { field: 'currency', req: 'No', desc: 'Currency code: "EUR", "USD", etc. Defaults to "EUR".' },
                   { field: 'product_name', req: 'No', desc: 'Displayed on the checkout page (e.g. "Premium Plan").' },
                   { field: 'size', req: 'No', desc: 'Variant or size label (e.g. "L", "Monthly").' },
                   { field: 'shipping_alias', req: 'No', desc: 'Customer name for shipping purposes.' },
@@ -776,8 +777,7 @@ window.location.href = \`https://cipherpay.app/pay/\${invoiceId}?return_url=\${r
             </table>
           </div>
           <Callout type="info">
-            <Strong>*</Strong> Provide either <Code>price_eur</Code> or <Code>price_usd</Code>, not both.
-            CipherPay converts to ZEC using a live exchange rate at invoice creation time. The ZEC price is locked for the invoice&apos;s lifetime (30 minutes).
+            Send <Code>amount</Code> with a <Code>currency</Code> code. CipherPay converts to ZEC using a live exchange rate at invoice creation time. The ZEC price is locked for the invoice&apos;s lifetime (30 minutes).
           </Callout>
         </Expandable>
 
