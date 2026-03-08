@@ -648,7 +648,7 @@ ngrok http 3000
           <Strong>Payment button doesn&apos;t appear on the Thank You page</Strong> — Make sure you added the CipherPay Checkout block in the checkout editor (Settings &rarr; Checkout &rarr; Customize &rarr; Thank you page) and clicked Save.<br /><br />
           <Strong>Order status doesn&apos;t update after payment</Strong> — Verify the webhook URL is set correctly in your CipherPay dashboard. Check that the webhook secret in both CipherPay and the Shopify app settings match.<br /><br />
           <Strong>&quot;Payment not ready&quot; message</Strong> — This usually means the app is still creating the invoice. Wait a few seconds and the button should appear. If it persists, check that your CipherPay API key is correct.<br /><br />
-          <Strong>Need help?</Strong> — Contact us at support@cipherpay.app
+          <Strong>Need help?</Strong> — Contact us at contact@atmospherelabs.dev
         </div>
       </>
     ),
