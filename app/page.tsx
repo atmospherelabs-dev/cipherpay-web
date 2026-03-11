@@ -48,7 +48,7 @@ export default function LandingPage() {
             <SmartCTA className="btn-primary" style={{ padding: '12px 28px', fontSize: 12 }}>
               START ACCEPTING ZEC
             </SmartCTA>
-            <a href="#how-it-works" className="btn" style={{ padding: '12px 28px', fontSize: 12, textDecoration: 'none' }}>
+            <a href="#how-it-works" className="btn" style={{ padding: '12px 28px', fontSize: 12 }}>
               HOW IT WORKS
             </a>
           </div>

@@ -401,12 +401,13 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
       {/* Header */}
       <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid var(--cp-border)' }}>
         <Link href="/"><Logo size="sm" /></Link>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span className="tag">
             DASHBOARD // {merchant.payment_address.startsWith('utest') ? 'TESTNET' : 'MAINNET'}
           </span>
+          <div style={{ width: 1, height: 20, background: 'var(--cp-border)', margin: '0 4px' }} />
           <ThemeToggle />
-          <button onClick={handleLogout} style={{ fontSize: 10, color: 'var(--cp-text-muted)', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: 1, fontFamily: 'inherit' }}>
+          <button onClick={handleLogout} className="btn btn-small">
             SIGN OUT
           </button>
         </div>

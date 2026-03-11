@@ -65,10 +65,10 @@ function RecoverConfirmInner() {
                   Each link is valid for 1 hour and can only be used once.
                 </p>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <Link href="/dashboard/recover" className="btn" style={{ flex: 1, textDecoration: 'none', textAlign: 'center' }}>
+                  <Link href="/dashboard/recover" className="btn" style={{ flex: 1, textAlign: 'center' }}>
                     TRY AGAIN
                   </Link>
-                  <Link href="/dashboard/login" className="btn" style={{ flex: 1, textDecoration: 'none', textAlign: 'center' }}>
+                  <Link href="/dashboard/login" className="btn" style={{ flex: 1, textAlign: 'center' }}>
                     LOGIN
                   </Link>
                 </div>
@@ -102,7 +102,7 @@ function RecoverConfirmInner() {
                   </p>
                 </div>
 
-                <Link href="/dashboard/login" className="btn-primary" style={{ width: '100%', textDecoration: 'none', textAlign: 'center' }}>
+                <Link href="/dashboard/login" className="btn-primary" style={{ width: '100%', textAlign: 'center' }}>
                   SIGN IN WITH NEW TOKEN
                 </Link>
               </div>

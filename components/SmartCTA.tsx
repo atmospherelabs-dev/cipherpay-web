@@ -12,7 +12,7 @@ export function SmartCTA({ children, className, style }: {
   const href = isLoggedIn ? '/dashboard' : '/dashboard/register';
 
   return (
-    <Link href={href} className={className} style={{ textDecoration: 'none', ...style }}>
+    <Link href={href} className={className} style={style}>
       {isLoggedIn ? 'GO TO DASHBOARD' : children}
     </Link>
   );

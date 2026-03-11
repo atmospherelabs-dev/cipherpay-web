@@ -200,7 +200,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
 
               {/* Open in Wallet */}
               {zcashUri && (
-                <a href={zcashUri} className="btn-primary" style={{ width: '100%', textDecoration: 'none', textTransform: 'uppercase', marginBottom: 24 }}>
+                <a href={zcashUri} className="btn-primary" style={{ width: '100%', textTransform: 'uppercase', marginBottom: 24 }}>
                   Open in Wallet
                 </a>
               )}
@@ -302,7 +302,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
               </div>
 
               {address && remainingZec > 0 && (
-                <a href={`zcash:${address}?amount=${remainingZec.toFixed(8)}`} className="btn-primary" style={{ width: '100%', textDecoration: 'none', textTransform: 'uppercase', marginBottom: 24 }}>
+                <a href={`zcash:${address}?amount=${remainingZec.toFixed(8)}`} className="btn-primary" style={{ width: '100%', textTransform: 'uppercase', marginBottom: 24 }}>
                   Open in Wallet
                 </a>
               )}

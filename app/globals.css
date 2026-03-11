@@ -165,23 +165,32 @@ body {
   color: #f97316;
 }
 
-/* ── Buttons (exact POC) ── */
+/* ── Buttons ── */
 
-.btn {
+.btn, .btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
   padding: 10px 18px;
-  border: 1px solid var(--cp-border);
+  min-height: 36px;
+  box-sizing: border-box;
   border-radius: 4px;
-  background: var(--cp-hover);
-  color: var(--cp-text);
   font-family: inherit;
   font-size: 11px;
   letter-spacing: 1px;
+  line-height: 1;
+  white-space: nowrap;
   cursor: pointer;
   transition: all 0.15s;
+  text-decoration: none;
+}
+
+.btn {
+  border: 1px solid var(--cp-border);
+  background: var(--cp-hover);
+  color: var(--cp-text);
+  font-weight: 400;
 }
 
 .btn:hover {
@@ -190,21 +199,10 @@ body {
 }
 
 .btn-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 10px 18px;
-  background: var(--cp-cyan);
   border: 1px solid var(--cp-cyan);
-  border-radius: 4px;
+  background: var(--cp-cyan);
   color: var(--cp-bg);
-  font-family: inherit;
   font-weight: 600;
-  font-size: 11px;
-  letter-spacing: 1px;
-  cursor: pointer;
-  transition: all 0.15s;
 }
 
 .btn-primary:hover {
@@ -657,6 +655,12 @@ body {
     bottom: -40%;
     left: -10%;
     transform: rotate(-35deg);
+  }
+
+  .mobile-drawer .btn,
+  .mobile-drawer .btn-primary {
+    width: 100%;
+    text-align: center;
   }
 
   .site-footer {

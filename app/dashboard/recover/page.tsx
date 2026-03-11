@@ -56,7 +56,7 @@ export default function RecoverPage() {
                     </p>
                   </div>
 
-                  <Link href="/dashboard/login" className="btn" style={{ width: '100%', textDecoration: 'none', textAlign: 'center' }}>
+                  <Link href="/dashboard/login" className="btn" style={{ width: '100%', textAlign: 'center' }}>
                     BACK TO LOGIN
                   </Link>
                 </>

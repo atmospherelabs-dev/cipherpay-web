@@ -97,7 +97,7 @@ export default function RegisterPage() {
                   </p>
                 </div>
 
-                <Link href="/dashboard/login" className="btn-primary" style={{ width: '100%', marginTop: 16, textDecoration: 'none', textAlign: 'center' }}>
+                <Link href="/dashboard/login" className="btn-primary" style={{ width: '100%', marginTop: 16, textAlign: 'center' }}>
                   GO TO DASHBOARD
                 </Link>
               </div>
