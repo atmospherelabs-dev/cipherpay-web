@@ -957,18 +957,23 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                             {product.description && (
                               <div style={{ fontSize: 11, color: 'var(--cp-text-muted)', marginTop: 4 }}>{product.description}</div>
                             )}
-                            <div className="invoice-actions">
+                            <div className="stat-row" style={{ marginTop: 10 }}>
                               <CopyButton text={`${checkoutOrigin}/buy/${product.id}`} label="Buy Link" />
-                              <button onClick={() => startEditProduct(product)} className="btn btn-small">EDIT</button>
-                              <button
-                                onClick={() => quickPOS(product.id)}
-                                disabled={posCreating && posProductId === product.id}
-                                className="btn btn-small"
-                                style={{ color: 'var(--cp-green)', borderColor: 'rgba(34,197,94,0.5)' }}
-                              >
-                                {posCreating && posProductId === product.id ? 'CREATING...' : 'QUICK POS'}
-                              </button>
-                              <button onClick={() => deactivateProduct(product.id)} className="btn btn-small btn-cancel">REMOVE</button>
+                              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                                <button onClick={() => startEditProduct(product)} style={{ background: 'none', border: 'none', color: 'var(--cp-text-muted)', cursor: 'pointer', fontSize: 9, letterSpacing: 1, fontFamily: 'inherit', padding: 0 }}>
+                                  EDIT
+                                </button>
+                                <button
+                                  onClick={() => quickPOS(product.id)}
+                                  disabled={posCreating && posProductId === product.id}
+                                  style={{ background: 'none', border: 'none', color: 'var(--cp-green)', cursor: 'pointer', fontSize: 9, letterSpacing: 1, fontFamily: 'inherit', padding: 0, opacity: posCreating && posProductId === product.id ? 0.5 : 1 }}
+                                >
+                                  {posCreating && posProductId === product.id ? 'CREATING...' : 'QUICK POS'}
+                                </button>
+                                <button onClick={() => deactivateProduct(product.id)} style={{ background: 'none', border: 'none', color: 'var(--cp-red, #ef4444)', cursor: 'pointer', fontSize: 9, letterSpacing: 1, fontFamily: 'inherit', padding: 0, opacity: 0.7 }}>
+                                  REMOVE
+                                </button>
+                              </div>
                             </div>
                           </>
                         )}
@@ -1503,7 +1508,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                   <span className="panel-title">Settings</span>
                 </div>
                 <div className="panel-body">
-                  {/* Store Name */}
+                  {/* 1. Store Name */}
                   <div className="section-title">Store Name</div>
                   {editingName ? (
                     <div className="form-group" style={{ display: 'flex', gap: 8 }}>
@@ -1520,21 +1525,24 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
 
                   <div className="divider" />
 
-                  {/* Derived Payment Address (read-only) */}
-                  <div className="section-title">Derived Address</div>
-                  <div className="stat-row">
-                    <span style={{ fontSize: 9, color: 'var(--cp-cyan)', wordBreak: 'break-all', maxWidth: '75%' }}>
-                      {merchant.payment_address}
-                    </span>
-                    <CopyButton text={merchant.payment_address} label="" />
-                  </div>
-                  <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 4, lineHeight: 1.5 }}>
-                    Auto-derived from your UFVK. Each invoice gets its own unique payment address for privacy and reliable detection.
+                  {/* 2. Display Currency */}
+                  <div className="section-title">Display Currency</div>
+                  <select
+                    value={displayCurrency}
+                    onChange={(e) => { const c = e.target.value as 'EUR' | 'USD'; setDisplayCurrency(c); localStorage.setItem('cp_currency', c); }}
+                    className="input"
+                    style={{ width: '100%', fontSize: 11, padding: '8px 12px', cursor: 'pointer' }}
+                  >
+                    <option value="EUR">€ EUR — Euro</option>
+                    <option value="USD">$ USD — US Dollar</option>
+                  </select>
+                  <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 6, lineHeight: 1.5 }}>
+                    Controls how fiat amounts and ZEC rates are displayed across the dashboard. Does not affect product prices or invoice amounts.
                   </div>
 
                   <div className="divider" />
 
-                  {/* Recovery Email */}
+                  {/* 3. Recovery Email */}
                   <div className="section-title">Recovery Email</div>
                   {merchant.recovery_email_preview ? (
                     <div className="stat-row">
@@ -1543,105 +1551,76 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                     </div>
                   ) : (
                     <>
-                      <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginBottom: 8 }}>
-                        Add an email to recover your account if you lose your dashboard token.
-                      </div>
                       <div className="form-group" style={{ display: 'flex', gap: 8 }}>
                         <input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} placeholder="your@email.com" className="input" style={{ flex: 1 }} />
                         <button onClick={saveEmail} className="btn btn-small">SAVE</button>
                       </div>
+                      <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 6, lineHeight: 1.5 }}>
+                        Add an email to recover your account if you lose your dashboard token.
+                      </div>
                     </>
                   )}
 
                   <div className="divider" />
 
-                  {/* Webhook URL */}
+                  {/* 4. Derived Payment Address (read-only) */}
+                  <div className="section-title">Derived Address</div>
+                  <div className="stat-row">
+                    <span style={{ fontSize: 9, color: 'var(--cp-text-muted)', wordBreak: 'break-all', maxWidth: '80%', fontFamily: 'monospace' }}>
+                      {merchant.payment_address}
+                    </span>
+                    <CopyButton text={merchant.payment_address} label="" />
+                  </div>
+                  <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 6, lineHeight: 1.5 }}>
+                    Auto-derived from your UFVK. Each invoice gets its own unique payment address for privacy and reliable detection.
+                  </div>
+
+                  <div className="divider" />
+
+                  {/* 5. Webhook URL */}
                   <div className="section-title">Webhook URL</div>
                   {editingWebhook ? (
-                    <>
-                      <div className="form-group" style={{ display: 'flex', gap: 8 }}>
-                        <input type="url" value={editWebhookUrl} onChange={(e) => setEditWebhookUrl(e.target.value)} placeholder="https://your-store.com/api/webhook" className="input" style={{ flex: 1, fontSize: 10 }} />
-                        <button onClick={saveWebhookUrl} className="btn btn-small">SAVE</button>
-                        {merchant.webhook_url && <button onClick={() => { setEditWebhookUrl(merchant.webhook_url || ''); setEditingWebhook(false); }} className="btn btn-small btn-cancel">CANCEL</button>}
-                      </div>
-                      <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 4 }}>
-                        CipherPay will POST invoice events (confirmed, expired) to this URL.
-                      </div>
-                    </>
+                    <div className="form-group" style={{ display: 'flex', gap: 8 }}>
+                      <input type="url" value={editWebhookUrl} onChange={(e) => setEditWebhookUrl(e.target.value)} placeholder="https://your-store.com/api/webhook" className="input" style={{ flex: 1, fontSize: 10 }} />
+                      <button onClick={saveWebhookUrl} className="btn btn-small">SAVE</button>
+                      {merchant.webhook_url && <button onClick={() => { setEditWebhookUrl(merchant.webhook_url || ''); setEditingWebhook(false); }} className="btn btn-small btn-cancel">CANCEL</button>}
+                    </div>
                   ) : (
-                    <>
-                      <div className="stat-row">
-                        <span style={{ fontSize: 10, color: 'var(--cp-cyan)', wordBreak: 'break-all', maxWidth: '75%' }}>
-                          {editWebhookUrl}
-                        </span>
-                        <button onClick={() => setEditingWebhook(true)} className="btn btn-small">EDIT</button>
-                      </div>
-                      <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 4 }}>
-                        CipherPay will POST invoice events (confirmed, expired) to this URL.
-                      </div>
-                    </>
+                    <div className="stat-row">
+                      <span style={{ fontSize: 10, color: 'var(--cp-text-muted)', wordBreak: 'break-all', maxWidth: '80%', fontFamily: 'monospace' }}>
+                        {editWebhookUrl}
+                      </span>
+                      <button onClick={() => setEditingWebhook(true)} className="btn btn-small">EDIT</button>
+                    </div>
                   )}
+                  <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 6, lineHeight: 1.5 }}>
+                    CipherPay will POST invoice events (confirmed, expired) to this URL.
+                  </div>
 
                   <div className="divider" />
 
-                  {/* Webhook Secret */}
+                  {/* 6. Webhook Secret */}
                   <div className="section-title">Webhook Secret</div>
                   <div className="stat-row">
-                    <span style={{ fontSize: 10, color: 'var(--cp-text-dim)', wordBreak: 'break-all', fontFamily: 'monospace' }}>
-                      {merchant.webhook_secret_preview || 'Not set'}
+                    <span style={{ fontSize: 10, color: 'var(--cp-text-dim)', fontFamily: 'monospace' }}>
+                      {merchant.webhook_secret_preview ? `${merchant.webhook_secret_preview.slice(0, 12)}${'•'.repeat(20)}` : 'Not generated'}
                     </span>
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      {merchant.webhook_secret_preview && <CopyButton text={merchant.webhook_secret_preview} label="Copy Preview" />}
-                      <button onClick={regenWebhookSecret} className="btn btn-small">REGENERATE</button>
-                    </div>
+                    <button onClick={regenWebhookSecret} className="btn btn-small">REGENERATE</button>
                   </div>
-                  <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 4 }}>
-                    Full secret is only shown when regenerated. Copy it immediately.
+                  <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 6, lineHeight: 1.5 }}>
+                    The full secret is only shown once when generated. Copy it immediately — it cannot be retrieved later.
                   </div>
 
                   <div className="divider" />
 
-                  {/* Display Currency */}
-                  <div className="section-title">Display Currency</div>
-                  <div style={{ display: 'flex', gap: 0, marginBottom: 8 }}>
-                    {(['EUR', 'USD'] as const).map((c) => (
-                      <button
-                        key={c}
-                        onClick={() => { setDisplayCurrency(c); localStorage.setItem('cp_currency', c); }}
-                        style={{
-                          flex: 1,
-                          padding: '8px 0',
-                          fontSize: 11,
-                          fontWeight: 600,
-                          letterSpacing: 1,
-                          fontFamily: 'inherit',
-                          cursor: 'pointer',
-                          border: '1px solid var(--cp-border)',
-                          borderRadius: c === 'EUR' ? '4px 0 0 4px' : '0 4px 4px 0',
-                          background: displayCurrency === c ? 'var(--cp-cyan)' : 'transparent',
-                          color: displayCurrency === c ? '#000' : 'var(--cp-text-muted)',
-                          transition: 'all 0.15s',
-                        }}
-                      >
-                        {c === 'EUR' ? '€ EUR' : '$ USD'}
-                      </button>
-                    ))}
-                  </div>
-                  <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', lineHeight: 1.5 }}>
-                    Controls how fiat amounts and ZEC rates are displayed across the dashboard. Does not affect product prices or invoice amounts.
-                  </div>
-
-                  <div className="divider" />
-
-                  {/* Key Regeneration */}
+                  {/* 7. API Keys */}
                   <div className="section-title">API Keys</div>
-                  <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginBottom: 12 }}>
-                    Keys are shown once when generated. Regenerating invalidates the old key immediately.
-                  </div>
-
-                  <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                  <div style={{ display: 'flex', gap: 8 }}>
                     <button onClick={regenApiKey} className="btn" style={{ flex: 1 }}>REGENERATE API KEY</button>
                     <button onClick={regenDashToken} className="btn" style={{ flex: 1 }}>REGENERATE DASHBOARD TOKEN</button>
+                  </div>
+                  <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 6, lineHeight: 1.5 }}>
+                    Keys are shown once when generated. Regenerating invalidates the old key immediately.
                   </div>
 
                   {revealedKey && (
@@ -1656,10 +1635,10 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                     </div>
                   )}
 
-                  {/* Danger Zone */}
+                  {/* 8. Danger Zone */}
                   <div style={{ marginTop: 32, paddingTop: 20, borderTop: '1px solid rgba(239,68,68,0.2)' }}>
-                    <div style={{ fontSize: 10, letterSpacing: 1, color: '#ef4444', fontWeight: 600, marginBottom: 8 }}>DANGER ZONE</div>
-                    <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginBottom: 12 }}>
+                    <div style={{ fontSize: 10, letterSpacing: 2, color: '#ef4444', fontWeight: 600, marginBottom: 12 }}>DANGER ZONE</div>
+                    <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginBottom: 12, lineHeight: 1.5 }}>
                       Permanently delete your account, products, and all data. This cannot be undone.
                       You must settle any outstanding billing balance before deleting.
                     </div>
