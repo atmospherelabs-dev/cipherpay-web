@@ -10,10 +10,10 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { CopyButton } from '@/components/CopyButton';
 import Link from 'next/link';
 
-type Tab = 'products' | 'invoices' | 'pos' | 'billing' | 'settings' | 'x402';
+type Tab = 'overview' | 'products' | 'invoices' | 'pos' | 'billing' | 'settings' | 'x402';
 
 export default function DashboardClient({ merchant }: { merchant: MerchantInfo }) {
-  const [tab, setTab] = useState<Tab>('products');
+  const [tab, setTab] = useState<Tab>('overview');
   const [products, setProducts] = useState<Product[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
@@ -446,21 +446,15 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
 
           {/* Left Column */}
           <div>
-            {/* Merchant Info */}
+            {/* Merchant Identity */}
             <div className="panel">
               <div className="panel-header">
-                <span className="panel-title">01 // Merchant</span>
+                <span className="panel-title">{merchant.name || 'Merchant'}</span>
                 <span className="status-badge status-confirmed">ACTIVE</span>
               </div>
               <div className="panel-body">
-                {merchant.name && (
-                  <div className="stat-row">
-                    <span style={{ color: 'var(--cp-text-muted)' }}>Store</span>
-                    <span style={{ fontWeight: 600, color: 'var(--cp-text)' }}>{merchant.name}</span>
-                  </div>
-                )}
                 <div className="stat-row">
-                  <span style={{ color: 'var(--cp-text-muted)' }}>Merchant ID</span>
+                  <span style={{ color: 'var(--cp-text-muted)' }}>ID</span>
                   <span style={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6 }}>
                     {merchant.id.substring(0, 8)}...
                     <CopyButton text={merchant.id} label="" />
@@ -473,24 +467,34 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                     <CopyButton text={merchant.payment_address} label="" />
                   </span>
                 </div>
-                <div className="stat-row">
-                  <span style={{ color: 'var(--cp-text-muted)' }}>Invoices</span>
-                  <span style={{ fontWeight: 500 }}>{merchant.stats.total_invoices}</span>
-                </div>
-                <div className="stat-row">
-                  <span style={{ color: 'var(--cp-text-muted)' }}>Confirmed</span>
-                  <span style={{ fontWeight: 500, color: 'var(--cp-green)' }}>{merchant.stats.confirmed}</span>
-                </div>
-                <div className="stat-row">
-                  <span style={{ color: 'var(--cp-text-muted)' }}>Total Received</span>
-                  <span style={{ fontWeight: 500, color: 'var(--cp-cyan)' }}>{merchant.stats.total_zec.toFixed(8)} ZEC</span>
-                </div>
               </div>
             </div>
 
             {/* Navigation */}
             <nav style={{ marginTop: 16 }}>
-              <div style={{ fontSize: 9, letterSpacing: 2, color: 'var(--cp-text-dim)', padding: '8px 14px 4px', fontWeight: 600 }}><span style={{ color: 'var(--cp-cyan)', opacity: 0.4 }}>//</span> STORE</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginBottom: 4 }}>
+                <button
+                  onClick={() => setTab('overview')}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '10px 14px',
+                    background: tab === 'overview' ? 'var(--cp-surface)' : 'transparent',
+                    border: tab === 'overview' ? '1px solid var(--cp-border)' : '1px solid transparent',
+                    borderRadius: 4,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit', fontSize: 11, letterSpacing: 1.5, fontWeight: tab === 'overview' ? 600 : 400,
+                    color: tab === 'overview' ? 'var(--cp-cyan)' : 'var(--cp-text-muted)',
+                    textAlign: 'left',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  OVERVIEW
+                </button>
+              </div>
+
+              <div style={{ borderTop: '1px solid var(--cp-border)', margin: '8px 0' }} />
+
+              <div style={{ fontSize: 9, letterSpacing: 2, color: 'var(--cp-text-dim)', padding: '4px 14px 4px', fontWeight: 600 }}><span style={{ color: 'var(--cp-cyan)', opacity: 0.4 }}>//</span> STORE</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {([
                   { key: 'products' as Tab, label: 'PRODUCTS' },
@@ -559,10 +563,211 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
 
           {/* Right Column */}
           <div>
-            {tab === 'products' ? (
+            {tab === 'overview' ? (() => {
+              const pending = invoices.filter(i => i.status === 'pending').length;
+              const detected = invoices.filter(i => i.status === 'detected' || i.status === 'underpaid').length;
+              const expired = invoices.filter(i => i.status === 'expired').length;
+              const rate = merchant.stats.total_invoices > 0
+                ? Math.round((merchant.stats.confirmed / merchant.stats.total_invoices) * 100)
+                : 0;
+              const totalFiat = zecToFiat(merchant.stats.total_zec);
+              const recentInvoices = [...invoices]
+                .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                .slice(0, 5);
+              const webhookConfigured = !!merchant.webhook_url;
+              const emailConfigured = merchant.has_recovery_email;
+              const nameConfigured = !!merchant.name;
+
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {/* Stat cards */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
+                    <div className="panel" style={{ textAlign: 'center' }}>
+                      <div className="panel-body" style={{ padding: '20px 16px' }}>
+                        <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--cp-cyan)', lineHeight: 1.2 }}>
+                          {merchant.stats.total_zec.toFixed(4)}
+                        </div>
+                        <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
+                          TOTAL ZEC RECEIVED
+                        </div>
+                        {totalFiat !== null && (
+                          <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: 2 }}>
+                            ~{currencySymbol}{totalFiat < 0.01 ? totalFiat.toFixed(4) : totalFiat.toFixed(2)}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="panel" style={{ textAlign: 'center' }}>
+                      <div className="panel-body" style={{ padding: '20px 16px' }}>
+                        <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--cp-green)', lineHeight: 1.2 }}>
+                          {merchant.stats.confirmed}
+                        </div>
+                        <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
+                          CONFIRMED
+                        </div>
+                        <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: 2 }}>
+                          of {merchant.stats.total_invoices} total
+                        </div>
+                      </div>
+                    </div>
+                    <div className="panel" style={{ textAlign: 'center' }}>
+                      <div className="panel-body" style={{ padding: '20px 16px' }}>
+                        <div style={{ fontSize: 24, fontWeight: 700, color: pending > 0 ? 'var(--cp-yellow)' : 'var(--cp-text-dim)', lineHeight: 1.2 }}>
+                          {pending + detected}
+                        </div>
+                        <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
+                          PENDING
+                        </div>
+                        {detected > 0 && (
+                          <div style={{ fontSize: 10, color: 'var(--cp-purple)', marginTop: 2 }}>
+                            {detected} detected
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="panel" style={{ textAlign: 'center' }}>
+                      <div className="panel-body" style={{ padding: '20px 16px' }}>
+                        <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--cp-text)', lineHeight: 1.2 }}>
+                          {rate}%
+                        </div>
+                        <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
+                          CONVERSION
+                        </div>
+                        <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: 2 }}>
+                          {expired} expired
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quick actions */}
+                  <div className="panel">
+                    <div className="panel-header">
+                      <span className="panel-title">Quick Actions</span>
+                    </div>
+                    <div className="panel-body" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      <button onClick={() => { setTab('invoices'); setTimeout(() => setShowPayLinkForm(true), 50); }} className="btn-primary" style={{ fontSize: 10 }}>
+                        + CREATE PAY LINK
+                      </button>
+                      <button onClick={() => { setTab('products'); setTimeout(() => setShowAddForm(true), 50); }} className="btn" style={{ fontSize: 10 }}>
+                        + ADD PRODUCT
+                      </button>
+                      <button onClick={() => setTab('pos')} className="btn" style={{ fontSize: 10 }}>
+                        OPEN POS
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Recent activity */}
+                  <div className="panel">
+                    <div className="panel-header">
+                      <span className="panel-title">Recent Activity</span>
+                      <button onClick={() => setTab('invoices')} className="btn btn-small">VIEW ALL</button>
+                    </div>
+                    <div className="panel-body">
+                      {loadingInvoices ? (
+                        <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', padding: '12px 0' }}>Loading...</div>
+                      ) : recentInvoices.length === 0 ? (
+                        <div style={{ fontSize: 11, color: 'var(--cp-text-dim)', padding: '16px 0', textAlign: 'center' }}>
+                          No invoices yet. Create your first pay link to get started.
+                        </div>
+                      ) : (
+                        recentInvoices.map((inv) => (
+                          <div key={inv.id} className="stat-row" style={{ padding: '8px 0' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+                              <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--cp-text)' }}>
+                                {inv.product_name || inv.memo_code}
+                              </span>
+                              <span style={{ fontSize: 9, color: 'var(--cp-text-dim)' }}>
+                                {new Date(inv.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                              <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--cp-text)' }}>
+                                {inv.price_zec.toFixed(4)} ZEC
+                              </span>
+                              <span className={`status-badge ${
+                                inv.status === 'confirmed' ? 'status-confirmed' :
+                                inv.status === 'detected' || inv.status === 'underpaid' ? 'status-detected' :
+                                inv.status === 'expired' ? 'status-expired' :
+                                inv.status === 'refunded' ? 'status-expired' :
+                                'status-pending'
+                              }`} style={{ fontSize: 8, minWidth: 60, textAlign: 'center' }}>
+                                {inv.status.toUpperCase()}
+                              </span>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Account health */}
+                  <div className="panel">
+                    <div className="panel-header">
+                      <span className="panel-title">Account Setup</span>
+                    </div>
+                    <div className="panel-body">
+                      <div className="stat-row">
+                        <span style={{ color: 'var(--cp-text-muted)' }}>Store Name</span>
+                        {nameConfigured ? (
+                          <span style={{ color: 'var(--cp-green)', fontSize: 10, fontWeight: 600 }}>CONFIGURED</span>
+                        ) : (
+                          <button onClick={() => setTab('settings')} style={{ background: 'none', border: 'none', color: 'var(--cp-yellow)', fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: 1 }}>
+                            SET UP &rarr;
+                          </button>
+                        )}
+                      </div>
+                      <div className="stat-row">
+                        <span style={{ color: 'var(--cp-text-muted)' }}>Webhook</span>
+                        {webhookConfigured ? (
+                          <span style={{ color: 'var(--cp-green)', fontSize: 10, fontWeight: 600 }}>CONFIGURED</span>
+                        ) : (
+                          <button onClick={() => setTab('settings')} style={{ background: 'none', border: 'none', color: 'var(--cp-yellow)', fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: 1 }}>
+                            SET UP &rarr;
+                          </button>
+                        )}
+                      </div>
+                      <div className="stat-row">
+                        <span style={{ color: 'var(--cp-text-muted)' }}>Recovery Email</span>
+                        {emailConfigured ? (
+                          <span style={{ color: 'var(--cp-green)', fontSize: 10, fontWeight: 600 }}>CONFIGURED</span>
+                        ) : (
+                          <button onClick={() => setTab('settings')} style={{ background: 'none', border: 'none', color: 'var(--cp-yellow)', fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: 1 }}>
+                            SET UP &rarr;
+                          </button>
+                        )}
+                      </div>
+                      {billing?.fee_enabled && (
+                        <div className="stat-row">
+                          <span style={{ color: 'var(--cp-text-muted)' }}>Billing</span>
+                          <span className={`status-badge ${
+                            billing.billing_status === 'active' ? 'status-confirmed' :
+                            billing.billing_status === 'past_due' ? 'status-detected' :
+                            'status-expired'
+                          }`} style={{ fontSize: 8 }}>
+                            {billing.billing_status.toUpperCase().replace('_', ' ')}
+                          </span>
+                        </div>
+                      )}
+                      <div className="stat-row">
+                        <span style={{ color: 'var(--cp-text-muted)' }}>Products</span>
+                        <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--cp-text)' }}>{products.length}</span>
+                      </div>
+                      <div className="stat-row">
+                        <span style={{ color: 'var(--cp-text-muted)' }}>Network</span>
+                        <span style={{ fontSize: 10, fontWeight: 500, color: merchant.payment_address.startsWith('utest') ? 'var(--cp-yellow)' : 'var(--cp-green)' }}>
+                          {merchant.payment_address.startsWith('utest') ? 'TESTNET' : 'MAINNET'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })() : tab === 'products' ? (
               <div className="panel">
                 <div className="panel-header">
-                  <span className="panel-title">02 // Product Catalog</span>
+                  <span className="panel-title">Product Catalog</span>
                   <button onClick={() => setShowAddForm(!showAddForm)} className="btn btn-small">
                     {showAddForm ? 'CANCEL' : '+ ADD PRODUCT'}
                   </button>
@@ -854,7 +1059,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
             ) : tab === 'invoices' ? (
               <div className="panel">
                 <div className="panel-header">
-                  <span className="panel-title">03 // Invoices</span>
+                  <span className="panel-title">Invoices</span>
                   <div style={{ display: 'flex', gap: 6 }}>
                     <button onClick={() => { setShowPayLinkForm(!showPayLinkForm); setPayLinkResult(null); }} className="btn btn-small">
                       {showPayLinkForm ? 'CANCEL' : '+ PAYMENT LINK'}
@@ -1062,7 +1267,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
             ) : tab === 'x402' ? (
               <div className="panel">
                 <div className="panel-header">
-                  <span className="panel-title">x402 // Verifications</span>
+                  <span className="panel-title">x402 Verifications</span>
                   <button onClick={loadX402} className="btn btn-small">REFRESH</button>
                 </div>
 
@@ -1105,7 +1310,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
             ) : tab === 'billing' ? (
               <div className="panel">
                 <div className="panel-header">
-                  <span className="panel-title">04 // Billing</span>
+                  <span className="panel-title">Billing</span>
                   {billing?.fee_enabled && (
                     <span className={`status-badge ${billing.billing_status === 'active' ? 'status-confirmed' : billing.billing_status === 'past_due' ? 'status-detected' : 'status-expired'}`} style={{ fontSize: 8 }}>
                       {billing.billing_status.toUpperCase().replace('_', ' ')}
@@ -1255,7 +1460,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
             ) : (
               <div className="panel">
                 <div className="panel-header">
-                  <span className="panel-title">05 // Settings</span>
+                  <span className="panel-title">Settings</span>
                 </div>
                 <div className="panel-body">
                   {/* Store Name */}
