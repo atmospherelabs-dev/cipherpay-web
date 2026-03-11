@@ -302,7 +302,8 @@ body {
 
 .invoice-id {
   font-size: 11px;
-  color: var(--cp-cyan);
+  color: var(--cp-text);
+  font-weight: 500;
 }
 
 .invoice-meta {

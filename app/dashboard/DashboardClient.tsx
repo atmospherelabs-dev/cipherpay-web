@@ -77,6 +77,10 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
   // Invoice detail expansion
   const [expandedInvoice, setExpandedInvoice] = useState<string | null>(null);
 
+  // Refund confirmation dialog
+  const [refundingInvoiceId, setRefundingInvoiceId] = useState<string | null>(null);
+  const [refundTxid, setRefundTxid] = useState('');
+
   // Payment link creation
   const [showPayLinkForm, setShowPayLinkForm] = useState(false);
   const [payLinkAmount, setPayLinkAmount] = useState('');
@@ -325,12 +329,40 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
     catch { showToast('Failed to cancel', true); }
   };
 
-  const refundInvoice = async (id: string) => {
+  const confirmRefund = async () => {
+    if (!refundingInvoiceId) return;
     try {
-      const resp = await api.refundInvoice(id);
+      await api.refundInvoice(refundingInvoiceId, refundTxid || undefined);
       loadInvoices();
-      showToast(resp.refund_address ? 'Marked as refunded — see refund address below' : 'Marked as refunded');
+      showToast('Invoice marked as refunded');
     } catch { showToast('Failed to mark as refunded', true); }
+    setRefundingInvoiceId(null);
+    setRefundTxid('');
+  };
+
+  const exportInvoicesCSV = () => {
+    const headers = ['Reference', 'Product', 'Status', 'Price (' + displayCurrency + ')', 'Price (ZEC)', 'Received (ZEC)', 'Created', 'Confirmed', 'Refunded', 'Refund TxID', 'TxID'];
+    const rows = invoices.map(inv => [
+      inv.memo_code,
+      inv.product_name || '',
+      inv.status,
+      fiatPrice(inv).toFixed(2),
+      inv.price_zec.toFixed(8),
+      inv.received_zatoshis > 0 ? (inv.received_zatoshis / 1e8).toFixed(8) : '',
+      inv.created_at,
+      inv.confirmed_at || '',
+      inv.refunded_at || '',
+      inv.refund_txid || '',
+      inv.detected_txid || '',
+    ]);
+    const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `cipherpay-invoices-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const saveName = async () => {
@@ -399,10 +431,14 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
   return (
     <div style={{ minHeight: '100vh', fontFamily: 'var(--font-geist-mono), monospace', fontSize: 13, lineHeight: 1.6 }}>
       {/* Header */}
-      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid var(--cp-border)' }}>
+      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 24px', borderBottom: '1px solid var(--cp-border)' }}>
         <Link href="/"><Logo size="sm" /></Link>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span className="tag">
+          <span className="tag" style={{ color: 'var(--cp-text)', padding: '0 10px', height: 36, display: 'inline-flex', alignItems: 'center', lineHeight: 1 }}>
+            ZEC {zecRates ? `${currencySymbol}${(displayCurrency === 'USD' ? zecRates.zec_usd : zecRates.zec_eur).toFixed(2)}` : '--'}
+          </span>
+          <div style={{ width: 1, height: 20, background: 'var(--cp-border)', margin: '0 4px' }} />
+          <span className="tag" style={{ padding: '0 10px', height: 36, display: 'inline-flex', alignItems: 'center', lineHeight: 1 }}>
             DASHBOARD // {merchant.payment_address.startsWith('utest') ? 'TESTNET' : 'MAINNET'}
           </span>
           <div style={{ width: 1, height: 20, background: 'var(--cp-border)', margin: '0 4px' }} />
@@ -1064,6 +1100,9 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                     <button onClick={() => { setShowPayLinkForm(!showPayLinkForm); setPayLinkResult(null); }} className="btn btn-small">
                       {showPayLinkForm ? 'CANCEL' : '+ PAYMENT LINK'}
                     </button>
+                    {invoices.length > 0 && (
+                      <button onClick={exportInvoicesCSV} className="btn btn-small">EXPORT CSV</button>
+                    )}
                     <button onClick={loadInvoices} className="btn btn-small">REFRESH</button>
                   </div>
                 </div>
@@ -1122,7 +1161,12 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                     return (
                       <div key={inv.id} className="invoice-card" style={{ cursor: 'pointer' }} onClick={() => setExpandedInvoice(isExpanded ? null : inv.id)}>
                         <div className="invoice-header">
-                          <span className="invoice-id">{inv.memo_code}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span className="invoice-id">{inv.memo_code}</span>
+                            <span style={{ fontSize: 10, color: 'var(--cp-text-dim)' }}>
+                              {new Date(inv.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                            </span>
+                          </div>
                           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                             {isOverpaid && inv.status === 'confirmed' && (
                               <span className="status-badge" style={{ background: 'rgba(249,115,22,0.15)', color: '#f97316', border: '1px solid rgba(249,115,22,0.3)', fontSize: 8 }}>OVERPAID</span>
@@ -1134,26 +1178,16 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                           <span>{inv.product_name || '—'} {inv.size || ''}</span>
                           <span><strong>{priceStr}</strong> / {inv.price_zec.toFixed(8)} ZEC</span>
                         </div>
-                        {(inv.status === 'underpaid' || isOverpaid) && inv.received_zatoshis > 0 && (
-                          <div style={{ fontSize: 10, color: inv.status === 'underpaid' ? '#f97316' : 'var(--cp-text-muted)', marginTop: 4 }}>
-                            Received: {(inv.received_zatoshis / 1e8).toFixed(8)} / {inv.price_zec.toFixed(8)} ZEC
-                          </div>
-                        )}
 
                         {isExpanded && (
                           <div onClick={(e) => e.stopPropagation()} style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--cp-border)' }}>
                             <div className="stat-row">
                               <span style={{ color: 'var(--cp-text-muted)' }}>Reference</span>
-                              <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--cp-purple)' }}>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                                 {inv.memo_code} <CopyButton text={inv.memo_code} label="" />
                               </span>
                             </div>
 
-                            {/* Pricing */}
-                            <div className="stat-row">
-                              <span style={{ color: 'var(--cp-text-muted)' }}>Price</span>
-                              <span>{priceStr} / {inv.price_zec.toFixed(8)} ZEC</span>
-                            </div>
                             {inv.received_zatoshis > 0 && (
                               <div className="stat-row">
                                 <span style={{ color: isOverpaid ? '#f97316' : 'var(--cp-cyan)' }}>Received</span>
@@ -1167,7 +1201,6 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                               <span>1 ZEC = {currencySymbol}{inv.zec_rate_at_creation.toFixed(2)}</span>
                             </div>
 
-                            {/* Product info */}
                             {inv.product_name && (
                               <div className="stat-row">
                                 <span style={{ color: 'var(--cp-text-muted)' }}>Product</span>
@@ -1175,7 +1208,6 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                               </div>
                             )}
 
-                            {/* Timeline */}
                             <div className="section-title" style={{ marginTop: 12 }}>TIMELINE</div>
                             <div className="stat-row">
                               <span style={{ color: 'var(--cp-text-muted)' }}>Created</span>
@@ -1183,7 +1215,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                             </div>
                             {inv.detected_at && (
                               <div className="stat-row">
-                                <span style={{ color: 'var(--cp-purple)' }}>Detected</span>
+                                <span style={{ color: 'var(--cp-text-muted)' }}>Detected</span>
                                 <span style={{ fontSize: 10 }}>{new Date(inv.detected_at).toLocaleString()}</span>
                               </div>
                             )}
@@ -1208,12 +1240,13 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                                 <span style={{ fontSize: 10 }}>{new Date(inv.refunded_at).toLocaleString()}</span>
                               </div>
                             )}
-                            <div className="stat-row">
-                              <span style={{ color: 'var(--cp-text-muted)' }}>Expires</span>
-                              <span style={{ fontSize: 10 }}>{new Date(inv.expires_at).toLocaleString()}</span>
-                            </div>
+                            {!inv.confirmed_at && !inv.refunded_at && (
+                              <div className="stat-row">
+                                <span style={{ color: 'var(--cp-text-muted)' }}>Expires</span>
+                                <span style={{ fontSize: 10 }}>{new Date(inv.expires_at).toLocaleString()}</span>
+                              </div>
+                            )}
 
-                            {/* Refund Address */}
                             {inv.refund_address && (inv.status === 'confirmed' || inv.status === 'refunded') && (
                               <>
                                 <div className="section-title" style={{ marginTop: 12 }}>REFUND ADDRESS</div>
@@ -1231,32 +1264,39 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                               </>
                             )}
 
-                            {/* Actions */}
-                            <div className="invoice-actions" style={{ marginTop: 12 }}>
-                              <CopyButton text={`${checkoutOrigin}/pay/${inv.id}`} label="Payment Link" />
-                              {inv.status === 'confirmed' && (
-                                <button onClick={() => refundInvoice(inv.id)} className="btn btn-small" style={{ color: '#f59e0b', borderColor: 'rgba(245,158,11,0.5)' }}>
-                                  REFUND
-                                </button>
-                              )}
-                              {inv.status === 'pending' && inv.product_name !== 'Fee Settlement' && (
-                                <button onClick={() => cancelInvoice(inv.id)} className="btn btn-small btn-cancel">CANCEL</button>
-                              )}
-                            </div>
-                          </div>
-                        )}
+                            {inv.refund_txid && (
+                              <>
+                                <div className="section-title" style={{ marginTop: 12 }}>REFUND TXID</div>
+                                <div className="stat-row">
+                                  <span style={{ fontSize: 9, color: '#f59e0b', wordBreak: 'break-all', maxWidth: '80%' }}>
+                                    {inv.refund_txid}
+                                  </span>
+                                  <CopyButton text={inv.refund_txid} label="" />
+                                </div>
+                              </>
+                            )}
 
-                        {!isExpanded && (
-                          <div className="invoice-actions">
-                            <CopyButton text={`${checkoutOrigin}/pay/${inv.id}`} label="Payment Link" />
-                            {inv.status === 'confirmed' && (
-                              <button onClick={(e) => { e.stopPropagation(); refundInvoice(inv.id); }} className="btn btn-small" style={{ color: '#f59e0b', borderColor: 'rgba(245,158,11,0.5)' }}>
-                                REFUND
-                              </button>
-                            )}
-                            {inv.status === 'pending' && inv.product_name !== 'Fee Settlement' && (
-                              <button onClick={(e) => { e.stopPropagation(); cancelInvoice(inv.id); }} className="btn btn-small btn-cancel">CANCEL</button>
-                            )}
+                            <div className="stat-row" style={{ marginTop: 12 }}>
+                              <CopyButton text={`${checkoutOrigin}/pay/${inv.id}`} label="Payment Link" />
+                              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                                {inv.status === 'confirmed' && (
+                                  <button
+                                    onClick={() => setRefundingInvoiceId(inv.id)}
+                                    style={{ background: 'none', border: 'none', color: '#f59e0b', cursor: 'pointer', fontSize: 9, letterSpacing: 1, fontFamily: 'inherit', padding: 0, opacity: 0.7 }}
+                                  >
+                                    REFUND
+                                  </button>
+                                )}
+                                {inv.status === 'pending' && inv.product_name !== 'Fee Settlement' && (
+                                  <button
+                                    onClick={() => cancelInvoice(inv.id)}
+                                    style={{ background: 'none', border: 'none', color: 'var(--cp-red, #ef4444)', cursor: 'pointer', fontSize: 9, letterSpacing: 1, fontFamily: 'inherit', padding: 0, opacity: 0.7 }}
+                                  >
+                                    CANCEL
+                                  </button>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -1648,6 +1688,42 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
 
         </div>
       </div>
+
+      {/* Refund confirmation dialog */}
+      {refundingInvoiceId && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }} onClick={() => { setRefundingInvoiceId(null); setRefundTxid(''); }}>
+          <div className="panel" style={{ maxWidth: 440, width: '100%' }} onClick={(e) => e.stopPropagation()}>
+            <div className="panel-header">
+              <span className="panel-title">Confirm Refund</span>
+            </div>
+            <div className="panel-body">
+              <p style={{ fontSize: 11, color: 'var(--cp-text-muted)', marginBottom: 16, lineHeight: 1.6 }}>
+                This will mark the invoice as <strong style={{ color: '#f59e0b' }}>REFUNDED</strong>. This action cannot be undone.
+                If you have sent ZEC back to the buyer, paste the transaction ID below as proof.
+              </p>
+              <div className="form-group">
+                <label className="form-label">Refund Transaction ID (optional)</label>
+                <input
+                  type="text"
+                  value={refundTxid}
+                  onChange={(e) => setRefundTxid(e.target.value)}
+                  placeholder="Paste the txid of your refund transaction"
+                  className="input"
+                  style={{ fontFamily: 'monospace', fontSize: 10 }}
+                />
+              </div>
+              <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                <button onClick={() => { setRefundingInvoiceId(null); setRefundTxid(''); }} className="btn" style={{ flex: 1 }}>
+                  CANCEL
+                </button>
+                <button onClick={confirmRefund} className="btn-primary" style={{ flex: 1, background: '#f59e0b', borderColor: '#f59e0b' }}>
+                  CONFIRM REFUND
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {toast && <div className={`toast ${toast.error ? 'error' : ''}`}>{toast.msg}</div>}
     </div>

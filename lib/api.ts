@@ -39,6 +39,7 @@ export interface Invoice {
   expires_at: string;
   created_at: string;
   refund_address?: string | null;
+  refund_txid?: string | null;
   received_zec: number | null;
   price_zatoshis: number;
   received_zatoshis: number;
@@ -233,8 +234,11 @@ export const api = {
   cancelInvoice: (id: string) =>
     request<{ status: string }>(`/api/invoices/${id}/cancel`, { method: 'POST' }),
 
-  refundInvoice: (id: string) =>
-    request<{ status: string; refund_address: string | null }>(`/api/invoices/${id}/refund`, { method: 'POST' }),
+  refundInvoice: (id: string, refund_txid?: string) =>
+    request<{ status: string; refund_address: string | null; refund_txid: string | null }>(`/api/invoices/${id}/refund`, {
+      method: 'POST',
+      body: JSON.stringify({ refund_txid: refund_txid || null }),
+    }),
 
   saveRefundAddress: (id: string, refund_address: string) =>
     request<{ status: string; refund_address: string }>(`/api/invoices/${id}/refund-address`, {
