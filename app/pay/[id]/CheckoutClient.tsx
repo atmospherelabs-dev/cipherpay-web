@@ -49,7 +49,10 @@ function isSafeReturnUrl(url: string, merchantOrigin?: string | null): boolean {
     if (merchantOrigin) {
       return parsed.origin === merchantOrigin;
     }
-    return true;
+    // No merchant origin: only allow cipherpay domains or Shopify admin
+    const host = parsed.hostname;
+    return host.endsWith('.cipherpay.app') || host === 'cipherpay.app'
+      || host.endsWith('.myshopify.com');
   } catch {
     return false;
   }
