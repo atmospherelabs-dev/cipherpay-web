@@ -412,7 +412,7 @@ export const ProductsTab = memo(function ProductsTab({
     const defaultPrice = product.default_price_id
       ? activePrices.find(p => p.id === product.default_price_id) || activePrices[0]
       : activePrices[0];
-    const apiBase = checkoutOrigin.replace('localhost:3000', 'localhost:3080').replace('cipherpay.app', 'api.cipherpay.app');
+    const apiBase = checkoutOrigin.replace('localhost:3000', 'localhost:3080').replace(/^(https?:\/\/)(?:www\.)?/, '$1').replace('cipherpay.app', 'api.cipherpay.app');
     const snippet = defaultPrice
       ? `curl -X POST ${apiBase}/api/checkout \\\n  -H "Content-Type: application/json" \\\n  -d '{"price_id": "${defaultPrice.id}"}'`
       : `curl -X POST ${apiBase}/api/checkout \\\n  -H "Content-Type: application/json" \\\n  -d '{"product_id": "${product.id}"}'`;
