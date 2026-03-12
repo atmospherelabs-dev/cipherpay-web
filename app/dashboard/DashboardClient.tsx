@@ -2,130 +2,59 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { api, type Invoice, type MerchantInfo, type Product, type CreateProductRequest, type UpdateProductRequest, type BillingSummary, type BillingCycle, type X402Verification } from '@/lib/api';
+import { api, type MerchantInfo, type Product, type Invoice, type BillingSummary, type BillingCycle, type X402Verification, type ZecRates } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { validateEmail, validateWebhookUrl, validateLength } from '@/lib/validation';
-import { Logo } from '@/components/Logo';
-import { ThemeToggle } from '@/components/ThemeToggle';
-import { CopyButton } from '@/components/CopyButton';
-import Link from 'next/link';
+import { useToast } from '@/contexts/ToastContext';
 
-type Tab = 'overview' | 'products' | 'invoices' | 'pos' | 'billing' | 'settings' | 'x402';
+import { DashboardNavbar } from './components/DashboardNavbar';
+import { DashboardSidebar, type Tab } from './components/DashboardSidebar';
+import { OverviewTab } from './tabs/OverviewTab';
+import { ProductsTab } from './tabs/ProductsTab';
+import { POSTab } from './tabs/POSTab';
+import { InvoicesTab } from './tabs/InvoicesTab';
+import { BillingTab } from './tabs/BillingTab';
+import { SettingsTab } from './tabs/SettingsTab';
+import { X402Tab } from './tabs/X402Tab';
+
+
+export type TabAction = 'add-product' | 'create-paylink' | null;
 
 export default function DashboardClient({ merchant }: { merchant: MerchantInfo }) {
   const [tab, setTab] = useState<Tab>('overview');
+  const [tabAction, setTabAction] = useState<TabAction>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [loadingInvoices, setLoadingInvoices] = useState(true);
-  const [toast, setToast] = useState<{ msg: string; error?: boolean } | null>(null);
 
-  // Currency preference
-  const [displayCurrency, setDisplayCurrency] = useState<'EUR' | 'USD'>(() => {
+  const [displayCurrency, setDisplayCurrency] = useState<string>(() => {
     if (typeof window !== 'undefined') {
-      return (localStorage.getItem('cp_currency') as 'EUR' | 'USD') || 'EUR';
+      return localStorage.getItem('cp_currency') || 'EUR';
     }
     return 'EUR';
   });
-  const [zecRates, setZecRates] = useState<{ zec_eur: number; zec_usd: number } | null>(null);
-  const currencySymbol = displayCurrency === 'USD' ? '$' : '€';
-  const fiatPrice = (inv: Invoice) => {
-    if (displayCurrency === 'USD' && inv.price_usd) return inv.price_usd;
-    return inv.price_eur;
-  };
-  const fiatStr = (inv: Invoice) => {
-    const p = fiatPrice(inv);
-    return p < 0.01 ? `${currencySymbol}${p}` : `${currencySymbol}${p.toFixed(2)}`;
-  };
-  const zecToFiat = (zec: number) => {
-    if (!zecRates) return null;
-    const rate = displayCurrency === 'USD' ? zecRates.zec_usd : zecRates.zec_eur;
-    return rate > 0 ? zec * rate : null;
-  };
-  const fiatLabel = (fiat: number | null) => {
-    if (fiat === null) return '';
-    return ` (~${currencySymbol}${fiat < 0.01 ? fiat.toFixed(6) : fiat.toFixed(2)})`;
-  };
+  const [zecRates, setZecRates] = useState<ZecRates | null>(null);
 
-  // Add product form
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newSlug, setNewSlug] = useState('');
-  const [newName, setNewName] = useState('');
-  const [newDesc, setNewDesc] = useState('');
-  const [newPrice, setNewPrice] = useState('');
-  const [newVariants, setNewVariants] = useState('');
-  const [newCurrency, setNewCurrency] = useState<'EUR' | 'USD'>(displayCurrency);
-  const [creating, setCreating] = useState(false);
-
-  // Product editing
-  const [editingProduct, setEditingProduct] = useState<string | null>(null);
-  const [editProdName, setEditProdName] = useState('');
-  const [editProdDesc, setEditProdDesc] = useState('');
-  const [editProdPrice, setEditProdPrice] = useState('');
-  const [editProdVariants, setEditProdVariants] = useState('');
-  const [editProdCurrency, setEditProdCurrency] = useState<'EUR' | 'USD'>('EUR');
-  const [savingProduct, setSavingProduct] = useState(false);
-
-  // POS quick invoice
-  const [posProductId, setPosProductId] = useState<string | null>(null);
-  const [posCreating, setPosCreating] = useState(false);
-
-  // POS cart
-  const [cart, setCart] = useState<Record<string, number>>({});
-  const [posCheckingOut, setPosCheckingOut] = useState(false);
-
-  // Invoice detail expansion
-  const [expandedInvoice, setExpandedInvoice] = useState<string | null>(null);
-
-  // Refund confirmation dialog
-  const [refundingInvoiceId, setRefundingInvoiceId] = useState<string | null>(null);
-  const [refundTxid, setRefundTxid] = useState('');
-
-  // Payment link creation
-  const [showPayLinkForm, setShowPayLinkForm] = useState(false);
-  const [payLinkAmount, setPayLinkAmount] = useState('');
-  const [payLinkDesc, setPayLinkDesc] = useState('');
-  const [payLinkCurrency, setPayLinkCurrency] = useState<'EUR' | 'USD'>(displayCurrency);
-  const [payLinkCreating, setPayLinkCreating] = useState(false);
-  const [payLinkResult, setPayLinkResult] = useState<string | null>(null);
-
-  // Settings
-  const [editingName, setEditingName] = useState(!merchant.name);
-  const [editName, setEditName] = useState(merchant.name || '');
-  const [editingWebhook, setEditingWebhook] = useState(!merchant.webhook_url);
-  const [editWebhookUrl, setEditWebhookUrl] = useState(merchant.webhook_url || '');
-  const [editEmail, setEditEmail] = useState('');
-  const [revealedKey, setRevealedKey] = useState<{ type: string; value: string } | null>(null);
-
-  // Billing
   const [billing, setBilling] = useState<BillingSummary | null>(null);
-  const [billingSettling, setBillingSettling] = useState(false);
   const [billingHistory, setBillingHistory] = useState<BillingCycle[]>([]);
 
-  // x402 Verifications
   const [x402Verifications, setX402Verifications] = useState<X402Verification[]>([]);
   const [loadingX402, setLoadingX402] = useState(true);
 
+
   const { logout } = useAuth();
   const router = useRouter();
-
-  const showToast = (msg: string, error = false) => {
-    setToast({ msg, error });
-    setTimeout(() => setToast(null), 3000);
-  };
-
-  useEffect(() => {
-    setNewCurrency(displayCurrency);
-    setPayLinkCurrency(displayCurrency);
-  }, [displayCurrency]);
+  const { showToast } = useToast();
 
   const loadProducts = useCallback(async () => {
-    try { setProducts(await api.listProducts()); } catch { /* */ }
+    try { setProducts(await api.listProducts()); }
+    catch (err) { console.error('Failed to load products', err); }
     setLoadingProducts(false);
   }, []);
 
   const loadInvoices = useCallback(async () => {
-    try { setInvoices(await api.myInvoices()); } catch { /* */ }
+    try { setInvoices(await api.myInvoices()); }
+    catch (err) { console.error('Failed to load invoices', err); }
     setLoadingInvoices(false);
   }, []);
 
@@ -133,26 +62,36 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
     try {
       setBilling(await api.getBilling());
       setBillingHistory(await api.getBillingHistory());
-    } catch { /* billing not available */ }
+    } catch (err) { console.error('Failed to load billing', err); }
   }, []);
 
   const loadX402 = useCallback(async () => {
     try {
       const data = await api.x402History();
       setX402Verifications(data.verifications || []);
-    } catch { /* x402 not available */ }
+    } catch (err) { console.error('Failed to load x402', err); }
     setLoadingX402(false);
   }, []);
 
+
   useEffect(() => {
     loadProducts(); loadInvoices(); loadBilling(); loadX402();
-    api.getRates().then(r => setZecRates({ zec_eur: r.zec_eur, zec_usd: r.zec_usd })).catch(() => {});
   }, [loadProducts, loadInvoices, loadBilling, loadX402]);
+
+  useEffect(() => {
+    const fetchRates = () => {
+      api.getRates()
+        .then(r => setZecRates(r))
+        .catch(() => {});
+    };
+    fetchRates();
+    const interval = setInterval(fetchRates, 60_000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleLogout = async () => { await logout(); router.push('/dashboard/login'); };
 
   const settleBilling = async () => {
-    setBillingSettling(true);
     try {
       const resp = await api.settleBilling();
       showToast(`Settlement invoice created: ${resp.outstanding_zec.toFixed(6)} ZEC`);
@@ -163,291 +102,23 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Failed to settle', true);
     }
-    setBillingSettling(false);
-  };
-
-  const billingBlocked = billing?.fee_enabled &&
-    (billing.billing_status === 'past_due' || billing.billing_status === 'suspended');
-
-  const addProduct = async () => {
-    if (!newSlug || !newName || !newPrice || parseFloat(newPrice) <= 0) {
-      showToast('Slug, name and valid price required', true);
-      return;
-    }
-    const slugErr = validateLength(newSlug, 100, 'Slug');
-    if (slugErr) { showToast(slugErr, true); return; }
-    const nameErr = validateLength(newName, 200, 'Name');
-    if (nameErr) { showToast(nameErr, true); return; }
-    setCreating(true);
-    try {
-      const req: CreateProductRequest = {
-        slug: newSlug.toLowerCase().replace(/\s+/g, '-'),
-        name: newName,
-        price_eur: parseFloat(newPrice),
-        currency: newCurrency,
-        description: newDesc || undefined,
-        variants: newVariants ? newVariants.split(',').map(v => v.trim()).filter(Boolean) : undefined,
-      };
-      await api.createProduct(req);
-      setNewSlug(''); setNewName(''); setNewDesc(''); setNewPrice(''); setNewVariants(''); setNewCurrency('EUR');
-      setShowAddForm(false);
-      loadProducts();
-      showToast('Product added');
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Failed', true);
-    }
-    setCreating(false);
-  };
-
-  const deactivateProduct = async (id: string) => {
-    try { await api.deactivateProduct(id); loadProducts(); showToast('Product deactivated'); }
-    catch { showToast('Failed to deactivate', true); }
-  };
-
-  const startEditProduct = (product: Product) => {
-    setEditingProduct(product.id);
-    setEditProdName(product.name);
-    setEditProdDesc(product.description || '');
-    setEditProdPrice(product.price_eur.toString());
-    setEditProdCurrency((product.currency === 'USD' ? 'USD' : 'EUR') as 'EUR' | 'USD');
-    setEditProdVariants(parseVariants(product.variants).join(', '));
-  };
-
-  const cancelEditProduct = () => {
-    setEditingProduct(null);
-  };
-
-  const saveProduct = async (productId: string) => {
-    if (!editProdName || !editProdPrice || parseFloat(editProdPrice) <= 0) {
-      showToast('Name and valid price required', true);
-      return;
-    }
-    setSavingProduct(true);
-    try {
-      const req: UpdateProductRequest = {
-        name: editProdName,
-        description: editProdDesc || undefined,
-        price_eur: parseFloat(editProdPrice),
-        currency: editProdCurrency,
-        variants: editProdVariants ? editProdVariants.split(',').map(v => v.trim()).filter(Boolean) : [],
-      };
-      await api.updateProduct(productId, req);
-      setEditingProduct(null);
-      loadProducts();
-      showToast('Product updated');
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Failed to update', true);
-    }
-    setSavingProduct(false);
-  };
-
-  const quickPOS = async (productId: string) => {
-    setPosProductId(productId);
-    setPosCreating(true);
-    try {
-      const resp = await api.checkout({ product_id: productId });
-      router.push(`/pay/${resp.invoice_id}`);
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : 'POS failed', true);
-    }
-    setPosCreating(false);
-    setPosProductId(null);
-  };
-
-  const cartAdd = (productId: string) => {
-    setCart(prev => ({ ...prev, [productId]: (prev[productId] || 0) + 1 }));
-  };
-  const cartRemove = (productId: string) => {
-    setCart(prev => {
-      const qty = (prev[productId] || 0) - 1;
-      if (qty <= 0) { const { [productId]: _, ...rest } = prev; return rest; }
-      return { ...prev, [productId]: qty };
-    });
-  };
-  const cartTotal = Object.entries(cart).reduce((sum, [pid, qty]) => {
-    const product = products.find(p => p.id === pid);
-    return sum + (product ? product.price_eur * qty : 0);
-  }, 0);
-  const cartItemCount = Object.values(cart).reduce((a, b) => a + b, 0);
-  const cartCurrencies = [...new Set(Object.keys(cart).map(pid => {
-    const p = products.find(pr => pr.id === pid);
-    return p?.currency || 'EUR';
-  }))];
-  const cartCurrency = cartCurrencies.length === 1 ? cartCurrencies[0] : 'EUR';
-  const cartMixedCurrency = cartCurrencies.length > 1;
-  const cartSymbol = cartCurrency === 'USD' ? '$' : '€';
-  const cartSummary = Object.entries(cart)
-    .map(([pid, qty]) => {
-      const product = products.find(p => p.id === pid);
-      return product ? `${qty}x ${product.name}` : '';
-    })
-    .filter(Boolean)
-    .join(', ');
-
-  const posCartCheckout = async () => {
-    if (cartTotal <= 0 || cartMixedCurrency) return;
-    setPosCheckingOut(true);
-    try {
-      const resp = await api.createInvoice({
-        product_name: cartSummary,
-        amount: Math.round(cartTotal * 100) / 100,
-        currency: cartCurrency,
-      });
-      setCart({});
-      router.push(`/pay/${resp.invoice_id}`);
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Checkout failed', true);
-    }
-    setPosCheckingOut(false);
-  };
-
-  const createPaymentLink = async () => {
-    const amount = parseFloat(payLinkAmount);
-    if (!amount || amount <= 0) {
-      showToast('Enter a valid amount', true);
-      return;
-    }
-    setPayLinkCreating(true);
-    try {
-      const resp = await api.createInvoice({
-        product_name: payLinkDesc || undefined,
-        amount: Math.round(amount * 100) / 100,
-        currency: payLinkCurrency,
-      });
-      const link = `${checkoutOrigin}/pay/${resp.invoice_id}`;
-      setPayLinkResult(link);
-      loadInvoices();
-      showToast('Payment link created');
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Failed to create link', true);
-    }
-    setPayLinkCreating(false);
-  };
-
-  const cancelInvoice = async (id: string) => {
-    try { await api.cancelInvoice(id); loadInvoices(); showToast('Invoice cancelled'); }
-    catch { showToast('Failed to cancel', true); }
-  };
-
-  const confirmRefund = async () => {
-    if (!refundingInvoiceId) return;
-    try {
-      await api.refundInvoice(refundingInvoiceId, refundTxid || undefined);
-      loadInvoices();
-      showToast('Invoice marked as refunded');
-    } catch { showToast('Failed to mark as refunded', true); }
-    setRefundingInvoiceId(null);
-    setRefundTxid('');
-  };
-
-  const exportInvoicesCSV = () => {
-    const headers = ['Reference', 'Product', 'Status', 'Price (' + displayCurrency + ')', 'Price (ZEC)', 'Received (ZEC)', 'Created', 'Confirmed', 'Refunded', 'Refund TxID', 'TxID'];
-    const rows = invoices.map(inv => [
-      inv.memo_code,
-      inv.product_name || '',
-      inv.status,
-      fiatPrice(inv).toFixed(2),
-      inv.price_zec.toFixed(8),
-      inv.received_zatoshis > 0 ? (inv.received_zatoshis / 1e8).toFixed(8) : '',
-      inv.created_at,
-      inv.confirmed_at || '',
-      inv.refunded_at || '',
-      inv.refund_txid || '',
-      inv.detected_txid || '',
-    ]);
-    const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `cipherpay-invoices-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const saveName = async () => {
-    const err = validateLength(editName, 100, 'Store name');
-    if (err) { showToast(err, true); return; }
-    try {
-      await api.updateMe({ name: editName });
-      setEditingName(false);
-      showToast('Name updated');
-    } catch { showToast('Failed to update name', true); }
-  };
-
-  const saveWebhookUrl = async () => {
-    if (editWebhookUrl) {
-      const err = validateWebhookUrl(editWebhookUrl);
-      if (err) { showToast(err, true); return; }
-    }
-    try {
-      await api.updateMe({ webhook_url: editWebhookUrl || '' });
-      setEditingWebhook(!editWebhookUrl);
-      showToast(editWebhookUrl ? 'Webhook URL saved' : 'Webhook URL removed');
-    } catch { showToast('Failed to update webhook URL', true); }
-  };
-
-  const saveEmail = async () => {
-    const emailErr = validateEmail(editEmail);
-    if (emailErr) { showToast(emailErr, true); return; }
-    try {
-      await api.updateMe({ recovery_email: editEmail });
-      showToast('Recovery email saved');
-      setEditEmail('');
-    } catch { showToast('Failed to save email', true); }
-  };
-
-  const regenApiKey = async () => {
-    try {
-      const resp = await api.regenerateApiKey();
-      setRevealedKey({ type: 'API Key', value: resp.api_key });
-      showToast('API key regenerated. Copy it now — it won\'t be shown again.');
-    } catch { showToast('Failed to regenerate', true); }
-  };
-
-  const regenDashToken = async () => {
-    try {
-      const resp = await api.regenerateDashboardToken();
-      setRevealedKey({ type: 'Dashboard Token', value: resp.dashboard_token });
-      showToast('Dashboard token regenerated. Copy it now — it won\'t be shown again.');
-    } catch { showToast('Failed to regenerate', true); }
-  };
-
-  const regenWebhookSecret = async () => {
-    try {
-      const resp = await api.regenerateWebhookSecret();
-      setRevealedKey({ type: 'Webhook Secret', value: resp.webhook_secret });
-      showToast('Webhook secret regenerated');
-    } catch { showToast('Failed to regenerate', true); }
   };
 
   const checkoutOrigin = typeof window !== 'undefined' ? window.location.origin : '';
 
-  const parseVariants = (v: string | null): string[] => {
-    if (!v) return [];
-    try { return JSON.parse(v); } catch { return []; }
+  const navigateWithAction = (t: Tab, action: TabAction = null) => {
+    setTab(t);
+    setTabAction(action);
   };
 
   return (
     <div style={{ minHeight: '100vh', fontFamily: 'var(--font-geist-mono), monospace', fontSize: 13, lineHeight: 1.6 }}>
-      {/* Header */}
-      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 24px', borderBottom: '1px solid var(--cp-border)' }}>
-        <Link href="/"><Logo size="sm" /></Link>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span className="tag" style={{ color: 'var(--cp-text)', padding: '0 10px', height: 36, display: 'inline-flex', alignItems: 'center', lineHeight: 1 }}>
-            ZEC {zecRates ? `${currencySymbol}${(displayCurrency === 'USD' ? zecRates.zec_usd : zecRates.zec_eur).toFixed(2)}` : '--'}
-          </span>
-          <div style={{ width: 1, height: 20, background: 'var(--cp-border)', margin: '0 4px' }} />
-          <span className="tag" style={{ padding: '0 10px', height: 36, display: 'inline-flex', alignItems: 'center', lineHeight: 1 }}>
-            DASHBOARD // {merchant.payment_address.startsWith('utest') ? 'TESTNET' : 'MAINNET'}
-          </span>
-          <div style={{ width: 1, height: 20, background: 'var(--cp-border)', margin: '0 4px' }} />
-          <ThemeToggle />
-          <button onClick={handleLogout} className="btn btn-small">
-            SIGN OUT
-          </button>
-        </div>
-      </header>
+      <DashboardNavbar
+        merchant={merchant}
+        zecRates={zecRates}
+        displayCurrency={displayCurrency}
+        onLogout={handleLogout}
+      />
 
       {/* Billing status banners */}
       {billing?.fee_enabled && billing.billing_status === 'suspended' && (
@@ -458,8 +129,8 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
               Outstanding balance: {billing.outstanding_zec.toFixed(6)} ZEC. Pay to restore service.
             </div>
           </div>
-          <button onClick={settleBilling} disabled={billingSettling} className="btn" style={{ color: '#ef4444', borderColor: 'rgba(239,68,68,0.5)' }}>
-            {billingSettling ? 'CREATING...' : 'PAY NOW'}
+          <button onClick={settleBilling} className="btn" style={{ color: '#ef4444', borderColor: 'rgba(239,68,68,0.5)' }}>
+            PAY NOW
           </button>
         </div>
       )}
@@ -471,1240 +142,94 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
               Outstanding: {billing.outstanding_zec.toFixed(6)} ZEC. Invoice/product creation is blocked until paid.
             </div>
           </div>
-          <button onClick={settleBilling} disabled={billingSettling} className="btn" style={{ color: '#f59e0b', borderColor: 'rgba(245,158,11,0.5)' }}>
-            {billingSettling ? 'CREATING...' : 'PAY NOW'}
+          <button onClick={settleBilling} className="btn" style={{ color: '#f59e0b', borderColor: 'rgba(245,158,11,0.5)' }}>
+            PAY NOW
           </button>
         </div>
       )}
 
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: 24 }}>
         <div className="grid-layout">
+          <DashboardSidebar
+            merchant={merchant}
+            tab={tab}
+            setTab={setTab}
+            billing={billing}
+            hasX402={x402Verifications.length > 0}
+          />
 
-          {/* Left Column */}
           <div>
-            {/* Merchant Identity */}
-            <div className="panel">
-              <div className="panel-header">
-                <span className="panel-title">{merchant.name || 'Merchant'}</span>
-                <span className="status-badge status-confirmed">ACTIVE</span>
-              </div>
-              <div className="panel-body">
-                <div className="stat-row">
-                  <span style={{ color: 'var(--cp-text-muted)' }}>ID</span>
-                  <span style={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6 }}>
-                    {merchant.id.substring(0, 8)}...
-                    <CopyButton text={merchant.id} label="" />
-                  </span>
-                </div>
-                <div className="stat-row">
-                  <span style={{ color: 'var(--cp-text-muted)' }}>Address</span>
-                  <span style={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ color: 'var(--cp-cyan)', fontSize: 9 }}>{merchant.payment_address.substring(0, 16)}...</span>
-                    <CopyButton text={merchant.payment_address} label="" />
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Navigation */}
-            <nav style={{ marginTop: 16 }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginBottom: 4 }}>
-                <button
-                  onClick={() => setTab('overview')}
-                  style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '10px 14px',
-                    background: tab === 'overview' ? 'var(--cp-surface)' : 'transparent',
-                    border: tab === 'overview' ? '1px solid var(--cp-border)' : '1px solid transparent',
-                    borderRadius: 4,
-                    cursor: 'pointer',
-                    fontFamily: 'inherit', fontSize: 11, letterSpacing: 1.5, fontWeight: tab === 'overview' ? 600 : 400,
-                    color: tab === 'overview' ? 'var(--cp-cyan)' : 'var(--cp-text-muted)',
-                    textAlign: 'left',
-                    transition: 'all 0.15s',
-                  }}
-                >
-                  OVERVIEW
-                </button>
-              </div>
-
-              <div style={{ borderTop: '1px solid var(--cp-border)', margin: '8px 0' }} />
-
-              <div style={{ fontSize: 9, letterSpacing: 2, color: 'var(--cp-text-dim)', padding: '4px 14px 4px', fontWeight: 600 }}><span style={{ color: 'var(--cp-cyan)', opacity: 0.4 }}>//</span> STORE</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {([
-                  { key: 'products' as Tab, label: 'PRODUCTS' },
-                  { key: 'pos' as Tab, label: `POS${cartItemCount > 0 ? ` (${cartItemCount})` : ''}` },
-                  { key: 'invoices' as Tab, label: 'INVOICES' },
-                  ...(x402Verifications.length > 0 ? [{ key: 'x402' as Tab, label: 'X402' }] : []),
-                ]).map(({ key, label }) => (
-                  <button
-                    key={key}
-                    onClick={() => setTab(key)}
-                    style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      padding: '10px 14px',
-                      background: tab === key ? 'var(--cp-surface)' : 'transparent',
-                      border: tab === key ? '1px solid var(--cp-border)' : '1px solid transparent',
-                      borderRadius: 4,
-                      cursor: 'pointer',
-                      fontFamily: 'inherit', fontSize: 11, letterSpacing: 1.5, fontWeight: tab === key ? 600 : 400,
-                      color: tab === key ? 'var(--cp-cyan)' : 'var(--cp-text-muted)',
-                      textAlign: 'left',
-                      transition: 'all 0.15s',
-                    }}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-
-              <div style={{ borderTop: '1px solid var(--cp-border)', margin: '8px 0' }} />
-
-              <div style={{ fontSize: 9, letterSpacing: 2, color: 'var(--cp-text-dim)', padding: '4px 14px 4px', fontWeight: 600 }}><span style={{ color: 'var(--cp-cyan)', opacity: 0.4 }}>//</span> ACCOUNT</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {([
-                  { key: 'billing' as Tab, label: 'BILLING' },
-                  { key: 'settings' as Tab, label: 'SETTINGS' },
-                ]).map(({ key, label }) => (
-                  <button
-                    key={key}
-                    onClick={() => setTab(key)}
-                    style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      padding: '10px 14px',
-                      background: tab === key ? 'var(--cp-surface)' : 'transparent',
-                      border: tab === key ? '1px solid var(--cp-border)' : '1px solid transparent',
-                      borderRadius: 4,
-                      cursor: 'pointer',
-                      fontFamily: 'inherit', fontSize: 11, letterSpacing: 1.5, fontWeight: tab === key ? 600 : 400,
-                      color: tab === key ? 'var(--cp-cyan)' : 'var(--cp-text-muted)',
-                      textAlign: 'left',
-                      transition: 'all 0.15s',
-                    }}
-                  >
-                    {label}
-                    {key === 'billing' && billing?.fee_enabled && billing.outstanding_zec > 0.00001 && (
-                      <span style={{
-                        width: 7, height: 7, borderRadius: '50%',
-                        background: billing.billing_status === 'active' ? '#f59e0b' : '#ef4444',
-                        flexShrink: 0,
-                      }} />
-                    )}
-                  </button>
-                ))}
-              </div>
-            </nav>
-          </div>
-
-          {/* Right Column */}
-          <div>
-            {tab === 'overview' ? (() => {
-              const pending = invoices.filter(i => i.status === 'pending').length;
-              const detected = invoices.filter(i => i.status === 'detected' || i.status === 'underpaid').length;
-              const expired = invoices.filter(i => i.status === 'expired').length;
-              const rate = merchant.stats.total_invoices > 0
-                ? Math.round((merchant.stats.confirmed / merchant.stats.total_invoices) * 100)
-                : 0;
-              const totalFiat = zecToFiat(merchant.stats.total_zec);
-              const recentInvoices = [...invoices]
-                .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                .slice(0, 5);
-              const webhookConfigured = !!merchant.webhook_url;
-              const emailConfigured = merchant.has_recovery_email;
-              const nameConfigured = !!merchant.name;
-
-              return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  {/* Stat cards */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
-                    <div className="panel" style={{ textAlign: 'center' }}>
-                      <div className="panel-body" style={{ padding: '20px 16px' }}>
-                        <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--cp-cyan)', lineHeight: 1.2 }}>
-                          {merchant.stats.total_zec.toFixed(4)}
-                        </div>
-                        <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
-                          TOTAL ZEC RECEIVED
-                        </div>
-                        {totalFiat !== null && (
-                          <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: 2 }}>
-                            ~{currencySymbol}{totalFiat < 0.01 ? totalFiat.toFixed(4) : totalFiat.toFixed(2)}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="panel" style={{ textAlign: 'center' }}>
-                      <div className="panel-body" style={{ padding: '20px 16px' }}>
-                        <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--cp-green)', lineHeight: 1.2 }}>
-                          {merchant.stats.confirmed}
-                        </div>
-                        <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
-                          CONFIRMED
-                        </div>
-                        <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: 2 }}>
-                          of {merchant.stats.total_invoices} total
-                        </div>
-                      </div>
-                    </div>
-                    <div className="panel" style={{ textAlign: 'center' }}>
-                      <div className="panel-body" style={{ padding: '20px 16px' }}>
-                        <div style={{ fontSize: 24, fontWeight: 700, color: pending > 0 ? 'var(--cp-yellow)' : 'var(--cp-text-dim)', lineHeight: 1.2 }}>
-                          {pending + detected}
-                        </div>
-                        <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
-                          PENDING
-                        </div>
-                        {detected > 0 && (
-                          <div style={{ fontSize: 10, color: 'var(--cp-purple)', marginTop: 2 }}>
-                            {detected} detected
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="panel" style={{ textAlign: 'center' }}>
-                      <div className="panel-body" style={{ padding: '20px 16px' }}>
-                        <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--cp-text)', lineHeight: 1.2 }}>
-                          {rate}%
-                        </div>
-                        <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
-                          CONVERSION
-                        </div>
-                        <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: 2 }}>
-                          {expired} expired
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Quick actions */}
-                  <div className="panel">
-                    <div className="panel-header">
-                      <span className="panel-title">Quick Actions</span>
-                    </div>
-                    <div className="panel-body" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                      <button onClick={() => { setTab('invoices'); setTimeout(() => setShowPayLinkForm(true), 50); }} className="btn-primary" style={{ fontSize: 10 }}>
-                        + CREATE PAY LINK
-                      </button>
-                      <button onClick={() => { setTab('products'); setTimeout(() => setShowAddForm(true), 50); }} className="btn" style={{ fontSize: 10 }}>
-                        + ADD PRODUCT
-                      </button>
-                      <button onClick={() => setTab('pos')} className="btn" style={{ fontSize: 10 }}>
-                        OPEN POS
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Recent activity */}
-                  <div className="panel">
-                    <div className="panel-header">
-                      <span className="panel-title">Recent Activity</span>
-                      <button onClick={() => setTab('invoices')} className="btn btn-small">VIEW ALL</button>
-                    </div>
-                    <div className="panel-body">
-                      {loadingInvoices ? (
-                        <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', padding: '12px 0' }}>Loading...</div>
-                      ) : recentInvoices.length === 0 ? (
-                        <div style={{ fontSize: 11, color: 'var(--cp-text-dim)', padding: '16px 0', textAlign: 'center' }}>
-                          No invoices yet. Create your first pay link to get started.
-                        </div>
-                      ) : (
-                        recentInvoices.map((inv) => (
-                          <div key={inv.id} className="stat-row" style={{ padding: '8px 0' }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
-                              <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--cp-text)' }}>
-                                {inv.product_name || inv.memo_code}
-                              </span>
-                              <span style={{ fontSize: 9, color: 'var(--cp-text-dim)' }}>
-                                {new Date(inv.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                              </span>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                              <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--cp-text)' }}>
-                                {inv.price_zec.toFixed(4)} ZEC
-                              </span>
-                              <span className={`status-badge ${
-                                inv.status === 'confirmed' ? 'status-confirmed' :
-                                inv.status === 'detected' || inv.status === 'underpaid' ? 'status-detected' :
-                                inv.status === 'expired' ? 'status-expired' :
-                                inv.status === 'refunded' ? 'status-expired' :
-                                'status-pending'
-                              }`} style={{ fontSize: 8, minWidth: 60, textAlign: 'center' }}>
-                                {inv.status.toUpperCase()}
-                              </span>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Account health */}
-                  <div className="panel">
-                    <div className="panel-header">
-                      <span className="panel-title">Account Setup</span>
-                    </div>
-                    <div className="panel-body">
-                      <div className="stat-row">
-                        <span style={{ color: 'var(--cp-text-muted)' }}>Store Name</span>
-                        {nameConfigured ? (
-                          <span style={{ color: 'var(--cp-green)', fontSize: 10, fontWeight: 600 }}>CONFIGURED</span>
-                        ) : (
-                          <button onClick={() => setTab('settings')} style={{ background: 'none', border: 'none', color: 'var(--cp-yellow)', fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: 1 }}>
-                            SET UP &rarr;
-                          </button>
-                        )}
-                      </div>
-                      <div className="stat-row">
-                        <span style={{ color: 'var(--cp-text-muted)' }}>Webhook</span>
-                        {webhookConfigured ? (
-                          <span style={{ color: 'var(--cp-green)', fontSize: 10, fontWeight: 600 }}>CONFIGURED</span>
-                        ) : (
-                          <button onClick={() => setTab('settings')} style={{ background: 'none', border: 'none', color: 'var(--cp-yellow)', fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: 1 }}>
-                            SET UP &rarr;
-                          </button>
-                        )}
-                      </div>
-                      <div className="stat-row">
-                        <span style={{ color: 'var(--cp-text-muted)' }}>Recovery Email</span>
-                        {emailConfigured ? (
-                          <span style={{ color: 'var(--cp-green)', fontSize: 10, fontWeight: 600 }}>CONFIGURED</span>
-                        ) : (
-                          <button onClick={() => setTab('settings')} style={{ background: 'none', border: 'none', color: 'var(--cp-yellow)', fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: 1 }}>
-                            SET UP &rarr;
-                          </button>
-                        )}
-                      </div>
-                      {billing?.fee_enabled && (
-                        <div className="stat-row">
-                          <span style={{ color: 'var(--cp-text-muted)' }}>Billing</span>
-                          <span className={`status-badge ${
-                            billing.billing_status === 'active' ? 'status-confirmed' :
-                            billing.billing_status === 'past_due' ? 'status-detected' :
-                            'status-expired'
-                          }`} style={{ fontSize: 8 }}>
-                            {billing.billing_status.toUpperCase().replace('_', ' ')}
-                          </span>
-                        </div>
-                      )}
-                      <div className="stat-row">
-                        <span style={{ color: 'var(--cp-text-muted)' }}>Products</span>
-                        <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--cp-text)' }}>{products.length}</span>
-                      </div>
-                      <div className="stat-row">
-                        <span style={{ color: 'var(--cp-text-muted)' }}>Network</span>
-                        <span style={{ fontSize: 10, fontWeight: 500, color: merchant.payment_address.startsWith('utest') ? 'var(--cp-yellow)' : 'var(--cp-green)' }}>
-                          {merchant.payment_address.startsWith('utest') ? 'TESTNET' : 'MAINNET'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })() : tab === 'products' ? (
-              <div className="panel">
-                <div className="panel-header">
-                  <span className="panel-title">Product Catalog</span>
-                  <button onClick={() => setShowAddForm(!showAddForm)} className="btn btn-small">
-                    {showAddForm ? 'CANCEL' : '+ ADD PRODUCT'}
-                  </button>
-                </div>
-
-                {showAddForm && (
-                  <div className="panel-body" style={{ borderBottom: '1px solid var(--cp-border)' }}>
-                    <div className="form-group">
-                      <label className="form-label">Slug (URL identifier)</label>
-                      <input type="text" value={newSlug} onChange={(e) => setNewSlug(e.target.value)} placeholder="redacted-tee" className="input" />
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">Name</label>
-                      <input type="text" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="[REDACTED] Tee" className="input" />
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">Description (optional)</label>
-                      <textarea value={newDesc} onChange={(e) => setNewDesc(e.target.value)} placeholder="Premium privacy tee" rows={2} className="input" style={{ resize: 'vertical', minHeight: 50 }} />
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">Price</label>
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <input type="number" value={newPrice} onChange={(e) => setNewPrice(e.target.value)} placeholder="65" step="any" min="0.001" className="input" style={{ flex: 1 }} />
-                        <select
-                          value={newCurrency}
-                          onChange={(e) => setNewCurrency(e.target.value as 'EUR' | 'USD')}
-                          className="input"
-                          style={{ width: 80, textAlign: 'center' }}
-                        >
-                          <option value="EUR">EUR</option>
-                          <option value="USD">USD</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">Variants (optional)</label>
-                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
-                        {['XS', 'S', 'M', 'L', 'XL', 'XXL'].map((size) => {
-                          const selected = newVariants.split(',').map(v => v.trim()).filter(Boolean).includes(size);
-                          return (
-                            <button
-                              key={size}
-                              type="button"
-                              onClick={() => {
-                                const current = newVariants.split(',').map(v => v.trim()).filter(Boolean);
-                                const next = selected ? current.filter(v => v !== size) : [...current, size];
-                                setNewVariants(next.join(', '));
-                              }}
-                              className={selected ? 'btn-primary' : 'btn'}
-                              style={{ minWidth: 40, padding: '6px 10px', fontSize: 11 }}
-                            >
-                              {size}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      <input type="text" value={newVariants} onChange={(e) => setNewVariants(e.target.value)} placeholder="Custom: Red, Blue, Green" className="input" style={{ fontSize: 10 }} />
-                    </div>
-                    <button onClick={addProduct} disabled={creating} className="btn-primary" style={{ width: '100%', opacity: creating ? 0.5 : 1 }}>
-                      {creating ? 'ADDING...' : 'ADD PRODUCT'}
-                    </button>
-                  </div>
-                )}
-
-                {loadingProducts ? (
-                  <div className="empty-state">
-                    <div className="w-5 h-5 border-2 rounded-full animate-spin mx-auto" style={{ borderColor: 'var(--cp-cyan)', borderTopColor: 'transparent' }} />
-                  </div>
-                ) : products.filter(p => p.active === 1).length === 0 ? (
-                  <div className="empty-state">
-                    <div className="icon">&#9744;</div>
-                    <div>No products yet. Add your first product above.</div>
-                  </div>
-                ) : (
-                  products.filter(p => p.active === 1).map((product) => {
-                    const variants = parseVariants(product.variants);
-                    const isEditing = editingProduct === product.id;
-                    return (
-                      <div key={product.id} className="invoice-card">
-                        {isEditing ? (
-                          <div onClick={(e) => e.stopPropagation()}>
-                            <div className="form-group">
-                              <label className="form-label">Name</label>
-                              <input type="text" value={editProdName} onChange={(e) => setEditProdName(e.target.value)} className="input" />
-                            </div>
-                            <div className="form-group">
-                              <label className="form-label">Price</label>
-                              <div style={{ display: 'flex', gap: 8 }}>
-                                <input type="number" value={editProdPrice} onChange={(e) => setEditProdPrice(e.target.value)} step="any" min="0.001" className="input" style={{ flex: 1 }} />
-                                <select
-                                  value={editProdCurrency}
-                                  onChange={(e) => setEditProdCurrency(e.target.value as 'EUR' | 'USD')}
-                                  className="input"
-                                  style={{ width: 80, textAlign: 'center' }}
-                                >
-                                  <option value="EUR">EUR</option>
-                                  <option value="USD">USD</option>
-                                </select>
-                              </div>
-                            </div>
-                            <div className="form-group">
-                              <label className="form-label">Description</label>
-                              <input type="text" value={editProdDesc} onChange={(e) => setEditProdDesc(e.target.value)} placeholder="Optional" className="input" />
-                            </div>
-                            <div className="form-group">
-                              <label className="form-label">Variants</label>
-                              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
-                                {['XS', 'S', 'M', 'L', 'XL', 'XXL'].map((size) => {
-                                  const selected = editProdVariants.split(',').map(v => v.trim()).filter(Boolean).includes(size);
-                                  return (
-                                    <button
-                                      key={size}
-                                      type="button"
-                                      onClick={() => {
-                                        const current = editProdVariants.split(',').map(v => v.trim()).filter(Boolean);
-                                        const next = selected ? current.filter(v => v !== size) : [...current, size];
-                                        setEditProdVariants(next.join(', '));
-                                      }}
-                                      className={selected ? 'btn-primary' : 'btn'}
-                                      style={{ minWidth: 40, padding: '6px 10px', fontSize: 11 }}
-                                    >
-                                      {size}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                              <input type="text" value={editProdVariants} onChange={(e) => setEditProdVariants(e.target.value)} placeholder="Custom: Red, Blue, Green" className="input" style={{ fontSize: 10 }} />
-                            </div>
-                            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                              <button onClick={() => saveProduct(product.id)} disabled={savingProduct} className="btn-primary" style={{ flex: 1, opacity: savingProduct ? 0.5 : 1 }}>
-                                {savingProduct ? 'SAVING...' : 'SAVE'}
-                              </button>
-                              <button onClick={cancelEditProduct} className="btn" style={{ flex: 1 }}>CANCEL</button>
-                            </div>
-                          </div>
-                        ) : (
-                          <>
-                            <div className="invoice-header">
-                              <span className="invoice-id">{product.name}</span>
-                              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--cp-text)' }}>
-                                {product.currency === 'USD' ? '$' : '€'}{product.price_eur.toFixed(2)}
-                                {product.currency === 'USD' && <span style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginLeft: 4 }}>USD</span>}
-                              </span>
-                            </div>
-                            <div className="invoice-meta">
-                              <span style={{ color: 'var(--cp-text-dim)', fontSize: 10 }}>/{product.slug}</span>
-                              {variants.length > 0 && (
-                                <span style={{ fontSize: 10 }}>{variants.join(' · ')}</span>
-                              )}
-                            </div>
-                            {product.description && (
-                              <div style={{ fontSize: 11, color: 'var(--cp-text-muted)', marginTop: 4 }}>{product.description}</div>
-                            )}
-                            <div className="stat-row" style={{ marginTop: 10 }}>
-                              <CopyButton text={`${checkoutOrigin}/buy/${product.id}`} label="Buy Link" />
-                              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                                <button onClick={() => startEditProduct(product)} style={{ background: 'none', border: 'none', color: 'var(--cp-text-muted)', cursor: 'pointer', fontSize: 9, letterSpacing: 1, fontFamily: 'inherit', padding: 0 }}>
-                                  EDIT
-                                </button>
-                                <button
-                                  onClick={() => quickPOS(product.id)}
-                                  disabled={posCreating && posProductId === product.id}
-                                  style={{ background: 'none', border: 'none', color: 'var(--cp-green)', cursor: 'pointer', fontSize: 9, letterSpacing: 1, fontFamily: 'inherit', padding: 0, opacity: posCreating && posProductId === product.id ? 0.5 : 1 }}
-                                >
-                                  {posCreating && posProductId === product.id ? 'CREATING...' : 'QUICK POS'}
-                                </button>
-                                <button onClick={() => deactivateProduct(product.id)} style={{ background: 'none', border: 'none', color: 'var(--cp-red, #ef4444)', cursor: 'pointer', fontSize: 9, letterSpacing: 1, fontFamily: 'inherit', padding: 0, opacity: 0.7 }}>
-                                  REMOVE
-                                </button>
-                              </div>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            ) : tab === 'pos' ? (
-              <div className="panel">
-                <div className="panel-header">
-                  <span className="panel-title">POS // Point of Sale</span>
-                  {cartItemCount > 0 && (
-                    <button onClick={() => setCart({})} className="btn btn-small btn-cancel">CLEAR</button>
-                  )}
-                </div>
-
-                {loadingProducts ? (
-                  <div className="empty-state">
-                    <div className="w-5 h-5 border-2 rounded-full animate-spin mx-auto" style={{ borderColor: 'var(--cp-cyan)', borderTopColor: 'transparent' }} />
-                  </div>
-                ) : products.filter(p => p.active === 1).length === 0 ? (
-                  <div className="empty-state">
-                    <div className="icon">&#9744;</div>
-                    <div>Add products first to use POS.</div>
-                  </div>
-                ) : (
-                  <>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 8, padding: 16 }}>
-                      {products.filter(p => p.active === 1).map((product) => {
-                        const qty = cart[product.id] || 0;
-                        return (
-                          <div
-                            key={product.id}
-                            style={{
-                              border: `1px solid ${qty > 0 ? 'var(--cp-cyan)' : 'var(--cp-border)'}`,
-                              borderRadius: 4,
-                              padding: 12,
-                              background: qty > 0 ? 'rgba(6, 182, 212, 0.05)' : 'transparent',
-                              transition: 'all 0.15s',
-                            }}
-                          >
-                            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, color: 'var(--cp-text)' }}>
-                              {product.name}
-                            </div>
-                            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--cp-text)', marginBottom: 8 }}>
-                              {product.currency === 'USD' ? '$' : '€'}{product.price_eur.toFixed(2)}
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <button
-                                onClick={() => cartRemove(product.id)}
-                                disabled={qty === 0}
-                                style={{
-                                  width: 28, height: 28, border: '1px solid var(--cp-border)',
-                                  borderRadius: 4, background: 'transparent', color: 'var(--cp-text)',
-                                  fontSize: 16, cursor: qty === 0 ? 'not-allowed' : 'pointer',
-                                  opacity: qty === 0 ? 0.3 : 1, fontFamily: 'inherit',
-                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                }}
-                              >
-                                −
-                              </button>
-                              <span style={{ fontSize: 14, fontWeight: 700, minWidth: 20, textAlign: 'center', color: qty > 0 ? 'var(--cp-cyan)' : 'var(--cp-text-dim)' }}>
-                                {qty}
-                              </span>
-                              <button
-                                onClick={() => cartAdd(product.id)}
-                                style={{
-                                  width: 28, height: 28, border: '1px solid var(--cp-cyan)',
-                                  borderRadius: 4, background: 'transparent', color: 'var(--cp-cyan)',
-                                  fontSize: 16, cursor: 'pointer', fontFamily: 'inherit',
-                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                }}
-                              >
-                                +
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Cart summary + checkout */}
-                    <div style={{ padding: '16px', borderTop: '1px solid var(--cp-border)' }}>
-                      {cartItemCount > 0 && (
-                        <div style={{ marginBottom: 12 }}>
-                          <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', letterSpacing: 1, marginBottom: 6 }}>ORDER SUMMARY</div>
-                          {Object.entries(cart).map(([pid, qty]) => {
-                            const product = products.find(p => p.id === pid);
-                            if (!product) return null;
-                            return (
-                              <div key={pid} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '3px 0', color: 'var(--cp-text-muted)' }}>
-                                <span>{qty}x {product.name}</span>
-                                <span>{product.currency === 'USD' ? '$' : '€'}{(product.price_eur * qty).toFixed(2)}</span>
-                              </div>
-                            );
-                          })}
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, fontWeight: 700, marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--cp-border)' }}>
-                            <span>TOTAL</span>
-                            <span>{cartSymbol}{cartTotal.toFixed(2)}</span>
-                          </div>
-                          {cartMixedCurrency && (
-                            <div style={{ fontSize: 10, color: '#f59e0b', marginTop: 6 }}>
-                              Mixed currencies in cart. Remove items until all are the same currency.
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      <button
-                        onClick={posCartCheckout}
-                        disabled={cartItemCount === 0 || posCheckingOut || cartMixedCurrency}
-                        className="btn-primary"
-                        style={{
-                          width: '100%', padding: '14px 0', fontSize: 13, letterSpacing: 2,
-                          opacity: cartItemCount === 0 || posCheckingOut || cartMixedCurrency ? 0.4 : 1,
-                        }}
-                      >
-                        {posCheckingOut ? 'CREATING INVOICE...' : cartItemCount === 0 ? 'ADD ITEMS TO CHECKOUT' : `CHECKOUT — ${cartSymbol}${cartTotal.toFixed(2)}`}
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            ) : tab === 'invoices' ? (
-              <div className="panel">
-                <div className="panel-header">
-                  <span className="panel-title">Invoices</span>
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    <button onClick={() => { setShowPayLinkForm(!showPayLinkForm); setPayLinkResult(null); }} className="btn btn-small">
-                      {showPayLinkForm ? 'CANCEL' : '+ PAYMENT LINK'}
-                    </button>
-                    {invoices.length > 0 && (
-                      <button onClick={exportInvoicesCSV} className="btn btn-small">EXPORT CSV</button>
-                    )}
-                    <button onClick={loadInvoices} className="btn btn-small">REFRESH</button>
-                  </div>
-                </div>
-
-                {showPayLinkForm && (
-                  <div className="panel-body" style={{ borderBottom: '1px solid var(--cp-border)' }}>
-                    <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', letterSpacing: 1, marginBottom: 8 }}>CREATE PAYMENT LINK</div>
-                    <div className="form-group">
-                      <label className="form-label">Amount</label>
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <input type="number" value={payLinkAmount} onChange={(e) => setPayLinkAmount(e.target.value)} placeholder="50.00" step="any" min="0.001" className="input" style={{ flex: 1 }} />
-                        <select
-                          value={payLinkCurrency}
-                          onChange={(e) => setPayLinkCurrency(e.target.value as 'EUR' | 'USD')}
-                          className="input"
-                          style={{ width: 80, textAlign: 'center' }}
-                        >
-                          <option value="EUR">EUR</option>
-                          <option value="USD">USD</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">Description (optional)</label>
-                      <input type="text" value={payLinkDesc} onChange={(e) => setPayLinkDesc(e.target.value)} placeholder="Consulting session, donation, etc." className="input" />
-                    </div>
-                    <button onClick={createPaymentLink} disabled={payLinkCreating} className="btn-primary" style={{ width: '100%', opacity: payLinkCreating ? 0.5 : 1 }}>
-                      {payLinkCreating ? 'CREATING...' : 'CREATE LINK'}
-                    </button>
-                    {payLinkResult && (
-                      <div style={{ marginTop: 12, background: 'var(--cp-bg)', border: '1px solid var(--cp-green)', borderRadius: 4, padding: 12 }}>
-                        <div style={{ fontSize: 10, letterSpacing: 1, color: 'var(--cp-green)', marginBottom: 6 }}>PAYMENT LINK READY</div>
-                        <div style={{ fontSize: 10, color: 'var(--cp-text)', wordBreak: 'break-all', fontFamily: 'monospace', marginBottom: 8 }}>
-                          {payLinkResult}
-                        </div>
-                        <CopyButton text={payLinkResult} label="Copy Link" />
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {loadingInvoices ? (
-                  <div className="empty-state">
-                    <div className="w-5 h-5 border-2 rounded-full animate-spin mx-auto" style={{ borderColor: 'var(--cp-cyan)', borderTopColor: 'transparent' }} />
-                  </div>
-                ) : invoices.length === 0 ? (
-                  <div className="empty-state">
-                    <div className="icon">&#9744;</div>
-                    <div>No invoices yet</div>
-                  </div>
-                ) : (
-                  invoices.map((inv) => {
-                    const priceStr = fiatStr(inv);
-                    const isExpanded = expandedInvoice === inv.id;
-                    const isOverpaid = inv.received_zatoshis > inv.price_zatoshis + 1000 && inv.price_zatoshis > 0;
-                    return (
-                      <div key={inv.id} className="invoice-card" style={{ cursor: 'pointer' }} onClick={() => setExpandedInvoice(isExpanded ? null : inv.id)}>
-                        <div className="invoice-header">
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <span className="invoice-id">{inv.memo_code}</span>
-                            <span style={{ fontSize: 10, color: 'var(--cp-text-dim)' }}>
-                              {new Date(inv.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                            </span>
-                          </div>
-                          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                            {isOverpaid && inv.status === 'confirmed' && (
-                              <span className="status-badge" style={{ background: 'rgba(249,115,22,0.15)', color: '#f97316', border: '1px solid rgba(249,115,22,0.3)', fontSize: 8 }}>OVERPAID</span>
-                            )}
-                            <span className={`status-badge status-${inv.status}`}>{inv.status.toUpperCase()}</span>
-                          </div>
-                        </div>
-                        <div className="invoice-meta">
-                          <span>{inv.product_name || '—'} {inv.size || ''}</span>
-                          <span><strong>{priceStr}</strong> / {inv.price_zec.toFixed(8)} ZEC</span>
-                        </div>
-
-                        {isExpanded && (
-                          <div onClick={(e) => e.stopPropagation()} style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--cp-border)' }}>
-                            <div className="stat-row">
-                              <span style={{ color: 'var(--cp-text-muted)' }}>Reference</span>
-                              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                {inv.memo_code} <CopyButton text={inv.memo_code} label="" />
-                              </span>
-                            </div>
-
-                            {inv.received_zatoshis > 0 && (
-                              <div className="stat-row">
-                                <span style={{ color: isOverpaid ? '#f97316' : 'var(--cp-cyan)' }}>Received</span>
-                                <span style={{ color: isOverpaid ? '#f97316' : 'var(--cp-cyan)', fontWeight: 600 }}>
-                                  {(inv.received_zatoshis / 1e8).toFixed(8)} ZEC
-                                </span>
-                              </div>
-                            )}
-                            <div className="stat-row">
-                              <span style={{ color: 'var(--cp-text-muted)' }}>Rate at Creation</span>
-                              <span>1 ZEC = {currencySymbol}{inv.zec_rate_at_creation.toFixed(2)}</span>
-                            </div>
-
-                            {inv.product_name && (
-                              <div className="stat-row">
-                                <span style={{ color: 'var(--cp-text-muted)' }}>Product</span>
-                                <span>{inv.product_name}{inv.size ? ` · ${inv.size}` : ''}</span>
-                              </div>
-                            )}
-
-                            <div className="section-title" style={{ marginTop: 12 }}>TIMELINE</div>
-                            <div className="stat-row">
-                              <span style={{ color: 'var(--cp-text-muted)' }}>Created</span>
-                              <span style={{ fontSize: 10 }}>{new Date(inv.created_at).toLocaleString()}</span>
-                            </div>
-                            {inv.detected_at && (
-                              <div className="stat-row">
-                                <span style={{ color: 'var(--cp-text-muted)' }}>Detected</span>
-                                <span style={{ fontSize: 10 }}>{new Date(inv.detected_at).toLocaleString()}</span>
-                              </div>
-                            )}
-                            {inv.detected_txid && (
-                              <div className="stat-row">
-                                <span style={{ color: 'var(--cp-text-muted)' }}>TxID</span>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 9 }}>
-                                  {inv.detected_txid.substring(0, 16)}...
-                                  <CopyButton text={inv.detected_txid} label="" />
-                                </span>
-                              </div>
-                            )}
-                            {inv.confirmed_at && (
-                              <div className="stat-row">
-                                <span style={{ color: 'var(--cp-green)' }}>Confirmed</span>
-                                <span style={{ fontSize: 10 }}>{new Date(inv.confirmed_at).toLocaleString()}</span>
-                              </div>
-                            )}
-                            {inv.refunded_at && (
-                              <div className="stat-row">
-                                <span style={{ color: '#f59e0b' }}>Refunded</span>
-                                <span style={{ fontSize: 10 }}>{new Date(inv.refunded_at).toLocaleString()}</span>
-                              </div>
-                            )}
-                            {!inv.confirmed_at && !inv.refunded_at && (
-                              <div className="stat-row">
-                                <span style={{ color: 'var(--cp-text-muted)' }}>Expires</span>
-                                <span style={{ fontSize: 10 }}>{new Date(inv.expires_at).toLocaleString()}</span>
-                              </div>
-                            )}
-
-                            {inv.refund_address && (inv.status === 'confirmed' || inv.status === 'refunded') && (
-                              <>
-                                <div className="section-title" style={{ marginTop: 12 }}>REFUND ADDRESS</div>
-                                <div className="stat-row">
-                                  <span style={{ fontSize: 9, color: '#f59e0b', wordBreak: 'break-all', maxWidth: '80%' }}>
-                                    {inv.refund_address}
-                                  </span>
-                                  <CopyButton text={inv.refund_address} label="" />
-                                </div>
-                                {inv.status !== 'refunded' && (
-                                  <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 4 }}>
-                                    Send ZEC to this address to refund the buyer, then mark as refunded.
-                                  </div>
-                                )}
-                              </>
-                            )}
-
-                            {inv.refund_txid && (
-                              <>
-                                <div className="section-title" style={{ marginTop: 12 }}>REFUND TXID</div>
-                                <div className="stat-row">
-                                  <span style={{ fontSize: 9, color: '#f59e0b', wordBreak: 'break-all', maxWidth: '80%' }}>
-                                    {inv.refund_txid}
-                                  </span>
-                                  <CopyButton text={inv.refund_txid} label="" />
-                                </div>
-                              </>
-                            )}
-
-                            <div className="stat-row" style={{ marginTop: 12 }}>
-                              <CopyButton text={`${checkoutOrigin}/pay/${inv.id}`} label="Payment Link" />
-                              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                                {inv.status === 'confirmed' && (
-                                  <button
-                                    onClick={() => setRefundingInvoiceId(inv.id)}
-                                    style={{ background: 'none', border: 'none', color: '#f59e0b', cursor: 'pointer', fontSize: 9, letterSpacing: 1, fontFamily: 'inherit', padding: 0, opacity: 0.7 }}
-                                  >
-                                    REFUND
-                                  </button>
-                                )}
-                                {inv.status === 'pending' && inv.product_name !== 'Fee Settlement' && (
-                                  <button
-                                    onClick={() => cancelInvoice(inv.id)}
-                                    style={{ background: 'none', border: 'none', color: 'var(--cp-red, #ef4444)', cursor: 'pointer', fontSize: 9, letterSpacing: 1, fontFamily: 'inherit', padding: 0, opacity: 0.7 }}
-                                  >
-                                    CANCEL
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            ) : tab === 'x402' ? (
-              <div className="panel">
-                <div className="panel-header">
-                  <span className="panel-title">x402 Verifications</span>
-                  <button onClick={loadX402} className="btn btn-small">REFRESH</button>
-                </div>
-
-                {loadingX402 ? (
-                  <div className="empty-state">
-                    <div className="w-5 h-5 border-2 rounded-full animate-spin mx-auto" style={{ borderColor: 'var(--cp-cyan)', borderTopColor: 'transparent' }} />
-                  </div>
-                ) : x402Verifications.length === 0 ? (
-                  <div className="empty-state">
-                    <div className="icon">&#9632;</div>
-                    <div>No x402 verifications yet</div>
-                  </div>
-                ) : (
-                  x402Verifications.map((v) => (
-                    <div key={v.id} className="invoice-card">
-                      <div className="invoice-header">
-                        <span className="invoice-id" style={{ fontSize: 10 }}>
-                          <CopyButton text={v.txid} label={v.txid.substring(0, 16) + '...'} />
-                        </span>
-                        <span className={`status-badge ${v.status === 'verified' ? 'status-confirmed' : 'status-expired'}`}>
-                          {v.status.toUpperCase()}
-                        </span>
-                      </div>
-                      <div className="invoice-meta">
-                        <span>
-                          <strong>
-                            {v.amount_zec != null ? `${v.amount_zec.toFixed(8)} ZEC` : '—'}
-                          </strong>
-                          {v.amount_zec != null && fiatLabel(zecToFiat(v.amount_zec))}
-                        </span>
-                        <span>{new Date(v.created_at + 'Z').toLocaleString()}</span>
-                      </div>
-                      {v.reason && (
-                        <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: 6 }}>{v.reason}</div>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
-            ) : tab === 'billing' ? (
-              <div className="panel">
-                <div className="panel-header">
-                  <span className="panel-title">Billing</span>
-                  {billing?.fee_enabled && (
-                    <span className={`status-badge ${billing.billing_status === 'active' ? 'status-confirmed' : billing.billing_status === 'past_due' ? 'status-detected' : 'status-expired'}`} style={{ fontSize: 8 }}>
-                      {billing.billing_status.toUpperCase().replace('_', ' ')}
-                    </span>
-                  )}
-                </div>
-                <div className="panel-body">
-                  {!billing?.fee_enabled ? (
-                    <div style={{ textAlign: 'center', padding: '32px 16px' }}>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--cp-green)', marginBottom: 8 }}>NO FEES</div>
-                      <div style={{ fontSize: 11, color: 'var(--cp-text-muted)', lineHeight: 1.6 }}>
-                        This instance is running in self-hosted mode.<br />
-                        No transaction fees are applied.
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      {/* Overview */}
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 16 }}>
-                        <div style={{ background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4, padding: 12, textAlign: 'center' }}>
-                          <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Fee Rate</div>
-                          <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--cp-text)' }}>{(billing.fee_rate * 100).toFixed(1)}%</div>
-                        </div>
-                        <div style={{ background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4, padding: 12, textAlign: 'center' }}>
-                          <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Trust Tier</div>
-                          <div style={{ fontSize: 18, fontWeight: 700, color: billing.trust_tier === 'trusted' ? 'var(--cp-green)' : billing.trust_tier === 'standard' ? 'var(--cp-cyan)' : 'var(--cp-text-muted)' }}>
-                            {billing.trust_tier.toUpperCase()}
-                          </div>
-                        </div>
-                        <div style={{ background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4, padding: 12, textAlign: 'center' }}>
-                          <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Status</div>
-                          <div style={{
-                            fontSize: 18, fontWeight: 700,
-                            color: billing.billing_status === 'active' ? 'var(--cp-green)' :
-                              billing.billing_status === 'past_due' ? '#f59e0b' : '#ef4444'
-                          }}>
-                            {billing.billing_status.toUpperCase().replace('_', ' ')}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Current Cycle */}
-                      {billing.current_cycle ? (
-                        <div style={{ background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4, padding: 16, marginBottom: 16 }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                            <span style={{ fontSize: 10, letterSpacing: 1, color: 'var(--cp-cyan)', fontWeight: 600 }}>CURRENT CYCLE</span>
-                            {zecRates && (
-                              <span style={{ fontSize: 9, color: 'var(--cp-text-dim)', fontFamily: 'monospace' }}>
-                                1 ZEC = {currencySymbol}{(displayCurrency === 'USD' ? zecRates.zec_usd : zecRates.zec_eur).toFixed(2)}
-                              </span>
-                            )}
-                          </div>
-                          <div className="stat-row" style={{ marginBottom: 6 }}>
-                            <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>Period</span>
-                            <span style={{ fontSize: 11 }}>
-                              {new Date(billing.current_cycle.period_start).toLocaleDateString()} — {new Date(billing.current_cycle.period_end).toLocaleDateString()}
-                            </span>
-                          </div>
-                          <div className="stat-row" style={{ marginBottom: 6 }}>
-                            <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>Total Fees</span>
-                            <span style={{ fontSize: 11, fontFamily: 'monospace' }}>{billing.total_fees_zec.toFixed(8)} ZEC{fiatLabel(zecToFiat(billing.total_fees_zec))}</span>
-                          </div>
-                          <div className="stat-row" style={{ marginBottom: 6 }}>
-                            <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>Auto-Collected</span>
-                            <span style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--cp-green)' }}>{billing.auto_collected_zec.toFixed(8)} ZEC{fiatLabel(zecToFiat(billing.auto_collected_zec))}</span>
-                          </div>
-                          <div className="stat-row" style={{ marginBottom: 6 }}>
-                            <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>Outstanding</span>
-                            <span style={{ fontSize: 11, fontFamily: 'monospace', fontWeight: 600, color: billing.outstanding_zec > 0.00001 ? '#f59e0b' : 'var(--cp-green)' }}>
-                              {billing.outstanding_zec.toFixed(8)} ZEC{fiatLabel(zecToFiat(billing.outstanding_zec))}
-                            </span>
-                          </div>
-                          {billing.current_cycle.grace_until && (
-                            <div className="stat-row">
-                              <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>Grace Until</span>
-                              <span style={{ fontSize: 11, color: '#f59e0b' }}>
-                                {new Date(billing.current_cycle.grace_until).toLocaleDateString()}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div style={{ background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4, padding: 16, marginBottom: 16, textAlign: 'center' }}>
-                          <div style={{ fontSize: 11, color: 'var(--cp-text-muted)' }}>
-                            No active billing cycle yet. A cycle starts when your first invoice is confirmed.
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Settle button */}
-                      {billing.outstanding_zec > 0.00001 && (
-                        <button onClick={settleBilling} disabled={billingSettling} className="btn" style={{ width: '100%', marginBottom: 16 }}>
-                          {billingSettling ? 'CREATING INVOICE...' : `SETTLE NOW — ${billing.outstanding_zec.toFixed(6)} ZEC${fiatLabel(zecToFiat(billing.outstanding_zec))}`}
-                        </button>
-                      )}
-
-                      {/* Billing History */}
-                      {billingHistory.filter(c => c.status !== 'open').length > 0 && (
-                        <div style={{ marginBottom: 16 }}>
-                          <div style={{ fontSize: 10, letterSpacing: 1, color: 'var(--cp-text-muted)', marginBottom: 8, fontWeight: 600 }}>PAST CYCLES</div>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                            {billingHistory.filter(c => c.status !== 'open').map(cycle => {
-                              const statusColors: Record<string, string> = {
-                                paid: 'var(--cp-green)', carried_over: '#a78bfa',
-                                invoiced: '#f59e0b', past_due: '#f59e0b', suspended: '#ef4444',
-                              };
-                              return (
-                                <div key={cycle.id} style={{
-                                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                                  padding: '8px 10px', background: 'var(--cp-surface)', borderRadius: 4, fontSize: 11,
-                                }}>
-                                  <div>
-                                    <span style={{ color: 'var(--cp-text-muted)' }}>
-                                      {new Date(cycle.period_start).toLocaleDateString()} — {new Date(cycle.period_end).toLocaleDateString()}
-                                    </span>
-                                  </div>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                    <span style={{ fontFamily: 'monospace', fontSize: 10 }}>
-                                      {cycle.total_fees_zec.toFixed(6)} ZEC
-                                    </span>
-                                    <span style={{
-                                      fontSize: 8, fontWeight: 700, letterSpacing: 1,
-                                      color: statusColors[cycle.status] || 'var(--cp-text-muted)',
-                                    }}>
-                                      {cycle.status === 'carried_over' ? 'CARRIED OVER' : cycle.status.toUpperCase().replace('_', ' ')}
-                                    </span>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* How it works */}
-                      <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', lineHeight: 1.7 }}>
-                        <div style={{ fontSize: 10, letterSpacing: 1, color: 'var(--cp-text-muted)', marginBottom: 6, fontWeight: 600 }}>HOW IT WORKS</div>
-                        A {(billing.fee_rate * 100).toFixed(1)}% fee is added as a second output in payment QR codes (ZIP 321).
-                        When buyers scan the QR, the fee is auto-collected. If a buyer copies the address manually,
-                        the fee accrues and is billed at cycle end. Consistent on-time payment upgrades your trust tier,
-                        extending billing cycles and grace periods.
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="panel">
-                <div className="panel-header">
-                  <span className="panel-title">Settings</span>
-                </div>
-                <div className="panel-body">
-                  {/* 1. Store Name */}
-                  <div className="section-title">Store Name</div>
-                  {editingName ? (
-                    <div className="form-group" style={{ display: 'flex', gap: 8 }}>
-                      <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="My Store" className="input" style={{ flex: 1 }} />
-                      <button onClick={saveName} className="btn btn-small">SAVE</button>
-                      {editName && <button onClick={() => { setEditName(merchant.name || ''); setEditingName(false); }} className="btn btn-small btn-cancel">CANCEL</button>}
-                    </div>
-                  ) : (
-                    <div className="stat-row">
-                      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--cp-text)' }}>{editName}</span>
-                      <button onClick={() => setEditingName(true)} className="btn btn-small">EDIT</button>
-                    </div>
-                  )}
-
-                  <div className="divider" />
-
-                  {/* 2. Display Currency */}
-                  <div className="section-title">Display Currency</div>
-                  <select
-                    value={displayCurrency}
-                    onChange={(e) => { const c = e.target.value as 'EUR' | 'USD'; setDisplayCurrency(c); localStorage.setItem('cp_currency', c); }}
-                    className="input"
-                    style={{ width: '100%', fontSize: 11, padding: '8px 12px', cursor: 'pointer' }}
-                  >
-                    <option value="EUR">€ EUR — Euro</option>
-                    <option value="USD">$ USD — US Dollar</option>
-                  </select>
-                  <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 6, lineHeight: 1.5 }}>
-                    Controls how fiat amounts and ZEC rates are displayed across the dashboard. Does not affect product prices or invoice amounts.
-                  </div>
-
-                  <div className="divider" />
-
-                  {/* 3. Recovery Email */}
-                  <div className="section-title">Recovery Email</div>
-                  {merchant.recovery_email_preview ? (
-                    <div className="stat-row">
-                      <span style={{ fontSize: 11, color: 'var(--cp-green)' }}>{merchant.recovery_email_preview}</span>
-                      <span className="status-badge status-confirmed" style={{ fontSize: 8 }}>SET</span>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="form-group" style={{ display: 'flex', gap: 8 }}>
-                        <input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} placeholder="your@email.com" className="input" style={{ flex: 1 }} />
-                        <button onClick={saveEmail} className="btn btn-small">SAVE</button>
-                      </div>
-                      <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 6, lineHeight: 1.5 }}>
-                        Add an email to recover your account if you lose your dashboard token.
-                      </div>
-                    </>
-                  )}
-
-                  <div className="divider" />
-
-                  {/* 4. Derived Payment Address (read-only) */}
-                  <div className="section-title">Derived Address</div>
-                  <div className="stat-row">
-                    <span style={{ fontSize: 9, color: 'var(--cp-text-muted)', wordBreak: 'break-all', maxWidth: '80%', fontFamily: 'monospace' }}>
-                      {merchant.payment_address}
-                    </span>
-                    <CopyButton text={merchant.payment_address} label="" />
-                  </div>
-                  <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 6, lineHeight: 1.5 }}>
-                    Auto-derived from your UFVK. Each invoice gets its own unique payment address for privacy and reliable detection.
-                  </div>
-
-                  <div className="divider" />
-
-                  {/* 5. Webhook URL */}
-                  <div className="section-title">Webhook URL</div>
-                  {editingWebhook ? (
-                    <div className="form-group" style={{ display: 'flex', gap: 8 }}>
-                      <input type="url" value={editWebhookUrl} onChange={(e) => setEditWebhookUrl(e.target.value)} placeholder="https://your-store.com/api/webhook" className="input" style={{ flex: 1, fontSize: 10 }} />
-                      <button onClick={saveWebhookUrl} className="btn btn-small">SAVE</button>
-                      {merchant.webhook_url && <button onClick={() => { setEditWebhookUrl(merchant.webhook_url || ''); setEditingWebhook(false); }} className="btn btn-small btn-cancel">CANCEL</button>}
-                    </div>
-                  ) : (
-                    <div className="stat-row">
-                      <span style={{ fontSize: 10, color: 'var(--cp-text-muted)', wordBreak: 'break-all', maxWidth: '80%', fontFamily: 'monospace' }}>
-                        {editWebhookUrl}
-                      </span>
-                      <button onClick={() => setEditingWebhook(true)} className="btn btn-small">EDIT</button>
-                    </div>
-                  )}
-                  <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 6, lineHeight: 1.5 }}>
-                    CipherPay will POST invoice events (confirmed, expired) to this URL.
-                  </div>
-
-                  <div className="divider" />
-
-                  {/* 6. Webhook Secret */}
-                  <div className="section-title">Webhook Secret</div>
-                  <div className="stat-row">
-                    <span style={{ fontSize: 10, color: 'var(--cp-text-dim)', fontFamily: 'monospace' }}>
-                      {merchant.webhook_secret_preview ? `${merchant.webhook_secret_preview.slice(0, 12)}${'•'.repeat(20)}` : 'Not generated'}
-                    </span>
-                    <button onClick={regenWebhookSecret} className="btn btn-small">REGENERATE</button>
-                  </div>
-                  <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 6, lineHeight: 1.5 }}>
-                    The full secret is only shown once when generated. Copy it immediately — it cannot be retrieved later.
-                  </div>
-
-                  <div className="divider" />
-
-                  {/* 7. API Keys */}
-                  <div className="section-title">API Keys</div>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button onClick={regenApiKey} className="btn" style={{ flex: 1 }}>REGENERATE API KEY</button>
-                    <button onClick={regenDashToken} className="btn" style={{ flex: 1 }}>REGENERATE DASHBOARD TOKEN</button>
-                  </div>
-                  <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 6, lineHeight: 1.5 }}>
-                    Keys are shown once when generated. Regenerating invalidates the old key immediately.
-                  </div>
-
-                  {revealedKey && (
-                    <div style={{ background: 'var(--cp-bg)', border: '1px solid var(--cp-cyan)', borderRadius: 4, padding: 12, marginTop: 8 }}>
-                      <div style={{ fontSize: 10, letterSpacing: 1, color: 'var(--cp-cyan)', marginBottom: 6 }}>
-                        NEW {revealedKey.type.toUpperCase()} — COPY NOW
-                      </div>
-                      <div style={{ fontSize: 10, color: 'var(--cp-text)', wordBreak: 'break-all', fontFamily: 'monospace', marginBottom: 8 }}>
-                        {revealedKey.value}
-                      </div>
-                      <CopyButton text={revealedKey.value} label="Copy" />
-                    </div>
-                  )}
-
-                  {/* 8. Danger Zone */}
-                  <div style={{ marginTop: 32, paddingTop: 20, borderTop: '1px solid rgba(239,68,68,0.2)' }}>
-                    <div style={{ fontSize: 10, letterSpacing: 2, color: '#ef4444', fontWeight: 600, marginBottom: 12 }}>DANGER ZONE</div>
-                    <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginBottom: 12, lineHeight: 1.5 }}>
-                      Permanently delete your account, products, and all data. This cannot be undone.
-                      You must settle any outstanding billing balance before deleting.
-                    </div>
-                    <button
-                      onClick={async () => {
-                        if (!confirm('Are you sure you want to permanently delete your account? This cannot be undone.')) return;
-                        if (!confirm('This will delete ALL your products, invoices, and billing data. Type OK to confirm.')) return;
-                        try {
-                          await api.deleteAccount();
-                          window.location.href = '/';
-                        } catch (e: unknown) {
-                          const msg = e instanceof Error ? e.message : 'Failed to delete account';
-                          setToast({ msg, error: true });
-                        }
-                      }}
-                      className="btn"
-                      style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444' }}
-                    >
-                      DELETE ACCOUNT
-                    </button>
-                  </div>
-                </div>
-              </div>
+            {tab === 'overview' && (
+              <OverviewTab
+                merchant={merchant}
+                products={products}
+                invoices={invoices}
+                loadingInvoices={loadingInvoices}
+                billing={billing}
+                zecRates={zecRates}
+                displayCurrency={displayCurrency}
+                setTab={setTab}
+                navigateWithAction={navigateWithAction}
+              />
+            )}
+            {tab === 'products' && (
+              <ProductsTab
+                products={products}
+                loadingProducts={loadingProducts}
+                reloadProducts={loadProducts}
+                checkoutOrigin={checkoutOrigin}
+                displayCurrency={displayCurrency}
+                initialAction={tabAction}
+                clearAction={() => setTabAction(null)}
+              />
+            )}
+            {tab === 'pos' && (
+              <POSTab
+                products={products}
+                loadingProducts={loadingProducts}
+              />
+            )}
+            {tab === 'invoices' && (
+              <InvoicesTab
+                invoices={invoices}
+                loadingInvoices={loadingInvoices}
+                reloadInvoices={loadInvoices}
+                products={products}
+                zecRates={zecRates}
+                displayCurrency={displayCurrency}
+                checkoutOrigin={checkoutOrigin}
+                initialAction={tabAction}
+                clearAction={() => setTabAction(null)}
+              />
+            )}
+            {tab === 'billing' && (
+              <BillingTab
+                billing={billing}
+                billingHistory={billingHistory}
+                reloadBilling={loadBilling}
+                zecRates={zecRates}
+                displayCurrency={displayCurrency}
+              />
+            )}
+            {tab === 'settings' && (
+              <SettingsTab
+                merchant={merchant}
+                displayCurrency={displayCurrency}
+                setDisplayCurrency={setDisplayCurrency}
+              />
+            )}
+            {tab === 'x402' && (
+              <X402Tab
+                x402Verifications={x402Verifications}
+                loadingX402={loadingX402}
+                loadX402={loadX402}
+                zecRates={zecRates}
+                displayCurrency={displayCurrency}
+              />
             )}
           </div>
-
         </div>
       </div>
-
-      {/* Refund confirmation dialog */}
-      {refundingInvoiceId && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }} onClick={() => { setRefundingInvoiceId(null); setRefundTxid(''); }}>
-          <div className="panel" style={{ maxWidth: 440, width: '100%' }} onClick={(e) => e.stopPropagation()}>
-            <div className="panel-header">
-              <span className="panel-title">Confirm Refund</span>
-            </div>
-            <div className="panel-body">
-              <p style={{ fontSize: 11, color: 'var(--cp-text-muted)', marginBottom: 16, lineHeight: 1.6 }}>
-                This will mark the invoice as <strong style={{ color: '#f59e0b' }}>REFUNDED</strong>. This action cannot be undone.
-                If you have sent ZEC back to the buyer, paste the transaction ID below as proof.
-              </p>
-              <div className="form-group">
-                <label className="form-label">Refund Transaction ID (optional)</label>
-                <input
-                  type="text"
-                  value={refundTxid}
-                  onChange={(e) => setRefundTxid(e.target.value)}
-                  placeholder="Paste the txid of your refund transaction"
-                  className="input"
-                  style={{ fontFamily: 'monospace', fontSize: 10 }}
-                />
-              </div>
-              <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                <button onClick={() => { setRefundingInvoiceId(null); setRefundTxid(''); }} className="btn" style={{ flex: 1 }}>
-                  CANCEL
-                </button>
-                <button onClick={confirmRefund} className="btn-primary" style={{ flex: 1, background: '#f59e0b', borderColor: '#f59e0b' }}>
-                  CONFIRM REFUND
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {toast && <div className={`toast ${toast.error ? 'error' : ''}`}>{toast.msg}</div>}
     </div>
   );
 }

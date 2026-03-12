@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { api, type Invoice } from '@/lib/api';
 import { validateZcashAddress } from '@/lib/validation';
+import { currencySymbol } from '@/app/dashboard/utils/currency';
 import { QRCode } from '@/components/QRCode';
 import { Logo } from '@/components/Logo';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -65,6 +66,8 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
   const [toast, setToast] = useState('');
   const [refundAddr, setRefundAddr] = useState('');
   const [refundSaved, setRefundSaved] = useState(false);
+  const [finalizing, setFinalizing] = useState(false);
+  const [finalizeError, setFinalizeError] = useState<string | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
 
   const searchParams = useSearchParams();
@@ -84,8 +87,21 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
     api.getInvoice(invoiceId).then(setInvoice).catch((e) => setError(e.message));
   }, [invoiceId]);
 
+  const handleFinalize = async () => {
+    setFinalizing(true);
+    setFinalizeError(null);
+    try {
+      const finalized = await api.finalizeInvoice(invoiceId);
+      setInvoice(finalized);
+    } catch (e: unknown) {
+      setFinalizeError(e instanceof Error ? e.message : 'Failed to lock rate. Please try again.');
+    } finally {
+      setFinalizing(false);
+    }
+  };
+
   useEffect(() => {
-    if (!invoice || invoice.status === 'confirmed' || invoice.status === 'expired') return;
+    if (!invoice || invoice.status === 'confirmed' || invoice.status === 'expired' || invoice.status === 'draft') return;
     const es = api.streamInvoice(invoiceId);
     eventSourceRef.current = es;
     es.addEventListener('status', (event) => {
@@ -139,11 +155,14 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
     );
   }
 
-  const isUsd = invoice.currency === 'USD';
-  const eurStr = invoice.price_eur < 0.01 ? `€${invoice.price_eur}` : `€${invoice.price_eur.toFixed(2)}`;
-  const usdStr = invoice.price_usd ? (invoice.price_usd < 0.01 ? `$${invoice.price_usd}` : `$${invoice.price_usd.toFixed(2)}`) : null;
-  const primaryPrice = isUsd && usdStr ? usdStr : eurStr;
-  const secondaryPrice = isUsd ? eurStr : usdStr;
+  const formatFiat = (amt: number, cur: string) => {
+    const sym = currencySymbol(cur);
+    return amt < 0.01 ? `${sym}${amt}` : `${sym}${amt.toFixed(2)}`;
+  };
+  const invCurrency = invoice.currency || 'EUR';
+  const invAmount = invoice.amount != null ? invoice.amount : invoice.price_eur;
+  const primaryPrice = formatFiat(invAmount, invCurrency);
+  const secondaryPrice = invCurrency !== 'EUR' ? formatFiat(invoice.price_eur, 'EUR') : (invoice.price_usd ? formatFiat(invoice.price_usd, 'USD') : null);
   const showReceipt = invoice.status === 'detected' || invoice.status === 'confirmed';
   const isUnderpaid = invoice.status === 'underpaid';
   const remainingZatoshis = invoice.price_zatoshis - invoice.received_zatoshis;
@@ -162,6 +181,49 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
 
       <main className="flex-1 flex items-center justify-center" style={{ padding: '32px 24px' }}>
         <div style={{ maxWidth: 440, width: '100%' }}>
+
+          {/* ── Draft: pre-checkout (Lock Rate & Pay) ── */}
+          {invoice.status === 'draft' && (
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ marginBottom: 28, padding: '20px 0', borderBottom: '1px solid var(--cp-border)' }}>
+                {invoice.merchant_name && (
+                  <div style={{ fontSize: 11, letterSpacing: 2, color: 'var(--cp-text-muted)', marginBottom: 8 }}>
+                    {invoice.merchant_name.toUpperCase()}
+                  </div>
+                )}
+                {invoice.product_name && (
+                  <div style={{ fontSize: 14, color: 'var(--cp-text)', fontWeight: 600, marginBottom: 12 }}>
+                    {invoice.product_name}
+                  </div>
+                )}
+                <div style={{ fontSize: 32, fontWeight: 700, color: 'var(--cp-text)' }}>
+                  {primaryPrice}
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--cp-text-muted)', marginTop: 8, lineHeight: 1.6 }}>
+                  Your payment is ready. Click below to lock in the<br />
+                  real-time ZEC exchange rate and begin your 15-minute checkout window.
+                </div>
+              </div>
+
+              <button
+                onClick={handleFinalize}
+                disabled={finalizing}
+                className="btn-primary"
+                style={{ width: '100%', textTransform: 'uppercase', padding: '16px 0', fontSize: 13, fontWeight: 700, letterSpacing: 2, marginBottom: 16 }}
+              >
+                {finalizing ? 'LOCKING RATE...' : 'LOCK RATE & PAY'}
+              </button>
+
+              {finalizeError && (
+                <div style={{ fontSize: 11, color: '#ef4444', marginBottom: 12 }}>{finalizeError}</div>
+              )}
+
+              <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', letterSpacing: 1, lineHeight: 1.6 }}>
+                The ZEC amount will be calculated at the exact moment you click.<br />
+                You will have 15 minutes to complete the payment.
+              </div>
+            </div>
+          )}
 
           {/* ── Payment UI ── */}
           {invoice.status === 'pending' && (
@@ -345,7 +407,38 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
           {invoice.status === 'expired' && (
             <div className="checkout-status expired">
               <div>INVOICE EXPIRED</div>
-              {invoice.received_zatoshis > 0 ? (
+
+              {/* In-flight payment detected on an expired subscription invoice */}
+              {invoice.subscription_id && (invoice.received_zatoshis > 0 || invoice.detected_txid) ? (
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ fontSize: 11, color: 'var(--cp-cyan)', fontWeight: 600, marginBottom: 8 }}>
+                    PAYMENT DETECTED
+                  </div>
+                  <div style={{ fontSize: 10, color: 'var(--cp-text-muted)', fontWeight: 400, lineHeight: 1.6 }}>
+                    A payment has been detected and is waiting for network confirmation.
+                    This page will update automatically once confirmed.
+                  </div>
+                </div>
+              ) : invoice.subscription_id ? (
+                /* Expired subscription invoice — allow re-finalization */
+                <div style={{ marginTop: 16, textAlign: 'center' }}>
+                  <div style={{ fontSize: 10, color: 'var(--cp-text-muted)', fontWeight: 400, marginBottom: 16, lineHeight: 1.6 }}>
+                    Your checkout window expired. Click below to get a fresh<br />
+                    ZEC exchange rate and restart the 15-minute payment window.
+                  </div>
+                  <button
+                    onClick={handleFinalize}
+                    disabled={finalizing}
+                    className="btn-primary"
+                    style={{ width: '100%', textTransform: 'uppercase', padding: '14px 0', fontSize: 12, fontWeight: 700, letterSpacing: 2, marginBottom: 12 }}
+                  >
+                    {finalizing ? 'LOCKING RATE...' : 'LOCK RATE & PAY'}
+                  </button>
+                  {finalizeError && (
+                    <div style={{ fontSize: 11, color: '#ef4444', marginBottom: 8 }}>{finalizeError}</div>
+                  )}
+                </div>
+              ) : invoice.received_zatoshis > 0 ? (
                 <div style={{ marginTop: 12 }}>
                   <div style={{ fontSize: 10, color: 'var(--cp-text-muted)', fontWeight: 400, marginBottom: 12 }}>
                     A partial payment of {(invoice.received_zatoshis / 1e8).toFixed(8)} ZEC was received.
@@ -425,11 +518,14 @@ function ConfirmedReceipt({ invoice, returnUrl }: { invoice: Invoice; returnUrl:
     }
   }, [redirectIn, returnUrl]);
 
-  const isUsd = invoice.currency === 'USD';
-  const eurStr = invoice.price_eur < 0.01 ? `€${invoice.price_eur}` : `€${invoice.price_eur.toFixed(2)}`;
-  const usdStr = invoice.price_usd ? (invoice.price_usd < 0.01 ? `$${invoice.price_usd}` : `$${invoice.price_usd.toFixed(2)}`) : null;
-  const primaryPrice = isUsd && usdStr ? usdStr : eurStr;
-  const secondaryPrice = isUsd ? eurStr : usdStr;
+  const formatFiat2 = (amt: number, cur: string) => {
+    const sym = currencySymbol(cur);
+    return amt < 0.01 ? `${sym}${amt}` : `${sym}${amt.toFixed(2)}`;
+  };
+  const invCurrency = invoice.currency || 'EUR';
+  const invAmount = invoice.amount != null ? invoice.amount : invoice.price_eur;
+  const primaryPrice = formatFiat2(invAmount, invCurrency);
+  const secondaryPrice = invCurrency !== 'EUR' ? formatFiat2(invoice.price_eur, 'EUR') : (invoice.price_usd ? formatFiat2(invoice.price_usd, 'USD') : null);
 
   const row: React.CSSProperties = {
     display: 'flex', justifyContent: 'space-between', alignItems: 'center',

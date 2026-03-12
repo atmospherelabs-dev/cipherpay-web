@@ -2,15 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { api, type PublicProduct, type CheckoutRequest } from '@/lib/api';
+import { api, type PublicProduct, type CheckoutRequest, type Price } from '@/lib/api';
 import { validateZcashAddress } from '@/lib/validation';
+import { currencySymbol } from '@/app/dashboard/utils/currency';
 import { Logo } from '@/components/Logo';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function BuyClient({ productId }: { productId: string }) {
   const [product, setProduct] = useState<PublicProduct | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [selectedVariant, setSelectedVariant] = useState('');
+  const [selectedPrice, setSelectedPrice] = useState<Price | null>(null);
   const [refundAddr, setRefundAddr] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
@@ -21,18 +22,16 @@ export default function BuyClient({ productId }: { productId: string }) {
     api.getPublicProduct(productId)
       .then((p) => {
         setProduct(p);
-        if (p.variants.length > 0) setSelectedVariant(p.variants[0]);
+        const active = (p.prices || []).filter(pr => pr.active === 1);
+        if (active.length > 0) setSelectedPrice(active[0]);
       })
       .catch((e) => setError(e.message));
   }, [productId]);
 
+  const activePrices = (product?.prices || []).filter(pr => pr.active === 1);
+
   const handleCheckout = async () => {
     setFormError('');
-
-    if (product?.variants && product.variants.length > 0 && !selectedVariant) {
-      setFormError('Please select a variant');
-      return;
-    }
 
     if (refundAddr) {
       const e = validateZcashAddress(refundAddr);
@@ -43,7 +42,7 @@ export default function BuyClient({ productId }: { productId: string }) {
     try {
       const req: CheckoutRequest = {
         product_id: productId,
-        variant: selectedVariant || undefined,
+        price_id: selectedPrice?.id,
         refund_address: refundAddr || undefined,
       };
       const resp = await api.checkout(req);
@@ -90,31 +89,30 @@ export default function BuyClient({ productId }: { productId: string }) {
           <div className="checkout-preview">
             <div style={{ fontSize: 10, letterSpacing: 1, color: 'var(--cp-text-dim)' }}>PAY WITH SHIELDED ZEC</div>
             <div className="price">{product.name}</div>
-            <div className="price-zec">{product.currency === 'USD' ? '$' : '€'}{product.price_eur.toFixed(2)}</div>
+            <div className="price-zec">
+              {selectedPrice
+                ? `${currencySymbol(selectedPrice.currency)}${selectedPrice.unit_amount.toFixed(2)} ${selectedPrice.currency}`
+                : '—'}
+            </div>
+
+            {activePrices.length > 1 && (
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 8 }}>
+                {activePrices.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => setSelectedPrice(p)}
+                    className={selectedPrice?.id === p.id ? 'btn-primary' : 'btn'}
+                    style={{ minWidth: 54, textAlign: 'center', fontSize: 11 }}
+                  >
+                    {currencySymbol(p.currency)} {p.currency}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {product.description && (
               <div style={{ fontSize: 11, color: 'var(--cp-text-muted)', marginTop: 4, marginBottom: 16 }}>
                 {product.description}
-              </div>
-            )}
-
-            {product.variants.length > 0 && (
-              <div style={{ textAlign: 'left', marginTop: 16 }}>
-                <div className="form-group">
-                  <label className="form-label">SELECT VARIANT</label>
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    {product.variants.map((v) => (
-                      <button
-                        key={v}
-                        onClick={() => setSelectedVariant(v)}
-                        className={selectedVariant === v ? 'btn-primary' : 'btn'}
-                        style={{ minWidth: 44, textAlign: 'center' }}
-                      >
-                        {v}
-                      </button>
-                    ))}
-                  </div>
-                </div>
               </div>
             )}
 

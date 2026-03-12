@@ -14,13 +14,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     });
     if (res.ok) {
       const product = await res.json();
-      const sym = product.currency === 'USD' ? '$' : '€';
+      const prices = (product.prices || []).filter((p: { active: number }) => p.active === 1);
+      const dp = product.default_price_id
+        ? prices.find((p: { id: string }) => p.id === product.default_price_id)
+        : prices[0];
+      const priceStr = dp
+        ? `${dp.currency === 'USD' ? '$' : dp.currency === 'GBP' ? '£' : '€'}${Number(dp.unit_amount).toFixed(2)}`
+        : '';
       return {
-        title: `${product.name} — ${sym}${product.price_eur.toFixed(2)} — CipherPay`,
+        title: priceStr ? `${product.name} — ${priceStr} — CipherPay` : `${product.name} — CipherPay`,
         description: product.description || `Pay with shielded ZEC`,
         openGraph: {
           title: `${product.name} — CipherPay`,
-          description: `${sym}${product.price_eur.toFixed(2)} · Pay with shielded Zcash`,
+          description: priceStr ? `${priceStr} · Pay with shielded Zcash` : 'Pay with shielded Zcash',
         },
       };
     }

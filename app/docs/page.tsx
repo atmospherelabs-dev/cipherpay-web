@@ -890,7 +890,8 @@ window.location.href = \`https://cipherpay.app/pay/\${invoiceId}?return_url=\${r
               <tbody>
                 {[
                   { field: 'amount', req: 'Yes', desc: 'Price in your currency. CipherPay converts to ZEC at the current exchange rate.' },
-                  { field: 'currency', req: 'No', desc: 'Currency code: "EUR", "USD", etc. Defaults to "EUR".' },
+                  { field: 'currency', req: 'No', desc: 'Currency code: "EUR", "USD", "BRL". Defaults to "EUR".' },
+                  { field: 'price_id', req: 'No', desc: 'A Price ID (cprice_...) to use a pre-configured price. Overrides amount/currency.' },
                   { field: 'product_name', req: 'No', desc: 'Displayed on the checkout page (e.g. "Premium Plan").' },
                   { field: 'size', req: 'No', desc: 'Variant or size label (e.g. "L", "Monthly").' },
                   { field: 'shipping_alias', req: 'No', desc: 'Customer name for shipping purposes.' },
@@ -985,18 +986,40 @@ source.addEventListener('status', (e) => {
           </Paragraph>
           <div style={{ fontSize: 11, color: 'var(--cp-text-dim)', lineHeight: 2.2, marginBottom: 12 }}>
             <Strong>Name</Strong> — The product name (e.g. &quot;[REDACTED] Tee&quot;)<br />
-            <Strong>Price</Strong> — Price in your currency (EUR or USD). CipherPay converts to ZEC at checkout time.<br />
+            <Strong>Price</Strong> — Price in your currency (EUR, USD, or BRL). CipherPay converts to ZEC at checkout time.<br />
             <Strong>Variants</Strong> (optional) — Sizes or options (e.g. S, M, L, XL). Buyers will choose one at checkout.
+          </div>
+          <Paragraph>
+            When you create a product, CipherPay automatically generates a <Strong>Price</Strong> with a stable ID
+            (e.g. <Code>cprice_a1b2c3...</Code>). You can add more prices in different currencies for the same product.
+            If a product has multiple prices, buyers choose their preferred currency at checkout.
+          </Paragraph>
+        </Step>
+
+        <Step n={2} title="Copy your IDs">
+          <Paragraph>
+            Each product card in your dashboard shows copyable IDs for integration:
+          </Paragraph>
+          <div style={{ fontSize: 11, color: 'var(--cp-text-dim)', lineHeight: 2.2, marginBottom: 12 }}>
+            <Strong>Product ID</Strong> — Used to link to the buy page or create checkouts.<br />
+            <Strong>Price ID</Strong> (<Code>cprice_...</Code>) — Stable identifier for a specific price. Use this in API calls
+            to create invoices at a fixed currency and amount.
           </div>
         </Step>
 
-        <Step n={2} title="Share the checkout link">
+        <Step n={3} title="Share the checkout link">
           <Paragraph>
             Each product gets a permanent hosted page. Copy the link from your dashboard:
           </Paragraph>
           <CodeBlock lang="text" code={`https://cipherpay.app/buy/{product_id}`} />
           <Paragraph>
-            Add this link to your website as a button:
+            Or create an invoice via the API using a price ID:
+          </Paragraph>
+          <CodeBlock lang="bash" code={`curl -X POST https://api.cipherpay.app/api/checkout \\
+  -H "Content-Type: application/json" \\
+  -d '{"price_id": "cprice_YOUR_PRICE_ID"}'`} />
+          <Paragraph>
+            Add the buy link to your website as a button:
           </Paragraph>
           <CodeBlock lang="html" code={`<a href="https://cipherpay.app/buy/YOUR_PRODUCT_ID"
    style="background:#06b6d4;color:#fff;padding:12px 24px;
@@ -1009,7 +1032,7 @@ source.addEventListener('status', (e) => {
           </Paragraph>
         </Step>
 
-        <Step n={3} title="Track payments">
+        <Step n={4} title="Track payments">
           <Paragraph>
             All invoices appear in your dashboard → Invoices tab with real-time status.
             If you set up webhooks, your server gets notified automatically when a payment is confirmed.
@@ -1448,12 +1471,45 @@ def verify_webhook(headers, body, webhook_secret):
             </thead>
             <tbody>
               {[
-                { method: 'POST', path: '/api/products', auth: 'Session', desc: 'Create a new product' },
-                { method: 'GET', path: '/api/products', auth: 'Session', desc: 'List your products' },
+                { method: 'POST', path: '/api/products', auth: 'Session', desc: 'Create a new product (auto-creates a default price)' },
+                { method: 'GET', path: '/api/products', auth: 'Session', desc: 'List your products (includes prices)' },
                 { method: 'PATCH', path: '/api/products/{id}', auth: 'Session', desc: 'Update a product' },
                 { method: 'DELETE', path: '/api/products/{id}', auth: 'Session', desc: 'Deactivate a product' },
-                { method: 'GET', path: '/api/products/{id}/public', auth: '—', desc: 'Get public product info (for buy pages)' },
-                { method: 'POST', path: '/api/checkout', auth: '—', desc: 'Create an invoice from a product page (buyer-facing)' },
+                { method: 'GET', path: '/api/products/{id}/public', auth: '—', desc: 'Get public product info with active prices' },
+                { method: 'POST', path: '/api/checkout', auth: '—', desc: 'Create an invoice from a price_id or product_id' },
+              ].map(ep => {
+                const color = ep.method === 'GET' ? 'var(--cp-green)' : ep.method === 'POST' ? 'var(--cp-cyan)' : ep.method === 'DELETE' ? '#ef4444' : '#f59e0b';
+                return (
+                  <tr key={ep.path + ep.method} style={{ borderBottom: '1px solid var(--cp-border)' }}>
+                    <td style={{ padding: '8px 12px', fontWeight: 700, color, fontSize: 10 }}>{ep.method}</td>
+                    <td style={{ padding: '8px 12px' }}><code style={{ color: 'var(--cp-text)', wordBreak: 'break-all', fontSize: 10 }}>{ep.path}</code></td>
+                    <td style={{ padding: '8px 12px', color: 'var(--cp-text-dim)', fontSize: 10 }}>{ep.auth}</td>
+                    <td style={{ padding: '8px 12px', color: 'var(--cp-text-dim)' }}>{ep.desc}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <div style={{ fontSize: 12, color: 'var(--cp-text)', fontWeight: 600, marginBottom: 8, marginTop: 16 }}>Prices</div>
+        <div style={{ overflowX: 'auto', marginBottom: 20 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--cp-border)' }}>
+                <th style={{ textAlign: 'left', padding: '8px 12px', color: 'var(--cp-text-muted)', fontWeight: 600, fontSize: 10 }}>METHOD</th>
+                <th style={{ textAlign: 'left', padding: '8px 12px', color: 'var(--cp-text-muted)', fontWeight: 600, fontSize: 10 }}>ENDPOINT</th>
+                <th style={{ textAlign: 'left', padding: '8px 12px', color: 'var(--cp-text-muted)', fontWeight: 600, fontSize: 10 }}>AUTH</th>
+                <th style={{ textAlign: 'left', padding: '8px 12px', color: 'var(--cp-text-muted)', fontWeight: 600, fontSize: 10 }}>DESCRIPTION</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { method: 'POST', path: '/api/prices', auth: 'Session', desc: 'Create a new price for a product (EUR, USD, or BRL)' },
+                { method: 'GET', path: '/api/products/{id}/prices', auth: 'Session', desc: 'List all prices for a product' },
+                { method: 'PATCH', path: '/api/prices/{id}', auth: 'Session', desc: 'Update a price (amount or currency)' },
+                { method: 'DELETE', path: '/api/prices/{id}', auth: 'Session', desc: 'Deactivate a price' },
+                { method: 'GET', path: '/api/prices/{id}/public', auth: '—', desc: 'Get a single price by its ID (public)' },
               ].map(ep => {
                 const color = ep.method === 'GET' ? 'var(--cp-green)' : ep.method === 'POST' ? 'var(--cp-cyan)' : ep.method === 'DELETE' ? '#ef4444' : '#f59e0b';
                 return (
@@ -1549,7 +1605,7 @@ def verify_webhook(headers, body, webhook_secret):
             </thead>
             <tbody>
               {[
-                { method: 'GET', path: '/api/rates', auth: '—', desc: 'Current ZEC/EUR and ZEC/USD exchange rates' },
+                { method: 'GET', path: '/api/rates', auth: '—', desc: 'Current ZEC exchange rates (EUR, USD, BRL)' },
                 { method: 'GET', path: '/api/health', auth: '—', desc: 'Server health check' },
               ].map(ep => {
                 const color = 'var(--cp-green)';
@@ -1577,9 +1633,11 @@ def verify_webhook(headers, body, webhook_secret):
   "memo_code": "CP-3F8A2B1C",
   "product_name": "Privacy Tee",
   "size": "L",
+  "amount": 65.0,
+  "currency": "EUR",
+  "price_id": "cprice_a1b2c3...",
   "price_eur": 65.0,
   "price_usd": 70.2,
-  "currency": "EUR",
   "price_zec": 0.14285714,
   "price_zatoshis": 14285714,
   "received_zec": 0.14285714,

@@ -15,13 +15,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     });
     if (res.ok) {
       const invoice = await res.json();
+      const cur = invoice.currency || 'EUR';
+      const amt = invoice.amount ?? invoice.price_eur;
+      const title = invoice.status === 'draft'
+        ? `Pay ${amt.toFixed(2)} ${cur} — CipherPay`
+        : `Pay ${invoice.price_zec.toFixed(4)} ZEC — CipherPay`;
+      const desc = invoice.status === 'draft'
+        ? `Invoice ${invoice.memo_code} · ${amt.toFixed(2)} ${cur}`
+        : `Invoice ${invoice.memo_code} · €${invoice.price_eur.toFixed(2)}`;
       return {
-        title: `Pay ${invoice.price_zec.toFixed(4)} ZEC — CipherPay`,
-        description: `Invoice ${invoice.memo_code} · €${invoice.price_eur.toFixed(2)}`,
-        openGraph: {
-          title: `Pay ${invoice.price_zec.toFixed(4)} ZEC — CipherPay`,
-          description: `Shielded Zcash payment for €${invoice.price_eur.toFixed(2)}`,
-        },
+        title,
+        description: desc,
+        openGraph: { title, description: desc },
       };
     }
   } catch {

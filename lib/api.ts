@@ -22,6 +22,8 @@ export interface Invoice {
   memo_code: string;
   product_name: string | null;
   size: string | null;
+  amount: number | null;
+  price_id: string | null;
   price_eur: number;
   price_usd: number | null;
   currency: string | null;
@@ -31,7 +33,8 @@ export interface Invoice {
   zcash_uri: string;
   merchant_name: string | null;
   merchant_origin?: string | null;
-  status: 'pending' | 'underpaid' | 'detected' | 'confirmed' | 'expired' | 'refunded';
+  subscription_id?: string | null;
+  status: 'draft' | 'pending' | 'underpaid' | 'detected' | 'confirmed' | 'expired' | 'refunded';
   detected_txid: string | null;
   detected_at: string | null;
   confirmed_at: string | null;
@@ -56,10 +59,13 @@ export interface CreateInvoiceRequest {
 export interface CreateInvoiceResponse {
   invoice_id: string;
   memo_code: string;
+  amount: number;
+  currency: string;
   price_eur: number;
   price_usd: number;
   price_zec: number;
   zec_rate: number;
+  price_id: string | null;
   payment_address: string;
   zcash_uri: string;
   expires_at: string;
@@ -79,56 +85,92 @@ export interface RegisterResponse {
   webhook_secret: string;
 }
 
+export interface Price {
+  id: string;
+  product_id: string;
+  currency: string;
+  unit_amount: number;
+  price_type: string;
+  billing_interval: string | null;
+  interval_count: number | null;
+  active: number;
+  created_at: string;
+}
+
+export interface Subscription {
+  id: string;
+  merchant_id: string;
+  price_id: string;
+  label: string | null;
+  status: string;
+  current_period_start: string;
+  current_period_end: string;
+  cancel_at_period_end: number;
+  canceled_at: string | null;
+  created_at: string;
+}
+
 export interface Product {
   id: string;
   merchant_id: string;
   slug: string;
   name: string;
   description: string | null;
-  price_eur: number;
-  currency: string;
-  variants: string | null;
+  default_price_id: string | null;
+  metadata: Record<string, string> | null;
   active: number;
   created_at: string;
+  prices?: Price[];
 }
 
 export interface PublicProduct {
   id: string;
   name: string;
   description: string | null;
-  price_eur: number;
-  currency: string;
-  variants: string[];
+  default_price_id: string | null;
+  metadata: Record<string, string> | null;
   slug: string;
+  prices?: Price[];
 }
 
 export interface CreateProductRequest {
-  slug: string;
+  slug?: string;
   name: string;
   description?: string;
-  price_eur: number;
+  unit_amount: number;
   currency?: string;
-  variants?: string[];
+  metadata?: Record<string, string>;
+  price_type?: string;
+  billing_interval?: string;
+  interval_count?: number;
 }
 
 export interface UpdateProductRequest {
   name?: string;
   description?: string;
-  price_eur?: number;
-  currency?: string;
-  variants?: string[];
+  default_price_id?: string;
+  metadata?: Record<string, string>;
   active?: boolean;
 }
 
 export interface CheckoutRequest {
-  product_id: string;
-  variant?: string;
+  product_id?: string;
+  price_id?: string;
   refund_address?: string;
 }
 
 export interface ZecRates {
   zec_eur: number;
   zec_usd: number;
+  zec_brl: number;
+  zec_gbp: number;
+  zec_cad: number;
+  zec_jpy: number;
+  zec_mxn: number;
+  zec_ars: number;
+  zec_ngn: number;
+  zec_chf: number;
+  zec_inr: number;
   updated_at: string;
 }
 
@@ -231,6 +273,9 @@ export const api = {
 
   getInvoice: (id: string) => request<Invoice>(`/api/invoices/${id}`),
 
+  finalizeInvoice: (id: string) =>
+    request<Invoice>(`/api/invoices/${id}/finalize`, { method: 'POST' }),
+
   cancelInvoice: (id: string) =>
     request<{ status: string }>(`/api/invoices/${id}/cancel`, { method: 'POST' }),
 
@@ -281,6 +326,41 @@ export const api = {
 
   getPublicProduct: (id: string) =>
     request<PublicProduct>(`/api/products/${id}/public`),
+
+  // Prices
+  createPrice: (data: { product_id: string; currency: string; unit_amount: number; price_type?: string; billing_interval?: string; interval_count?: number }) =>
+    request<Price>('/api/prices', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  listPrices: (productId: string) =>
+    request<Price[]>(`/api/products/${productId}/prices`),
+
+  updatePrice: (id: string, data: { unit_amount?: number; currency?: string; price_type?: string; billing_interval?: string; interval_count?: number }) =>
+    request<Price>(`/api/prices/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  deactivatePrice: (id: string) =>
+    request<{ status: string }>(`/api/prices/${id}`, { method: 'DELETE' }),
+
+  // Subscriptions
+  createSubscription: (data: { price_id: string; label?: string }) =>
+    request<Subscription>('/api/subscriptions', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  listSubscriptions: () =>
+    request<Subscription[]>('/api/subscriptions'),
+
+  cancelSubscription: (id: string, atPeriodEnd?: boolean) =>
+    request<Subscription>(`/api/subscriptions/${id}/cancel`, {
+      method: 'POST',
+      body: JSON.stringify({ at_period_end: atPeriodEnd || false }),
+    }),
 
   // Public checkout (buyer-driven)
   checkout: (data: CheckoutRequest) =>
