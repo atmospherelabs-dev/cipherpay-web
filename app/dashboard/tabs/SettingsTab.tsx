@@ -23,6 +23,7 @@ export const SettingsTab = memo(function SettingsTab({
   const [editingWebhook, setEditingWebhook] = useState(!merchant.webhook_url);
   const [editWebhookUrl, setEditWebhookUrl] = useState(merchant.webhook_url || '');
   const [editEmail, setEditEmail] = useState('');
+  const [editingEmail, setEditingEmail] = useState(false);
   const [revealedKey, setRevealedKey] = useState<{ type: string; value: string } | null>(null);
 
   const saveName = async () => {
@@ -54,7 +55,17 @@ export const SettingsTab = memo(function SettingsTab({
       await api.updateMe({ recovery_email: editEmail });
       showToast('Recovery email saved');
       setEditEmail('');
+      setEditingEmail(false);
     } catch { showToast('Failed to save email', true); }
+  };
+
+  const removeEmail = async () => {
+    try {
+      await api.updateMe({ recovery_email: '' });
+      showToast('Recovery email removed');
+      setEditEmail('');
+      setEditingEmail(false);
+    } catch { showToast('Failed to remove email', true); }
   };
 
   const regenApiKey = async () => {
@@ -122,19 +133,28 @@ export const SettingsTab = memo(function SettingsTab({
 
         {/* 3. Recovery Email */}
         <div className="section-title">Recovery Email</div>
-        {merchant.recovery_email_preview ? (
-          <div className="stat-row">
-            <span style={{ fontSize: 11, color: 'var(--cp-green)' }}>{merchant.recovery_email_preview}</span>
-            <span className="status-badge status-confirmed" style={{ fontSize: 8 }}>SET</span>
-          </div>
+        {merchant.recovery_email_preview && !editingEmail ? (
+          <>
+            <div className="stat-row">
+              <span style={{ fontSize: 11, color: 'var(--cp-green)' }}>{merchant.recovery_email_preview}</span>
+              <span className="status-badge status-confirmed" style={{ fontSize: 8 }}>SET</span>
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+              <button onClick={() => setEditingEmail(true)} className="btn btn-small">CHANGE</button>
+              <button onClick={removeEmail} className="btn btn-small" style={{ background: 'transparent', border: '1px solid var(--cp-red, #e55)', color: 'var(--cp-red, #e55)' }}>REMOVE</button>
+            </div>
+          </>
         ) : (
           <>
             <div className="form-group" style={{ display: 'flex', gap: 8 }}>
               <input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} placeholder="your@email.com" className="input" style={{ flex: 1 }} />
               <button onClick={saveEmail} className="btn btn-small">SAVE</button>
+              {editingEmail && (
+                <button onClick={() => { setEditingEmail(false); setEditEmail(''); }} className="btn btn-small" style={{ background: 'transparent', border: '1px solid var(--cp-text-dim)', color: 'var(--cp-text-dim)' }}>CANCEL</button>
+              )}
             </div>
             <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 6, lineHeight: 1.5 }}>
-              Add an email to recover your account if you lose your dashboard token.
+              {editingEmail ? 'Enter a new email to replace the current one.' : 'Add an email to recover your account if you lose your dashboard token.'}
             </div>
           </>
         )}
