@@ -11,10 +11,11 @@ interface SettingsTabProps {
   merchant: MerchantInfo;
   displayCurrency: string;
   setDisplayCurrency: (c: string) => void;
+  reloadMerchant: () => Promise<void>;
 }
 
 export const SettingsTab = memo(function SettingsTab({
-  merchant, displayCurrency, setDisplayCurrency,
+  merchant, displayCurrency, setDisplayCurrency, reloadMerchant,
 }: SettingsTabProps) {
   const { showToast } = useToast();
 
@@ -33,6 +34,7 @@ export const SettingsTab = memo(function SettingsTab({
       await api.updateMe({ name: editName });
       setEditingName(false);
       showToast('Name updated');
+      await reloadMerchant();
     } catch { showToast('Failed to update name', true); }
   };
 
@@ -45,6 +47,7 @@ export const SettingsTab = memo(function SettingsTab({
       await api.updateMe({ webhook_url: editWebhookUrl || '' });
       setEditingWebhook(!editWebhookUrl);
       showToast(editWebhookUrl ? 'Webhook URL saved' : 'Webhook URL removed');
+      await reloadMerchant();
     } catch { showToast('Failed to update webhook URL', true); }
   };
 
@@ -56,6 +59,7 @@ export const SettingsTab = memo(function SettingsTab({
       showToast('Recovery email saved');
       setEditEmail('');
       setEditingEmail(false);
+      await reloadMerchant();
     } catch { showToast('Failed to save email', true); }
   };
 
@@ -65,6 +69,7 @@ export const SettingsTab = memo(function SettingsTab({
       showToast('Recovery email removed');
       setEditEmail('');
       setEditingEmail(false);
+      await reloadMerchant();
     } catch { showToast('Failed to remove email', true); }
   };
 

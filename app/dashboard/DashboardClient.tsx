@@ -42,7 +42,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
   const [loadingX402, setLoadingX402] = useState(true);
 
 
-  const { logout } = useAuth();
+  const { logout, refreshMerchant } = useAuth();
   const router = useRouter();
   const { showToast } = useToast();
 
@@ -216,6 +216,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                 merchant={merchant}
                 displayCurrency={displayCurrency}
                 setDisplayCurrency={setDisplayCurrency}
+                reloadMerchant={refreshMerchant}
               />
             )}
             {tab === 'x402' && (
