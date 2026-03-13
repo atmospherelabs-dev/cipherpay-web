@@ -2,6 +2,7 @@ import { LogoMark } from '@/components/Logo';
 import { SmartCTA } from '@/components/SmartCTA';
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
+import { DemoQR } from '@/components/DemoQR';
 import { getTranslations } from 'next-intl/server';
 
 const codeSnippet = `curl -X POST https://api.cipherpay.app/api/invoices \\
@@ -93,26 +94,128 @@ export default async function LandingPage() {
       </section>
 
       {/* How it works */}
-      <section style={{ borderTop: '1px solid var(--cp-border)', padding: '60px 24px' }}>
-        <div style={{ maxWidth: 700, margin: '0 auto' }}>
+      <section style={{ borderTop: '1px solid var(--cp-border)', padding: '60px 24px', position: 'relative', overflow: 'hidden' }}>
+        <div aria-hidden="true" className="hero-gradient hero-gradient-steps" />
+        <div style={{ maxWidth: 900, margin: '0 auto', position: 'relative' }}>
           <div className="section-title" style={{ textAlign: 'center', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><LogoMark size={8} /> {t('ctaHowItWorks')}</div>
-          <h2 style={{ fontSize: 24, fontWeight: 700, textAlign: 'center', marginBottom: 32 }}>
+          <h2 style={{ fontSize: 24, fontWeight: 700, textAlign: 'center', marginBottom: 56 }}>
             {t('howItWorksTitle')}
           </h2>
 
-          <div className="panel" style={{ marginBottom: 24 }}>
-            <div className="panel-body">
-              <div className="step-row">
-                <span style={{ color: 'var(--cp-cyan)', fontWeight: 600, whiteSpace: 'nowrap' }}>{t('step1')}</span>
-                <span style={{ color: 'var(--cp-text-muted)' }}>{t('step1Desc')}</span>
+          <div className="steps-grid">
+            {/* Step 1: Register */}
+            <div className="step-col">
+              <div className="step-header">
+                <div className="step-title">{t('step1')}</div>
+                <div className="step-desc">{t('step1Desc')}</div>
               </div>
-              <div className="step-row">
-                <span style={{ color: 'var(--cp-cyan)', fontWeight: 600, whiteSpace: 'nowrap' }}>{t('step2')}</span>
-                <span style={{ color: 'var(--cp-text-muted)' }}>{t('step2Desc')}</span>
+              <div className="step-preview" aria-hidden="true">
+                <div className="step-preview-bar">
+                  <span style={{ fontSize: 7, color: 'var(--cp-cyan)', fontWeight: 700, letterSpacing: 1 }}>CIPHERPAY</span>
+                  <span style={{ fontSize: 7, color: 'var(--cp-text-dim)', letterSpacing: 1 }}>REGISTER</span>
+                </div>
+                <div style={{ padding: '10px 12px' }}>
+                  <div className="step-preview-label">STORE NAME</div>
+                  <div className="step-preview-input">Acme Store</div>
+                  <div className="step-preview-label" style={{ marginTop: 6 }}>UNIFIED VIEWING KEY</div>
+                  <div className="step-preview-input" style={{ color: 'var(--cp-text-dim)', fontSize: 8 }}>uview1qxf5rn2...k9w7mzj</div>
+                  <div className="step-preview-label" style={{ marginTop: 6 }}>DASHBOARD PASSWORD</div>
+                  <div className="step-preview-input">
+                    <span style={{ letterSpacing: 2 }}>••••••••••</span>
+                  </div>
+                  <div className="step-preview-btn">CREATE ACCOUNT</div>
+                </div>
               </div>
-              <div className="step-row">
-                <span style={{ color: 'var(--cp-cyan)', fontWeight: 600, whiteSpace: 'nowrap' }}>{t('step3')}</span>
-                <span style={{ color: 'var(--cp-text-muted)' }}>{t('step3Desc')}</span>
+            </div>
+
+            {/* Step 2: Add Products */}
+            <div className="step-col">
+              <div className="step-header">
+                <div className="step-title">{t('step2')}</div>
+                <div className="step-desc">{t('step2Desc')}</div>
+              </div>
+              <div className="step-preview" aria-hidden="true">
+                <div className="step-preview-bar">
+                  <span style={{ fontSize: 7, color: 'var(--cp-text-muted)', letterSpacing: 1 }}>PRODUCTS</span>
+                  <span style={{ fontSize: 7, color: 'var(--cp-cyan)', fontWeight: 600 }}>+ NEW</span>
+                </div>
+                <div style={{ padding: '6px 12px' }}>
+                  <div className="step-preview-product">
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 9, color: 'var(--cp-text)' }}>Premium T-Shirt</div>
+                      <div style={{ fontSize: 7, color: 'var(--cp-text-dim)' }}>premium-t-shirt · one-time</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: 9, color: 'var(--cp-cyan)' }}>$29.99</div>
+                      <div style={{ fontSize: 7, color: 'var(--cp-text-dim)' }}>USD</div>
+                    </div>
+                  </div>
+                  <div className="step-preview-product">
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 9, color: 'var(--cp-text)' }}>Hoodie</div>
+                      <div style={{ fontSize: 7, color: 'var(--cp-text-dim)' }}>hoodie · one-time</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: 9, color: 'var(--cp-cyan)' }}>€59.99</div>
+                      <div style={{ fontSize: 7, color: 'var(--cp-text-dim)' }}>EUR</div>
+                    </div>
+                  </div>
+                  <div className="step-preview-product">
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 9, color: 'var(--cp-text)' }}>API Access</div>
+                      <div style={{ fontSize: 7, color: 'var(--cp-text-dim)' }}>api-access · recurring</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: 9, color: 'var(--cp-cyan)' }}>€9.99</div>
+                      <div style={{ fontSize: 7, color: 'var(--cp-text-dim)' }}>EUR/mo</div>
+                    </div>
+                  </div>
+                  <div className="step-preview-product">
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 9, color: 'var(--cp-text)' }}>VPN Monthly</div>
+                      <div style={{ fontSize: 7, color: 'var(--cp-text-dim)' }}>vpn-monthly · recurring</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: 9, color: 'var(--cp-cyan)' }}>$4.99</div>
+                      <div style={{ fontSize: 7, color: 'var(--cp-text-dim)' }}>USD/mo</div>
+                    </div>
+                  </div>
+                  <div className="step-preview-product" style={{ borderBottom: 'none' }}>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 9, color: 'var(--cp-text)' }}>Donation</div>
+                      <div style={{ fontSize: 7, color: 'var(--cp-text-dim)' }}>donation · one-time</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: 9, color: 'var(--cp-cyan)' }}>$10.00</div>
+                      <div style={{ fontSize: 7, color: 'var(--cp-text-dim)' }}>USD</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 3: Get Paid */}
+            <div className="step-col">
+              <div className="step-header">
+                <div className="step-title">{t('step3')}</div>
+                <div className="step-desc">{t('step3Desc')}</div>
+              </div>
+              <div className="step-preview" aria-hidden="true">
+                <div className="step-preview-bar">
+                  <span style={{ fontSize: 7, color: 'var(--cp-text-muted)', letterSpacing: 1 }}>CHECKOUT</span>
+                  <span className="step-preview-badge-pending">14:59</span>
+                </div>
+                <div style={{ padding: '8px 12px', textAlign: 'center' }}>
+                  <div style={{ fontSize: 8, letterSpacing: 1, color: 'var(--cp-text-dim)', marginBottom: 2 }}>ACME STORE</div>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--cp-text)', marginBottom: 4 }}>Premium T-Shirt</div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--cp-text)' }}>$29.99</div>
+                  <div style={{ fontSize: 9, color: 'var(--cp-cyan)', marginBottom: 10 }}>≈ 0.1234 ZEC</div>
+                  <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <DemoQR />
+                  </div>
+                  <div style={{ fontSize: 7, color: 'var(--cp-text-dim)', letterSpacing: 1, marginTop: 6 }}>SCAN WITH YOUR ZCASH WALLET</div>
+                  <div className="step-preview-btn" style={{ marginTop: 8 }}>OPEN IN WALLET</div>
+                </div>
               </div>
             </div>
           </div>
