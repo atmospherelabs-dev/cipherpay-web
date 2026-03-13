@@ -149,11 +149,12 @@ export const BillingTab = memo(function BillingTab({
                       {billing.outstanding_zec.toFixed(4)} / {min.toFixed(2)} ZEC
                     </span>
                   </div>
-                  <div style={{ width: '100%', height: 6, background: 'var(--cp-surface)', borderRadius: 3, overflow: 'hidden', marginBottom: 8 }}>
+                  <div style={{ width: '100%', height: 8, background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4, overflow: 'hidden', marginBottom: 8 }}>
                     <div style={{
-                      width: `${pct}%`, height: '100%', borderRadius: 3,
+                      width: `${pct}%`, height: '100%',
                       background: canSettle ? 'var(--cp-green)' : 'linear-gradient(90deg, var(--cp-cyan), var(--cp-blue))',
                       transition: 'width 0.4s ease',
+                      minWidth: pct > 0 ? 4 : 0,
                     }} />
                   </div>
                   {canSettle ? (
