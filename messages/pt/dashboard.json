@@ -188,6 +188,8 @@
     "outstanding": "Pendente",
     "graceUntil": "Carência Até",
     "noCycle": "Nenhum ciclo de faturamento ativo ainda. Um ciclo começa quando sua primeira fatura é confirmada.",
+    "settlementThreshold": "LIMITE DE LIQUIDAÇÃO",
+    "belowMinimum": "Abaixo do mínimo de {min} ZEC. As taxas acumulam automaticamente até atingir o limite.",
     "settleNow": "LIQUIDAR AGORA — {amount}",
     "creatingInvoice": "CRIANDO FATURA...",
     "pastCycles": "CICLOS ANTERIORES",

@@ -187,6 +187,8 @@
     "outstanding": "Pendiente",
     "graceUntil": "Gracia Hasta",
     "noCycle": "No hay ciclo de facturación activo aún. Un ciclo comienza cuando tu primera factura es confirmada.",
+    "settlementThreshold": "UMBRAL DE LIQUIDACIÓN",
+    "belowMinimum": "Por debajo del mínimo de {min} ZEC. Las comisiones se acumulan automáticamente hasta alcanzar el umbral.",
     "settleNow": "LIQUIDAR AHORA — {amount}",
     "creatingInvoice": "CREANDO FACTURA...",
     "pastCycles": "CICLOS ANTERIORES",

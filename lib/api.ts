@@ -197,6 +197,7 @@ export interface BillingSummary {
   total_fees_zec: number;
   auto_collected_zec: number;
   outstanding_zec: number;
+  min_settlement_zec: number;
 }
 
 export interface SettleResponse {

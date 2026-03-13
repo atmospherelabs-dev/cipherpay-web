@@ -136,12 +136,38 @@ export const BillingTab = memo(function BillingTab({
               </div>
             )}
 
-            {/* Settle button */}
-            {billing.outstanding_zec > 0.00001 && (
-              <button onClick={settleBilling} disabled={settling} className="btn" style={{ width: '100%', marginBottom: 16 }}>
-                {settling ? t('creatingInvoice') : t('settleNow', { amount: `${billing.outstanding_zec.toFixed(6)} ZEC${label(toFiat(billing.outstanding_zec))}` })}
-              </button>
-            )}
+            {/* Settlement threshold */}
+            {billing.outstanding_zec > 0.00001 && (() => {
+              const min = billing.min_settlement_zec || 0.05;
+              const pct = Math.min((billing.outstanding_zec / min) * 100, 100);
+              const canSettle = billing.outstanding_zec >= min;
+              return (
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
+                    <span style={{ fontSize: 10, letterSpacing: 1, color: 'var(--cp-text-dim)', fontWeight: 600 }}>{t('settlementThreshold')}</span>
+                    <span style={{ fontSize: 10, fontFamily: 'monospace', color: canSettle ? 'var(--cp-green)' : 'var(--cp-text-muted)' }}>
+                      {billing.outstanding_zec.toFixed(4)} / {min.toFixed(2)} ZEC
+                    </span>
+                  </div>
+                  <div style={{ width: '100%', height: 6, background: 'var(--cp-surface)', borderRadius: 3, overflow: 'hidden', marginBottom: 8 }}>
+                    <div style={{
+                      width: `${pct}%`, height: '100%', borderRadius: 3,
+                      background: canSettle ? 'var(--cp-green)' : 'linear-gradient(90deg, var(--cp-cyan), var(--cp-blue))',
+                      transition: 'width 0.4s ease',
+                    }} />
+                  </div>
+                  {canSettle ? (
+                    <button onClick={settleBilling} disabled={settling} className="btn" style={{ width: '100%' }}>
+                      {settling ? t('creatingInvoice') : t('settleNow', { amount: `${billing.outstanding_zec.toFixed(6)} ZEC${label(toFiat(billing.outstanding_zec))}` })}
+                    </button>
+                  ) : (
+                    <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', lineHeight: 1.6 }}>
+                      {t('belowMinimum', { min: min.toFixed(2) })}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* Billing History */}
             {billingHistory.filter(c => c.status !== 'open').length > 0 && (

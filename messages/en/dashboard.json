@@ -188,6 +188,8 @@
     "outstanding": "Outstanding",
     "graceUntil": "Grace Until",
     "noCycle": "No active billing cycle yet. A cycle starts when your first invoice is confirmed.",
+    "settlementThreshold": "SETTLEMENT THRESHOLD",
+    "belowMinimum": "Below the {min} ZEC minimum. Fees carry over automatically until the threshold is reached.",
     "settleNow": "SETTLE NOW — {amount}",
     "creatingInvoice": "CREATING INVOICE...",
     "pastCycles": "PAST CYCLES",
