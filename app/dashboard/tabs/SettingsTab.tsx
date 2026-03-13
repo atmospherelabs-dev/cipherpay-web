@@ -64,6 +64,7 @@ export const SettingsTab = memo(function SettingsTab({
   };
 
   const removeEmail = async () => {
+    if (!confirm('Remove your recovery email? You won\'t be able to recover your account if you lose your dashboard token.')) return;
     try {
       await api.updateMe({ recovery_email: '' });
       showToast('Recovery email removed');
@@ -74,6 +75,7 @@ export const SettingsTab = memo(function SettingsTab({
   };
 
   const regenApiKey = async () => {
+    if (!confirm('Regenerate your API key? The current key will stop working immediately. Any integrations using it will break.')) return;
     try {
       const resp = await api.regenerateApiKey();
       setRevealedKey({ type: 'API Key', value: resp.api_key });
@@ -82,6 +84,7 @@ export const SettingsTab = memo(function SettingsTab({
   };
 
   const regenDashToken = async () => {
+    if (!confirm('Regenerate your dashboard token? You will be logged out of all sessions and need the new token to log back in.')) return;
     try {
       const resp = await api.regenerateDashboardToken();
       setRevealedKey({ type: 'Dashboard Token', value: resp.dashboard_token });
@@ -90,6 +93,7 @@ export const SettingsTab = memo(function SettingsTab({
   };
 
   const regenWebhookSecret = async () => {
+    if (!confirm('Regenerate your webhook secret? You\'ll need to update the secret in your integrations.')) return;
     try {
       const resp = await api.regenerateWebhookSecret();
       setRevealedKey({ type: 'Webhook Secret', value: resp.webhook_secret });
