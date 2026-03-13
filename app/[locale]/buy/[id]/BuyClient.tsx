@@ -8,6 +8,7 @@ import { validateZcashAddress } from '@/lib/validation';
 import { currencySymbol } from '@/lib/currency';
 import { Logo } from '@/components/Logo';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { Spinner } from '@/components/Spinner';
 
 export default function BuyClient({ productId }: { productId: string }) {
   const t = useTranslations('buy');
@@ -44,7 +45,7 @@ export default function BuyClient({ productId }: { productId: string }) {
     setSubmitting(true);
     try {
       const req: CheckoutRequest = {
-        product_id: productId,
+        product_id: product?.id || productId,
         price_id: selectedPrice?.id,
         refund_address: refundAddr || undefined,
       };
@@ -70,7 +71,7 @@ export default function BuyClient({ productId }: { productId: string }) {
   if (!product) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--cp-cyan)', borderTopColor: 'transparent' }} />
+        <Spinner size={24} />
       </div>
     );
   }
@@ -78,7 +79,7 @@ export default function BuyClient({ productId }: { productId: string }) {
   return (
     <div className="min-h-screen flex flex-col" style={{ fontFamily: 'var(--font-geist-mono), monospace', fontSize: 13, lineHeight: 1.6 }}>
       {/* Header */}
-      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid var(--cp-border)' }}>
+      <header className="site-header">
         <Logo size="sm" />
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <span className="tag">{t('tag')}</span>
@@ -123,8 +124,11 @@ export default function BuyClient({ productId }: { productId: string }) {
 
             <div style={{ textAlign: 'left' }}>
               <div className="section-title">{t('refundTitle')}</div>
-              <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginBottom: 8, lineHeight: 1.5 }}>
+              <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginBottom: 4, lineHeight: 1.5 }}>
                 {t('refundDesc')}
+              </div>
+              <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', opacity: 0.7, marginBottom: 10, lineHeight: 1.5 }}>
+                {t('refundPrivacyHint')}
               </div>
               <div className="form-group">
                 <input type="text" value={refundAddr} onChange={(e) => setRefundAddr(e.target.value)} placeholder="u1..." className="input" style={{ fontSize: 10 }} />

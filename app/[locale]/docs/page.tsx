@@ -1,9 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Link } from '@/i18n/navigation';
-import { Logo } from '@/components/Logo';
-import { NavLinks } from '@/components/NavLinks';
+import { SiteHeader } from '@/components/SiteHeader';
+import { SiteFooter } from '@/components/SiteFooter';
 import { SidebarGroup } from './components/DocComponents';
 
 import OverviewSection from './sections/OverviewSection';
@@ -69,15 +68,7 @@ export default function DocsPage() {
 
   return (
     <div style={{ minHeight: '100vh', fontFamily: 'var(--font-geist-mono), monospace', fontSize: 13, lineHeight: 1.6 }}>
-      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid var(--cp-border)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Link href="/"><Logo size="sm" /></Link>
-          <span style={{ fontSize: 16, fontWeight: 300, color: 'var(--cp-text-muted)', letterSpacing: 1 }}>DOCS</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <NavLinks />
-        </div>
-      </header>
+      <SiteHeader label="DOCS" />
 
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: 24 }}>
         <div style={{ marginBottom: 32 }}>
@@ -142,6 +133,8 @@ export default function DocsPage() {
           </div>
         </div>
       </div>
+
+      <SiteFooter />
     </div>
   );
 }

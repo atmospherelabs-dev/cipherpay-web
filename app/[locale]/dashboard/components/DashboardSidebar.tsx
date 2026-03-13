@@ -91,7 +91,7 @@ export const DashboardSidebar = memo(function DashboardSidebar({
             billing?.fee_enabled && billing.outstanding_zec > 0.00001 ? (
               <span style={{
                 width: 7, height: 7, borderRadius: '50%',
-                background: billing.billing_status === 'active' ? '#f59e0b' : '#ef4444',
+                background: billing.billing_status === 'active' ? 'var(--cp-yellow)' : 'var(--cp-red)',
                 flexShrink: 0,
               }} />
             ) : undefined

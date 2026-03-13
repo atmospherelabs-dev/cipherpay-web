@@ -5,5 +5,6 @@
   "processing": "PROCESSANDO...",
   "productNotFound": "PRODUTO NÃO ENCONTRADO",
   "refundTitle": "Endereço de Reembolso (opcional)",
-  "refundDesc": "Forneça um endereço Zcash se desejar a opção de reembolso. Sem ele, reembolsos exigem coordenação manual."
+  "refundDesc": "Forneça um endereço Zcash se desejar a opção de reembolso. Sem ele, reembolsos exigem coordenação manual.",
+  "refundPrivacyHint": "Fornecer um endereço de reembolso o revela ao comerciante, reduzindo sua privacidade."
 }

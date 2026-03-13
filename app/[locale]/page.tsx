@@ -1,7 +1,7 @@
 import { LogoMark } from '@/components/Logo';
-import { NavLinks } from '@/components/NavLinks';
 import { SmartCTA } from '@/components/SmartCTA';
-import { Link } from '@/i18n/navigation';
+import { SiteHeader } from '@/components/SiteHeader';
+import { SiteFooter } from '@/components/SiteFooter';
 import { getTranslations } from 'next-intl/server';
 
 const codeSnippet = `curl -X POST https://api.cipherpay.app/api/invoices \\
@@ -24,16 +24,7 @@ export default async function LandingPage() {
 
   return (
     <div style={{ minHeight: '100vh', fontFamily: 'var(--font-geist-mono), monospace', fontSize: 13, lineHeight: 1.6 }}>
-      {/* Header */}
-      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid var(--cp-border)' }}>
-        <span style={{ fontSize: 17, fontWeight: 700, letterSpacing: -0.5 }}>
-          <span style={{ color: 'var(--cp-cyan)' }}>Cipher</span>
-          <span style={{ color: 'var(--cp-text)' }}>Pay</span>
-        </span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <NavLinks />
-        </div>
-      </header>
+      <SiteHeader />
 
       {/* Hero */}
       <section style={{ padding: '80px 24px 60px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
@@ -219,19 +210,7 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="site-footer">
-        <span style={{ fontWeight: 600, fontSize: 10 }}>
-          <span style={{ color: 'var(--cp-cyan)' }}>Cipher</span><span>Pay</span>
-        </span>
-        <div className="footer-links">
-          <Link href="/docs" style={{ color: 'var(--cp-text-muted)', textDecoration: 'none' }}>{t('footerDocs')}</Link>
-          <Link href="/faq" style={{ color: 'var(--cp-text-muted)', textDecoration: 'none' }}>{t('footerFaq')}</Link>
-          <a href="https://cipherscan.app" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-text-muted)', textDecoration: 'none' }}>CipherScan</a>
-          <a href="https://github.com/atmospherelabs-dev/cipherpay-web" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-text-muted)', textDecoration: 'none' }}>GitHub</a>
-          <a href="https://x.com/cipherpay_app" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-text-muted)', textDecoration: 'none' }}>𝕏</a>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

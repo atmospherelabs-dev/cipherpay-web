@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
 import { api, type Product, type CreateProductRequest, type UpdateProductRequest } from '@/lib/api';
 import { CopyButton } from '@/components/CopyButton';
+import { Spinner } from '@/components/Spinner';
 import { validateLength } from '@/lib/validation';
 import { currencySymbol, SUPPORTED_CURRENCIES } from '@/lib/currency';
 import { useToast } from '@/contexts/ToastContext';
@@ -64,9 +65,7 @@ export const ProductsTab = memo(function ProductsTab({
   const [newProductIntervalCount, setNewProductIntervalCount] = useState(1);
   const [creating, setCreating] = useState(false);
   const [extraPrices, setExtraPrices] = useState<{ amount: string; currency: string }[]>([]);
-  const [showExtraPriceForm, setShowExtraPriceForm] = useState(false);
-  const [extraPriceAmount, setExtraPriceAmount] = useState('');
-  const [extraPriceCurrency, setExtraPriceCurrency] = useState('USD');
+  
   const [newMetadata, setNewMetadata] = useState<{ key: string; value: string }[]>([]);
 
   // ── Edit form state ──
@@ -81,9 +80,8 @@ export const ProductsTab = memo(function ProductsTab({
 
   // ── Detail view state ──
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
-  const [addingPrice, setAddingPrice] = useState(false);
-  const [newPriceAmount, setNewPriceAmount] = useState('');
-  const [newPriceCurrency, setNewPriceCurrency] = useState('EUR');
+  const [snippetPriceId, setSnippetPriceId] = useState<string | null>(null);
+  
 
   const [pendingPriceEdits, setPendingPriceEdits] = useState<Record<string, { amount?: string; currency?: string }>>({});
   const [pendingNewPrices, setPendingNewPrices] = useState<{ amount: string; currency: string }[]>([]);
@@ -143,8 +141,7 @@ export const ProductsTab = memo(function ProductsTab({
       }
       setNewName(''); setNewSlug(''); setSlugTouched(false); setNewDesc(''); setNewPrice(''); setNewCurrency(displayCurrency);
       setNewProductPriceType('one_time'); setNewProductInterval('month'); setNewProductIntervalCount(1);
-      setExtraPrices([]); setShowExtraPriceForm(false); setExtraPriceAmount('');
-      setExtraPriceCurrency('USD');
+      setExtraPrices([]);
       setNewMetadata([]);
       setShowAddForm(false);
       reloadProducts();
@@ -174,7 +171,6 @@ export const ProductsTab = memo(function ProductsTab({
     setPendingPriceEdits({});
     setPendingNewPrices([]);
     setPendingRemovals(new Set());
-    setAddingPrice(false);
   };
 
   const cancelEditProduct = () => {
@@ -182,7 +178,6 @@ export const ProductsTab = memo(function ProductsTab({
     setPendingPriceEdits({});
     setPendingNewPrices([]);
     setPendingRemovals(new Set());
-    setAddingPrice(false);
   };
 
   const saveProduct = async (productId: string) => {
@@ -259,7 +254,6 @@ export const ProductsTab = memo(function ProductsTab({
       setPendingPriceEdits({});
       setPendingNewPrices([]);
       setPendingRemovals(new Set());
-      setAddingPrice(false);
       reloadProducts();
       showToast(t('toastUpdated'));
     } catch (err) {
@@ -268,15 +262,7 @@ export const ProductsTab = memo(function ProductsTab({
     setSavingProduct(false);
   };
 
-  const stageNewPrice = () => {
-    const amount = parseFloat(newPriceAmount);
-    if (!amount || amount <= 0) { showToast(t('toastValidAmount'), true); return; }
-    setPendingNewPrices([...pendingNewPrices, {
-      amount: newPriceAmount, currency: newPriceCurrency,
-    }]);
-    setAddingPrice(false);
-    setNewPriceAmount(''); setNewPriceCurrency('EUR');
-  };
+  
 
   const toggleRemovePrice = (priceId: string) => {
     setPendingRemovals(prev => {
@@ -326,7 +312,7 @@ export const ProductsTab = memo(function ProductsTab({
             />
             <button
               onClick={() => onChange(entries.filter((_, j) => j !== i))}
-              style={{ background: 'none', border: 'none', color: 'var(--cp-red, #ef4444)', cursor: 'pointer', fontSize: 9, fontFamily: 'inherit', letterSpacing: 0.5, padding: 0, opacity: 0.7, flexShrink: 0 }}
+              style={{ background: 'none', border: 'none', color: 'var(--cp-red)', cursor: 'pointer', fontSize: 9, fontFamily: 'inherit', letterSpacing: 0.5, padding: 0, opacity: 0.7, flexShrink: 0 }}
             >
               ✕
             </button>
@@ -377,7 +363,7 @@ export const ProductsTab = memo(function ProductsTab({
                   {priceSym(price.currency)}{price.unit_amount.toFixed(2)}
                 </span>
                 <span style={{ fontSize: 10, color: 'var(--cp-text-dim)' }}>{price.currency}</span>
-                <span style={{ fontSize: 9, color: 'var(--cp-red, #ef4444)', fontStyle: 'italic' }}>{t('willBeRemoved')}</span>
+                <span style={{ fontSize: 9, color: 'var(--cp-red)', fontStyle: 'italic' }}>{t('willBeRemoved')}</span>
               </>
             ) : (
               <>
@@ -395,10 +381,16 @@ export const ProductsTab = memo(function ProductsTab({
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             {!isMarkedForRemoval && (
-              <CopyButton text={price.id} label={price.id.length > 18 ? price.id.slice(0, 16) + '...' : price.id} />
+              <CopyButton text={price.id} label={price.id} />
             )}
-            <button onClick={() => toggleRemovePrice(price.id)} style={{ background: 'none', border: 'none', color: isMarkedForRemoval ? 'var(--cp-cyan)' : 'var(--cp-red, #ef4444)', cursor: 'pointer', fontSize: 9, fontFamily: 'inherit', letterSpacing: 0.5, padding: 0, opacity: 0.7 }}>
-              {isMarkedForRemoval ? tc('undo') : tc('remove')}
+            <button
+              onClick={() => toggleRemovePrice(price.id)}
+              style={{ background: 'none', border: 'none', color: isMarkedForRemoval ? 'var(--cp-cyan)' : 'var(--cp-text-dim)', cursor: 'pointer', fontSize: isMarkedForRemoval ? 9 : 14, fontFamily: 'inherit', letterSpacing: isMarkedForRemoval ? 0.5 : 0, padding: '0 4px', opacity: isMarkedForRemoval ? 0.7 : 0.5, transition: 'opacity 0.15s', flexShrink: 0 }}
+              onMouseEnter={(e) => { if (!isMarkedForRemoval) { e.currentTarget.style.opacity = '1'; e.currentTarget.style.color = 'var(--cp-red)'; } }}
+              onMouseLeave={(e) => { if (!isMarkedForRemoval) { e.currentTarget.style.opacity = '0.5'; e.currentTarget.style.color = 'var(--cp-text-dim)'; } }}
+              title={isMarkedForRemoval ? tc('undo') : tc('remove')}
+            >
+              {isMarkedForRemoval ? tc('undo') : '✕'}
             </button>
           </div>
         </div>
@@ -416,8 +408,9 @@ export const ProductsTab = memo(function ProductsTab({
       ? activePrices.find(p => p.id === product.default_price_id) || activePrices[0]
       : activePrices[0];
     const apiBase = checkoutOrigin.replace('localhost:3000', 'localhost:3080').replace(/^(https?:\/\/)(?:www\.)?/, '$1').replace('cipherpay.app', 'api.cipherpay.app');
-    const snippet = defaultPrice
-      ? `curl -X POST ${apiBase}/api/checkout \\\n  -H "Content-Type: application/json" \\\n  -d '{"price_id": "${defaultPrice.id}"}'`
+    const snippetPrice = activePrices.find(p => p.id === snippetPriceId) || defaultPrice;
+    const snippet = snippetPrice
+      ? `curl -X POST ${apiBase}/api/checkout \\\n  -H "Content-Type: application/json" \\\n  -d '{"price_id": "${snippetPrice.id}"}'`
       : `curl -X POST ${apiBase}/api/checkout \\\n  -H "Content-Type: application/json" \\\n  -d '{"product_id": "${product.id}"}'`;
 
     const metadata = product.metadata || {};
@@ -428,8 +421,9 @@ export const ProductsTab = memo(function ProductsTab({
         {/* ── Header ── */}
         <div className="panel-header">
           <button
-            onClick={() => { setSelectedProduct(null); setEditingProduct(null); setAddingPrice(false); setPendingPriceEdits({}); }}
-            style={{ background: 'none', border: 'none', color: 'var(--cp-cyan)', cursor: 'pointer', fontSize: 10, fontFamily: 'inherit', letterSpacing: 1, padding: 0 }}
+            onClick={() => { setSelectedProduct(null); setEditingProduct(null); setPendingPriceEdits({}); }}
+            className="btn btn-small"
+            style={{ fontSize: 10 }}
           >
             {t('backToProducts')}
           </button>
@@ -458,8 +452,8 @@ export const ProductsTab = memo(function ProductsTab({
         {isEditing ? (
           /* ── Edit mode ── */
           <div className="panel-body" style={{ padding: 0 }}>
-            <div style={{ padding: 20, borderBottom: '1px solid var(--cp-border)' }}>
-              <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--cp-text-muted)', letterSpacing: 1, marginBottom: 14 }}>{t('productDetails')}</div>
+            <div style={{ padding: 24, borderBottom: '1px solid var(--cp-border)' }}>
+              <div className="section-label">{t('productDetails')}</div>
               <div className="form-group">
                 <label className="form-label">{t('nameLabel')}</label>
                 <input type="text" value={editProdName} onChange={(e) => setEditProdName(e.target.value)} className="input" />
@@ -473,8 +467,8 @@ export const ProductsTab = memo(function ProductsTab({
             </div>
 
             {/* Edit: payment type */}
-            <div style={{ padding: 20, borderBottom: '1px solid var(--cp-border)' }}>
-              <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--cp-text-muted)', letterSpacing: 1, marginBottom: 14 }}>{t('paymentType')}</div>
+            <div style={{ padding: 24, borderBottom: '1px solid var(--cp-border)' }}>
+              <div className="section-label">{t('paymentType')}</div>
               <div style={{ display: 'flex', gap: 0, marginBottom: 4 }}>
                 <button
                   type="button"
@@ -486,6 +480,7 @@ export const ProductsTab = memo(function ProductsTab({
                     border: '1px solid',
                     borderColor: editPriceType === 'one_time' ? 'var(--cp-cyan)' : 'var(--cp-border)',
                     borderRadius: '4px 0 0 4px', cursor: 'pointer', transition: 'all 0.15s',
+                    position: 'relative', zIndex: editPriceType === 'one_time' ? 1 : 0,
                   }}
                 >
                   {t('oneTime')}
@@ -499,7 +494,8 @@ export const ProductsTab = memo(function ProductsTab({
                     color: editPriceType === 'recurring' ? 'var(--cp-cyan)' : 'var(--cp-text-dim)',
                     border: '1px solid',
                     borderColor: editPriceType === 'recurring' ? 'var(--cp-cyan)' : 'var(--cp-border)',
-                    borderRadius: '0 4px 4px 0', borderLeft: 'none', cursor: 'pointer', transition: 'all 0.15s',
+                    borderRadius: '0 4px 4px 0', marginLeft: -1, cursor: 'pointer', transition: 'all 0.15s',
+                    position: 'relative', zIndex: editPriceType === 'recurring' ? 1 : 0,
                   }}
                 >
                   {t('recurring')}
@@ -514,7 +510,7 @@ export const ProductsTab = memo(function ProductsTab({
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 10 }}>
                   <span style={{ fontSize: 11, color: 'var(--cp-text-dim)' }}>{t('billEvery')}</span>
                   <input type="number" value={editIntervalCount} onChange={(e) => setEditIntervalCount(parseInt(e.target.value) || 1)} min="1" max="365" className="input" style={{ width: 52, textAlign: 'center' }} />
-                  <select value={editInterval} onChange={(e) => setEditInterval(e.target.value)} className="input" style={{ width: 100 }}>
+                  <select value={editInterval} onChange={(e) => setEditInterval(e.target.value)} className="input" style={{ width: 120 }}>
                     <option value="day">{t('intervalDay')}</option>
                     <option value="week">{t('intervalWeek')}</option>
                     <option value="month">{t('intervalMonth')}</option>
@@ -525,9 +521,9 @@ export const ProductsTab = memo(function ProductsTab({
             </div>
 
             {/* Edit: pricing */}
-            <div style={{ padding: 20, borderBottom: '1px solid var(--cp-border)' }}>
+            <div style={{ padding: 24, borderBottom: '1px solid var(--cp-border)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--cp-text-muted)', letterSpacing: 1 }}>{t('pricing')}</span>
+                <span className="section-label" style={{ marginBottom: 0 }}>{t('pricing')}</span>
                 {hasPendingChanges && (
                   <span style={{ fontSize: 9, color: 'var(--cp-cyan)' }}>{t('unsavedChanges')}</span>
                 )}
@@ -547,52 +543,48 @@ export const ProductsTab = memo(function ProductsTab({
                 </div>
               )}
 
-              {/* Staged new prices */}
+              {/* New prices — editable inline rows */}
               {pendingNewPrices.map((np, i) => (
                 <div key={`new-${i}`} style={{ padding: '12px 0', borderBottom: '1px solid var(--cp-border)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--cp-cyan)' }}>{priceSym(np.currency)}{parseFloat(np.amount).toFixed(2)}</span>
-                      <span style={{ fontSize: 10, color: 'var(--cp-text-dim)' }}>{np.currency}</span>
-                      <span style={{ fontSize: 9, color: 'var(--cp-cyan)', fontStyle: 'italic' }}>{t('new')}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <input
+                      type="number" value={np.amount} placeholder="29.99" step="any" min="0.001"
+                      onChange={(e) => { const u = [...pendingNewPrices]; u[i] = { ...u[i], amount: e.target.value }; setPendingNewPrices(u); }}
+                      className="input" style={{ width: 100, fontSize: 12, padding: '5px 8px', fontWeight: 500, borderColor: 'var(--cp-cyan)' }}
+                    />
+                    <select
+                      value={np.currency}
+                      onChange={(e) => { const u = [...pendingNewPrices]; u[i] = { ...u[i], currency: e.target.value }; setPendingNewPrices(u); }}
+                      className="input" style={{ width: 90, fontSize: 11, padding: '5px 4px', textAlign: 'center' }}
+                    >
+                      {SUPPORTED_CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                    <span style={{ fontSize: 9, color: 'var(--cp-cyan)', fontStyle: 'italic', flexShrink: 0 }}>{t('new')}</span>
+                    <div style={{ marginLeft: 'auto' }}>
+                      <button
+                        onClick={() => setPendingNewPrices(pendingNewPrices.filter((_, j) => j !== i))}
+                        style={{ background: 'none', border: 'none', color: 'var(--cp-text-dim)', cursor: 'pointer', fontSize: 14, fontFamily: 'inherit', padding: '0 4px', opacity: 0.5, transition: 'opacity 0.15s', flexShrink: 0 }}
+                        onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.color = 'var(--cp-red)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.5'; e.currentTarget.style.color = 'var(--cp-text-dim)'; }}
+                        title={tc('remove')}
+                      >✕</button>
                     </div>
-                    <button onClick={() => setPendingNewPrices(pendingNewPrices.filter((_, j) => j !== i))} style={{ background: 'none', border: 'none', color: 'var(--cp-red, #ef4444)', cursor: 'pointer', fontSize: 9, fontFamily: 'inherit', letterSpacing: 0.5, padding: 0, opacity: 0.7 }}>
-                      {tc('remove')}
-                    </button>
                   </div>
                 </div>
               ))}
 
-              {/* Add new price form */}
-              {addingPrice ? (
-                <div style={{ marginTop: 12, padding: 12, background: 'rgba(0,255,255,0.02)', borderRadius: 6, border: '1px solid var(--cp-border)' }}>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                    <div style={{ flex: '1 1 80px' }}>
-                      <label className="form-label" style={{ fontSize: 9 }}>{t('amountLabel')}</label>
-                      <input type="number" value={newPriceAmount} onChange={(e) => setNewPriceAmount(e.target.value)} placeholder="29.99" step="any" min="0.001" className="input" style={{ fontSize: 11 }} />
-                    </div>
-                    <div>
-                      <label className="form-label" style={{ fontSize: 9 }}>{t('currencyLabel')}</label>
-                      <select value={newPriceCurrency} onChange={(e) => setNewPriceCurrency(e.target.value)} className="input" style={{ width: 72, textAlign: 'center', fontSize: 11 }}>
-                        {SUPPORTED_CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
-                      </select>
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', gap: 8, marginTop: 10, justifyContent: 'flex-end' }}>
-                    <button onClick={stageNewPrice} className="btn-primary" style={{ fontSize: 10 }}>{tc('add')}</button>
-                    <button onClick={() => { setAddingPrice(false); setNewPriceAmount(''); }} className="btn" style={{ fontSize: 10 }}>{tc('cancel')}</button>
-                  </div>
-                </div>
-              ) : (
-                <button onClick={() => setAddingPrice(true)} style={{ background: 'none', border: 'none', color: 'var(--cp-cyan)', cursor: 'pointer', fontSize: 10, fontFamily: 'inherit', letterSpacing: 0.5, padding: 0, marginTop: 12 }}>
-                  {t('addPrice')}
-                </button>
-              )}
+              <button onClick={() => {
+                const used = activePrices.map(p => p.currency).concat(pendingNewPrices.map(p => p.currency));
+                const next = SUPPORTED_CURRENCIES.find(c => !used.includes(c)) || 'USD';
+                setPendingNewPrices([...pendingNewPrices, { amount: '', currency: next }]);
+              }} style={{ background: 'none', border: 'none', color: 'var(--cp-cyan)', cursor: 'pointer', fontSize: 10, fontFamily: 'inherit', letterSpacing: 0.5, padding: 0, marginTop: 12 }}>
+                {t('addPrice')}
+              </button>
             </div>
 
             {/* Edit: metadata */}
-            <div style={{ padding: 20, borderBottom: '1px solid var(--cp-border)' }}>
-              <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--cp-text-muted)', letterSpacing: 1, marginBottom: 6 }}>{t('metadataLabel')}</div>
+            <div style={{ padding: 24, borderBottom: '1px solid var(--cp-border)' }}>
+              <div className="section-label" style={{ marginBottom: 6 }}>{t('metadataLabel')}</div>
               <HelperText>{t('metadataHelp')}</HelperText>
               <div style={{ marginTop: 12 }}>
                 <MetadataEditor entries={editMetadata} onChange={setEditMetadata} />
@@ -600,10 +592,10 @@ export const ProductsTab = memo(function ProductsTab({
             </div>
 
             {/* Danger zone */}
-            <div style={{ padding: '14px 20px' }}>
+            <div style={{ padding: '14px 24px' }}>
               <button
                 onClick={() => { deactivateProduct(product.id); setSelectedProduct(null); }}
-                style={{ background: 'none', border: 'none', color: 'var(--cp-red, #ef4444)', cursor: 'pointer', fontSize: 9, fontFamily: 'inherit', letterSpacing: 1, padding: 0, opacity: 0.7 }}
+                style={{ background: 'none', border: 'none', color: 'var(--cp-red)', cursor: 'pointer', fontSize: 9, fontFamily: 'inherit', letterSpacing: 1, padding: 0, opacity: 0.7 }}
               >
                 {t('deleteProduct')}
               </button>
@@ -613,9 +605,9 @@ export const ProductsTab = memo(function ProductsTab({
           /* ── View mode ── */
           <div className="panel-body" style={{ padding: 0 }}>
             {/* Section 1: Product info */}
-            <div style={{ padding: 20, borderBottom: '1px solid var(--cp-border)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-                <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--cp-text)' }}>{product.name}</span>
+            <div style={{ padding: 24, borderBottom: '1px solid var(--cp-border)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--cp-text)' }}>{product.name}</span>
                 {activePrices.some(p => p.price_type === 'recurring') ? (
                   <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: 0.5, color: 'var(--cp-cyan)', background: 'rgba(0,255,255,0.08)', padding: '3px 8px', borderRadius: 3, border: '1px solid rgba(0,255,255,0.15)' }}>{t('recurring')}</span>
                 ) : (
@@ -631,32 +623,32 @@ export const ProductsTab = memo(function ProductsTab({
             </div>
 
             {/* Section 2: Pricing */}
-            <div style={{ padding: 20, borderBottom: '1px solid var(--cp-border)' }}>
+            <div style={{ padding: 24, borderBottom: '1px solid var(--cp-border)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--cp-text-muted)', letterSpacing: 1 }}>{t('pricing')}</span>
+                <span className="section-label" style={{ marginBottom: 0 }}>{t('pricing')}</span>
                 <span style={{ fontSize: 9, color: 'var(--cp-text-dim)' }}>{t('active', { count: activePrices.length })}</span>
               </div>
               {activePrices.length === 0 ? (
                 <div style={{ fontSize: 11, color: 'var(--cp-text-dim)' }}>{t('noPricesActive')}</div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {activePrices.map(price => {
                     const isRecurring = price.price_type === 'recurring';
                     const intervalStr = isRecurring
                       ? `/ ${(price.interval_count ?? 1) > 1 ? (price.interval_count ?? 1) + ' ' : ''}${price.billing_interval ?? 'month'}${(price.interval_count ?? 1) > 1 ? 's' : ''}`
                       : '';
                     return (
-                      <div key={price.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--cp-border)' }}>
-                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                          <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--cp-text)' }}>
+                      <div key={price.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0' }}>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                          <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--cp-text)' }}>
                             {priceSym(price.currency)}{price.unit_amount.toFixed(2)}
                           </span>
-                          <span style={{ fontSize: 10, color: 'var(--cp-text-dim)', fontWeight: 400 }}>{price.currency}</span>
+                          <span style={{ fontSize: 11, color: 'var(--cp-text-dim)', fontWeight: 400 }}>{price.currency}</span>
                           {isRecurring && (
                             <span style={{ fontSize: 11, color: 'var(--cp-text-muted)', fontWeight: 400 }}>{intervalStr}</span>
                           )}
                         </div>
-                        <CopyButton text={price.id} label={price.id.length > 24 ? price.id.slice(0, 22) + '...' : price.id} />
+                        <CopyButton text={price.id} label={price.id} />
                       </div>
                     );
                   })}
@@ -665,26 +657,22 @@ export const ProductsTab = memo(function ProductsTab({
             </div>
 
             {/* Section 3: Details */}
-            <div style={{ padding: 20, borderBottom: '1px solid var(--cp-border)' }}>
-              <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--cp-text-muted)', letterSpacing: 1, marginBottom: 14 }}>{t('details')}</div>
-              <div className="stat-row" style={{ marginBottom: 8 }}>
-                <span style={{ fontSize: 10, color: 'var(--cp-text-dim)' }}>{t('productId')}</span>
-                <CopyButton text={product.id} label={product.id.length > 28 ? product.id.slice(0, 26) + '...' : product.id} />
-              </div>
-              <div className="stat-row" style={{ marginBottom: 8 }}>
-                <span style={{ fontSize: 10, color: 'var(--cp-text-dim)' }}>{t('slug')}</span>
-                <span style={{ fontSize: 10, color: 'var(--cp-text)' }}>/{product.slug}</span>
+            <div style={{ padding: 24, borderBottom: '1px solid var(--cp-border)' }}>
+              <div className="section-label">{t('details')}</div>
+              <div className="stat-row" style={{ marginBottom: 10 }}>
+                <span style={{ fontSize: 11, color: 'var(--cp-text-dim)' }}>{t('productId')}</span>
+                <CopyButton text={product.id} label={product.id} />
               </div>
               <div className="stat-row">
-                <span style={{ fontSize: 10, color: 'var(--cp-text-dim)' }}>{t('buyLink')}</span>
-                <CopyButton text={`${checkoutOrigin}/buy/${product.id}`} label={`${checkoutOrigin.replace(/^https?:\/\//, '')}/buy/...`} />
+                <span style={{ fontSize: 11, color: 'var(--cp-text-dim)' }}>{t('buyLink')}</span>
+                <CopyButton text={`${checkoutOrigin}/buy/${product.slug}`} label={`${checkoutOrigin.replace(/^https?:\/\//, '')}/buy/${product.slug}`} />
               </div>
             </div>
 
             {/* Section 4: Metadata */}
             {metaEntries.length > 0 && (
-              <div style={{ padding: 20, borderBottom: '1px solid var(--cp-border)' }}>
-                <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--cp-text-muted)', letterSpacing: 1, marginBottom: 14 }}>{t('metadataLabel')}</div>
+              <div style={{ padding: 24, borderBottom: '1px solid var(--cp-border)' }}>
+                <div className="section-label">{t('metadataLabel')}</div>
                 {metaEntries.map(([key, value]) => (
                   <div key={key} className="stat-row" style={{ marginBottom: 6 }}>
                     <span style={{ fontSize: 10, color: 'var(--cp-text-dim)' }}>{key}</span>
@@ -695,8 +683,31 @@ export const ProductsTab = memo(function ProductsTab({
             )}
 
             {/* Section 5: Integration */}
-            <div style={{ padding: 20 }}>
-              <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--cp-text-muted)', letterSpacing: 1, marginBottom: 14 }}>{t('apiIntegration')}</div>
+            <div style={{ padding: 24, background: 'var(--cp-bg)', borderTop: '1px solid var(--cp-border)' }}>
+              <div className="section-label" style={{ color: 'var(--cp-text-dim)' }}>{t('apiIntegration')}</div>
+              {activePrices.length > 1 && (
+                <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
+                  {activePrices.map(price => {
+                    const isActive = snippetPrice?.id === price.id;
+                    return (
+                      <button
+                        key={price.id}
+                        onClick={() => setSnippetPriceId(price.id)}
+                        style={{
+                          background: isActive ? 'rgba(0,255,255,0.08)' : 'transparent',
+                          border: `1px solid ${isActive ? 'var(--cp-cyan)' : 'var(--cp-border)'}`,
+                          borderRadius: 4, padding: '3px 8px', cursor: 'pointer',
+                          fontSize: 10, fontFamily: 'inherit', letterSpacing: 0.3,
+                          color: isActive ? 'var(--cp-cyan)' : 'var(--cp-text-dim)',
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        {priceSym(price.currency)}{price.unit_amount.toFixed(2)} {price.currency}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
               <div style={{ position: 'relative' }}>
                 <pre style={{
                   fontSize: 10, lineHeight: 1.5,
@@ -726,7 +737,7 @@ export const ProductsTab = memo(function ProductsTab({
           {showAddForm ? tc('cancel') : t('addProduct')}
         </button>
       </div>
-      <div style={{ fontSize: 11, color: 'var(--cp-text-dim)', padding: '0 16px 12px', lineHeight: 1.5 }}>
+      <div className="panel-subtitle">
         {t('subtitle')}
       </div>
 
@@ -768,6 +779,7 @@ export const ProductsTab = memo(function ProductsTab({
                   border: '1px solid',
                   borderColor: newProductPriceType === 'one_time' ? 'var(--cp-cyan)' : 'var(--cp-border)',
                   borderRadius: '4px 0 0 4px', cursor: 'pointer', transition: 'all 0.15s',
+                  position: 'relative', zIndex: newProductPriceType === 'one_time' ? 1 : 0,
                 }}
               >
                 {t('oneTime')}
@@ -781,7 +793,8 @@ export const ProductsTab = memo(function ProductsTab({
                   color: newProductPriceType === 'recurring' ? 'var(--cp-cyan)' : 'var(--cp-text-dim)',
                   border: '1px solid',
                   borderColor: newProductPriceType === 'recurring' ? 'var(--cp-cyan)' : 'var(--cp-border)',
-                  borderRadius: '0 4px 4px 0', borderLeft: 'none', cursor: 'pointer', transition: 'all 0.15s',
+                  borderRadius: '0 4px 4px 0', marginLeft: -1, cursor: 'pointer', transition: 'all 0.15s',
+                  position: 'relative', zIndex: newProductPriceType === 'recurring' ? 1 : 0,
                 }}
               >
                 {t('recurring')}
@@ -797,7 +810,7 @@ export const ProductsTab = memo(function ProductsTab({
             <label className="form-label">{t('priceLabel')}</label>
             <div style={{ display: 'flex', gap: 8 }}>
               <input type="number" value={newPrice} onChange={(e) => setNewPrice(e.target.value)} placeholder="65.00" step="any" min="0.001" className="input" style={{ flex: 1 }} />
-              <select value={newCurrency} onChange={(e) => setNewCurrency(e.target.value)} className="input" style={{ width: 80, textAlign: 'center' }}>
+              <select value={newCurrency} onChange={(e) => setNewCurrency(e.target.value)} className="input" style={{ width: 90, textAlign: 'center' }}>
                 {SUPPORTED_CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
@@ -806,7 +819,7 @@ export const ProductsTab = memo(function ProductsTab({
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 10 }}>
                 <span style={{ fontSize: 11, color: 'var(--cp-text-dim)' }}>{t('billEvery')}</span>
                 <input type="number" value={newProductIntervalCount} onChange={(e) => setNewProductIntervalCount(parseInt(e.target.value) || 1)} min="1" max="365" className="input" style={{ width: 52, textAlign: 'center' }} />
-                <select value={newProductInterval} onChange={(e) => setNewProductInterval(e.target.value)} className="input" style={{ width: 100 }}>
+                <select value={newProductInterval} onChange={(e) => setNewProductInterval(e.target.value)} className="input" style={{ width: 120 }}>
                   <option value="day">{t('intervalDay')}</option>
                   <option value="week">{t('intervalWeek')}</option>
                   <option value="month">{t('intervalMonth')}</option>
@@ -815,55 +828,42 @@ export const ProductsTab = memo(function ProductsTab({
               </div>
             )}
           </div>
-          {/* Additional prices */}
-          {extraPrices.length > 0 && (
-            <div className="form-group">
-              <label className="form-label" style={{ fontSize: 10 }}>{t('additionalPrices')}</label>
-              {extraPrices.map((ep, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                  <span style={{ fontSize: 11 }}>{currencySymbol(ep.currency)} {parseFloat(ep.amount).toFixed(2)} {ep.currency}</span>
-                  <button onClick={() => setExtraPrices(extraPrices.filter((_, j) => j !== i))} style={{ background: 'none', border: 'none', color: 'var(--cp-red, #ef4444)', cursor: 'pointer', fontSize: 9, fontFamily: 'inherit' }}>{tc('remove')}</button>
-                </div>
-              ))}
-            </div>
-          )}
-          {showExtraPriceForm ? (
-            <div className="form-group" style={{ padding: 12, background: 'rgba(0,255,255,0.02)', borderRadius: 6, border: '1px solid var(--cp-border)' }}>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                <div style={{ flex: '1 1 80px' }}>
-                  <label className="form-label" style={{ fontSize: 9 }}>{t('amountLabel')}</label>
-                  <input type="number" value={extraPriceAmount} onChange={(e) => setExtraPriceAmount(e.target.value)} placeholder="29.99" step="any" min="0.001" className="input" style={{ fontSize: 11 }} />
-                </div>
-                <div>
-                  <label className="form-label" style={{ fontSize: 9 }}>{t('currencyLabel')}</label>
-                  <select value={extraPriceCurrency} onChange={(e) => setExtraPriceCurrency(e.target.value)} className="input" style={{ width: 72, textAlign: 'center', fontSize: 11 }}>
-                    {SUPPORTED_CURRENCIES.filter(c => c !== newCurrency && !extraPrices.some(ep => ep.currency === c)).map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: 8, marginTop: 10, justifyContent: 'flex-end' }}>
-                <button onClick={() => {
-                  const amt = parseFloat(extraPriceAmount);
-                  if (!amt || amt <= 0) { showToast(t('toastValidAmount'), true); return; }
-                  setExtraPrices([...extraPrices, {
-                    amount: extraPriceAmount, currency: extraPriceCurrency,
-                  }]);
-                  setExtraPriceAmount('');
-                  const remaining = SUPPORTED_CURRENCIES.filter(c => c !== newCurrency && !extraPrices.some(ep => ep.currency === c) && c !== extraPriceCurrency);
-                  setExtraPriceCurrency(remaining[0] || 'USD');
-                  setShowExtraPriceForm(false);
-                }} className="btn-primary" style={{ fontSize: 10 }}>{tc('add')}</button>
-                <button onClick={() => { setShowExtraPriceForm(false); setExtraPriceAmount(''); }} className="btn" style={{ fontSize: 10 }}>{tc('cancel')}</button>
+          {/* Additional prices — same layout as the primary price row */}
+          {extraPrices.map((ep, i) => (
+            <div key={i} className="form-group" style={{ paddingTop: 0 }}>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <input
+                  type="number" value={ep.amount} placeholder="29.99" step="any" min="0.001"
+                  onChange={(e) => { const u = [...extraPrices]; u[i] = { ...u[i], amount: e.target.value }; setExtraPrices(u); }}
+                  className="input" style={{ flex: 1 }}
+                />
+                <select
+                  value={ep.currency}
+                  onChange={(e) => { const u = [...extraPrices]; u[i] = { ...u[i], currency: e.target.value }; setExtraPrices(u); }}
+                  className="input" style={{ width: 90, textAlign: 'center' }}
+                >
+                  {SUPPORTED_CURRENCIES.filter(c => c === ep.currency || (c !== newCurrency && !extraPrices.some((p, j) => j !== i && p.currency === c))).map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+                <button
+                  onClick={() => setExtraPrices(extraPrices.filter((_, j) => j !== i))}
+                  style={{ background: 'none', border: 'none', color: 'var(--cp-text-dim)', cursor: 'pointer', fontSize: 14, fontFamily: 'inherit', padding: '0 4px', opacity: 0.5, transition: 'opacity 0.15s', flexShrink: 0 }}
+                  onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.color = 'var(--cp-red)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.5'; e.currentTarget.style.color = 'var(--cp-text-dim)'; }}
+                  title={tc('remove')}
+                >✕</button>
               </div>
             </div>
-          ) : (
-            <div className="form-group" style={{ paddingTop: 0 }}>
-              <button onClick={() => setShowExtraPriceForm(true)} style={{ background: 'none', border: 'none', color: 'var(--cp-cyan)', cursor: 'pointer', fontSize: 10, fontFamily: 'inherit', letterSpacing: 0.5, padding: 0 }}>
-                {t('addPriceByCurrency')}
-              </button>
-              <HelperText>{t('addPriceByCurrencyHelp')}</HelperText>
-            </div>
-          )}
+          ))}
+          <div className="form-group" style={{ paddingTop: 0 }}>
+            <button onClick={() => {
+              const used = [newCurrency, ...extraPrices.map(p => p.currency)];
+              const next = SUPPORTED_CURRENCIES.find(c => !used.includes(c)) || 'USD';
+              setExtraPrices([...extraPrices, { amount: '', currency: next }]);
+            }} style={{ background: 'none', border: 'none', color: 'var(--cp-cyan)', cursor: 'pointer', fontSize: 10, fontFamily: 'inherit', letterSpacing: 0.5, padding: 0 }}>
+              {t('addPriceByCurrency')}
+            </button>
+            <HelperText>{t('addPriceByCurrencyHelp')}</HelperText>
+          </div>
           {/* Metadata */}
           <div className="form-group">
             <label className="form-label">{t('metadataLabel')}</label>
@@ -880,7 +880,7 @@ export const ProductsTab = memo(function ProductsTab({
 
       {loadingProducts ? (
         <div className="empty-state">
-          <div className="w-5 h-5 border-2 rounded-full animate-spin mx-auto" style={{ borderColor: 'var(--cp-cyan)', borderTopColor: 'transparent' }} />
+          <Spinner />
         </div>
       ) : products.filter(p => p.active === 1).length === 0 ? (
         <div className="empty-state">
@@ -924,9 +924,12 @@ export const ProductsTab = memo(function ProductsTab({
                 )}
               </div>
               <div className="invoice-meta">
-                <span style={{ color: 'var(--cp-text-dim)', fontSize: 10 }}>/{product.slug}</span>
+                <span style={{ color: 'var(--cp-text-dim)' }}>/{product.slug}</span>
                 {activePrices.length > 1 && (
-                  <span style={{ fontSize: 10, color: 'var(--cp-text-dim)' }}>{t('prices', { count: activePrices.length })}</span>
+                  <>
+                    <span style={{ color: 'var(--cp-text-dim)', opacity: 0.4 }}>·</span>
+                    <span style={{ color: 'var(--cp-text-dim)' }}>{t('prices', { count: activePrices.length })}</span>
+                  </>
                 )}
               </div>
             </div>

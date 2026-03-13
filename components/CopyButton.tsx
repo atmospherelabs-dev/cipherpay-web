@@ -22,7 +22,8 @@ export function CopyButton({
   return (
     <button
       onClick={copy}
-      className={`inline-flex items-center gap-1.5 text-sm text-cp-muted hover:text-cp-cyan transition-colors ${className}`}
+      className={`inline-flex items-center gap-1.5 text-cp-muted hover:text-cp-cyan transition-colors ${className}`}
+      style={{ fontSize: 11 }}
     >
       {copied ? (
         <>

@@ -36,5 +36,7 @@
   "partialExpired": "A partial payment of {amount} ZEC was received. Enter your refund address below to request a refund from the merchant.",
   "expiredMessage": "This invoice has expired. Please create a new order.",
   "backToStore": "← Back to Store",
-  "labelCopied": "{label} copied"
+  "labelCopied": "{label} copied",
+  "refundPrivacyHint": "Providing a refund address reveals it to the merchant, reducing your privacy.",
+  "mempoolHint": "After sending, there may be a short delay before your payment appears here. If your wallet confirms the transaction, it will be detected automatically."
 }

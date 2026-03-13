@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from '@/i18n/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { Spinner } from '@/components/Spinner';
 import DashboardClient from './DashboardClient';
 
 export default function DashboardPage() {
@@ -18,7 +19,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-cp-cyan border-t-transparent rounded-full animate-spin" />
+        <Spinner size={24} />
       </div>
     );
   }

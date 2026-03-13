@@ -1,6 +1,5 @@
-import { Logo } from '@/components/Logo';
-import { NavLinks } from '@/components/NavLinks';
-import { Link } from '@/i18n/navigation';
+import { SiteHeader } from '@/components/SiteHeader';
+import { SiteFooter } from '@/components/SiteFooter';
 import { getTranslations } from 'next-intl/server';
 import type { Metadata } from 'next';
 
@@ -23,12 +22,7 @@ export default async function FAQPage() {
 
   return (
     <div style={{ minHeight: '100vh', fontFamily: 'var(--font-geist-mono), monospace', fontSize: 13, lineHeight: 1.6 }}>
-      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid var(--cp-border)' }}>
-        <Link href="/"><Logo size="md" /></Link>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <NavLinks />
-        </div>
-      </header>
+      <SiteHeader />
 
       <main style={{ maxWidth: 700, margin: '0 auto', padding: '48px 24px' }}>
         <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8 }}>{t('title')}</h1>
@@ -58,16 +52,7 @@ export default async function FAQPage() {
         ))}
       </main>
 
-      <footer style={{ borderTop: '1px solid var(--cp-border)', padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10, color: 'var(--cp-text-muted)' }}>
-          <Logo size="sm" />
-          <span>{t('footerPoweredBy')}</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 10 }}>
-          <Link href="/" style={{ color: 'var(--cp-text-muted)', textDecoration: 'none' }}>{t('footerHome')}</Link>
-          <a href="https://cipherscan.app" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-text-muted)', textDecoration: 'none' }}>CipherScan</a>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

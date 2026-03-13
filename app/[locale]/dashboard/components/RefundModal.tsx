@@ -51,7 +51,7 @@ export function RefundModal({ invoiceId, onClose, onRefunded }: RefundModalProps
             <button onClick={onClose} className="btn" style={{ flex: 1 }}>
               {tc('cancel')}
             </button>
-            <button onClick={confirmRefund} className="btn-primary" style={{ flex: 1, background: '#f59e0b', borderColor: '#f59e0b' }}>
+            <button onClick={confirmRefund} className="btn-primary" style={{ flex: 1, background: 'var(--cp-yellow)', borderColor: 'var(--cp-yellow)' }}>
               {t('confirmRefund')}
             </button>
           </div>

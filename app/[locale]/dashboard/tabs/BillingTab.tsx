@@ -20,6 +20,7 @@ export const BillingTab = memo(function BillingTab({
   const { showToast } = useToast();
   const t = useTranslations('dashboard.billing');
   const [settling, setSettling] = useState(false);
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
   const sym = currencySymbol(displayCurrency);
 
   const settleBilling = async () => {
@@ -45,12 +46,12 @@ export const BillingTab = memo(function BillingTab({
       <div className="panel-header">
         <span className="panel-title">{t('title')}</span>
         {billing?.fee_enabled && (
-          <span className={`status-badge ${billing.billing_status === 'active' ? 'status-confirmed' : billing.billing_status === 'past_due' ? 'status-detected' : 'status-expired'}`} style={{ fontSize: 8 }}>
+          <span className={`status-badge ${billing.billing_status === 'active' ? 'status-confirmed' : billing.billing_status === 'past_due' ? 'status-detected' : 'status-expired'}`} style={{ fontSize: 9 }}>
             {billing.billing_status.toUpperCase().replace('_', ' ')}
           </span>
         )}
       </div>
-      <div style={{ fontSize: 11, color: 'var(--cp-text-dim)', padding: '0 16px', marginBottom: -8, lineHeight: 1.5 }}>
+      <div className="panel-subtitle">
         {t('subtitle')}
       </div>
       <div className="panel-body">
@@ -80,7 +81,7 @@ export const BillingTab = memo(function BillingTab({
                 <div style={{
                   fontSize: 18, fontWeight: 700,
                   color: billing.billing_status === 'active' ? 'var(--cp-green)' :
-                    billing.billing_status === 'past_due' ? '#f59e0b' : '#ef4444'
+                    billing.billing_status === 'past_due' ? 'var(--cp-yellow)' : 'var(--cp-red)'
                 }}>
                   {billing.billing_status.toUpperCase().replace('_', ' ')}
                 </div>
@@ -106,22 +107,22 @@ export const BillingTab = memo(function BillingTab({
                 </div>
                 <div className="stat-row" style={{ marginBottom: 6 }}>
                   <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>{t('totalFees')}</span>
-                  <span style={{ fontSize: 11, fontFamily: 'monospace' }}>{billing.total_fees_zec.toFixed(8)} ZEC{label(toFiat(billing.total_fees_zec))}</span>
+                  <span style={{ fontSize: 11, fontFamily: 'monospace' }}>{billing.total_fees_zec.toFixed(6)} ZEC{label(toFiat(billing.total_fees_zec))}</span>
                 </div>
                 <div className="stat-row" style={{ marginBottom: 6 }}>
                   <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>{t('autoCollected')}</span>
-                  <span style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--cp-green)' }}>{billing.auto_collected_zec.toFixed(8)} ZEC{label(toFiat(billing.auto_collected_zec))}</span>
+                  <span style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--cp-green)' }}>{billing.auto_collected_zec.toFixed(6)} ZEC{label(toFiat(billing.auto_collected_zec))}</span>
                 </div>
                 <div className="stat-row" style={{ marginBottom: 6 }}>
                   <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>{t('outstanding')}</span>
-                  <span style={{ fontSize: 11, fontFamily: 'monospace', fontWeight: 600, color: billing.outstanding_zec > 0.00001 ? '#f59e0b' : 'var(--cp-green)' }}>
-                    {billing.outstanding_zec.toFixed(8)} ZEC{label(toFiat(billing.outstanding_zec))}
+                  <span style={{ fontSize: 11, fontFamily: 'monospace', fontWeight: 600, color: billing.outstanding_zec > 0.00001 ? 'var(--cp-yellow)' : 'var(--cp-green)' }}>
+                    {billing.outstanding_zec.toFixed(6)} ZEC{label(toFiat(billing.outstanding_zec))}
                   </span>
                 </div>
                 {billing.current_cycle.grace_until && (
                   <div className="stat-row">
                     <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>{t('graceUntil')}</span>
-                    <span style={{ fontSize: 11, color: '#f59e0b' }}>
+                    <span style={{ fontSize: 11, color: 'var(--cp-yellow)' }}>
                       {new Date(billing.current_cycle.grace_until).toLocaleDateString()}
                     </span>
                   </div>
@@ -149,8 +150,8 @@ export const BillingTab = memo(function BillingTab({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {billingHistory.filter(c => c.status !== 'open').map(cycle => {
                     const statusColors: Record<string, string> = {
-                      paid: 'var(--cp-green)', carried_over: '#a78bfa',
-                      invoiced: '#f59e0b', past_due: '#f59e0b', suspended: '#ef4444',
+                      paid: 'var(--cp-green)', carried_over: 'var(--cp-purple)',
+                      invoiced: 'var(--cp-yellow)', past_due: 'var(--cp-yellow)', suspended: 'var(--cp-red)',
                     };
                     return (
                       <div key={cycle.id} style={{
@@ -167,7 +168,7 @@ export const BillingTab = memo(function BillingTab({
                             {cycle.total_fees_zec.toFixed(6)} ZEC
                           </span>
                           <span style={{
-                            fontSize: 8, fontWeight: 700, letterSpacing: 1,
+                            fontSize: 9, fontWeight: 700, letterSpacing: 1,
                             color: statusColors[cycle.status] || 'var(--cp-text-muted)',
                           }}>
                             {cycle.status === 'carried_over' ? t('carriedOver') : cycle.status.toUpperCase().replace('_', ' ')}
@@ -180,10 +181,24 @@ export const BillingTab = memo(function BillingTab({
               </div>
             )}
 
-            {/* How it works */}
-            <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', lineHeight: 1.7 }}>
-              <div style={{ fontSize: 10, letterSpacing: 1, color: 'var(--cp-text-muted)', marginBottom: 6, fontWeight: 600 }}>{t('howItWorks')}</div>
-              {t('howItWorksDesc', { rate: (billing.fee_rate * 100).toFixed(1) })}
+            {/* How it works — collapsible */}
+            <div>
+              <button
+                onClick={() => setShowHowItWorks(!showHowItWorks)}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                  fontSize: 10, letterSpacing: 1, color: 'var(--cp-text-muted)', fontWeight: 600, fontFamily: 'inherit',
+                  display: 'flex', alignItems: 'center', gap: 6,
+                }}
+              >
+                <span style={{ transition: 'transform 0.15s', transform: showHowItWorks ? 'rotate(90deg)' : 'rotate(0deg)', display: 'inline-block' }}>▸</span>
+                {t('howItWorks')}
+              </button>
+              {showHowItWorks && (
+                <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', lineHeight: 1.7, marginTop: 8 }}>
+                  {t('howItWorksDesc', { rate: (billing.fee_rate * 100).toFixed(1) })}
+                </div>
+              )}
             </div>
           </>
         )}

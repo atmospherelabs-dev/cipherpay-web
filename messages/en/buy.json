@@ -5,5 +5,6 @@
   "processing": "PROCESSING...",
   "productNotFound": "PRODUCT NOT FOUND",
   "refundTitle": "Refund Address (optional)",
-  "refundDesc": "Provide a Zcash address if you want the option of a refund. Without it, refunds require manual coordination."
+  "refundDesc": "Provide a Zcash address if you want the option of a refund. Without it, refunds require manual coordination.",
+  "refundPrivacyHint": "Providing a refund address reveals it to the merchant, reducing your privacy."
 }

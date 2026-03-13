@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { api, type Invoice, type Product, type ZecRates } from '@/lib/api';
 import type { TabAction } from '../DashboardClient';
 import { CopyButton } from '@/components/CopyButton';
+import { Spinner } from '@/components/Spinner';
 import { RefundModal } from '../components/RefundModal';
 import { currencySymbol, fiatPrice, fiatStr, SUPPORTED_CURRENCIES } from '@/lib/currency';
 import { useToast } from '@/contexts/ToastContext';
@@ -19,6 +20,7 @@ interface InvoicesTabProps {
   checkoutOrigin: string;
   initialAction?: TabAction;
   clearAction?: () => void;
+  isTestnet: boolean;
 }
 
 function getInvoiceType(inv: Invoice, recurringPriceIds: Set<string>): 'billing' | 'recurring' | 'payment' {
@@ -28,13 +30,13 @@ function getInvoiceType(inv: Invoice, recurringPriceIds: Set<string>): 'billing'
 }
 
 const TYPE_BADGE_STYLES: Record<string, { color: string; bg: string }> = {
-  billing:   { color: '#a78bfa', bg: 'rgba(167,139,250,0.1)' },
+  billing:   { color: 'var(--cp-purple)', bg: 'rgba(167,139,250,0.1)' },
   recurring: { color: 'var(--cp-purple, #a855f7)', bg: 'rgba(168,85,247,0.1)' },
   payment:   { color: 'var(--cp-text-dim)', bg: 'rgba(255,255,255,0.03)' },
 };
 
 export const InvoicesTab = memo(function InvoicesTab({
-  invoices, loadingInvoices, reloadInvoices, products, displayCurrency, checkoutOrigin, initialAction, clearAction,
+  invoices, loadingInvoices, reloadInvoices, products, displayCurrency, checkoutOrigin, initialAction, clearAction, isTestnet,
 }: InvoicesTabProps) {
   const { showToast } = useToast();
   const t = useTranslations('dashboard.invoices');
@@ -53,6 +55,7 @@ export const InvoicesTab = memo(function InvoicesTab({
 
   const [expandedInvoice, setExpandedInvoice] = useState<string | null>(null);
   const [refundingInvoiceId, setRefundingInvoiceId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
 
   const [showPayLinkForm, setShowPayLinkForm] = useState(false);
 
@@ -137,7 +140,7 @@ export const InvoicesTab = memo(function InvoicesTab({
             <button onClick={reloadInvoices} className="btn btn-small">{tc('refresh')}</button>
           </div>
         </div>
-        <div style={{ fontSize: 11, color: 'var(--cp-text-dim)', padding: '0 16px 12px', lineHeight: 1.5 }}>
+        <div className="panel-subtitle">
           {t('subtitle')}
         </div>
 
@@ -177,9 +180,37 @@ export const InvoicesTab = memo(function InvoicesTab({
           </div>
         )}
 
+        {!loadingInvoices && invoices.length > 0 && (() => {
+          const statuses = ['all', ...Array.from(new Set(invoices.map(i => i.status)))];
+          return (
+            <div style={{ display: 'flex', gap: 6, padding: '0 18px 12px', flexWrap: 'wrap' }}>
+              {statuses.map(s => {
+                const isActive = statusFilter === s;
+                const count = s === 'all' ? invoices.length : invoices.filter(i => i.status === s).length;
+                return (
+                  <button
+                    key={s}
+                    onClick={() => setStatusFilter(s)}
+                    style={{
+                      background: isActive ? 'rgba(255,255,255,0.06)' : 'transparent',
+                      border: `1px solid ${isActive ? 'var(--cp-text-dim)' : 'var(--cp-border)'}`,
+                      borderRadius: 4, padding: '3px 8px', cursor: 'pointer',
+                      fontSize: 9, fontFamily: 'inherit', letterSpacing: 0.5,
+                      color: isActive ? 'var(--cp-text)' : 'var(--cp-text-dim)',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {s.toUpperCase()} <span style={{ opacity: 0.5, marginLeft: 2 }}>{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+          );
+        })()}
+
         {loadingInvoices ? (
           <div className="empty-state">
-            <div className="w-5 h-5 border-2 rounded-full animate-spin mx-auto" style={{ borderColor: 'var(--cp-cyan)', borderTopColor: 'transparent' }} />
+            <Spinner />
           </div>
         ) : invoices.length === 0 ? (
           <div className="empty-state">
@@ -187,7 +218,7 @@ export const InvoicesTab = memo(function InvoicesTab({
             <div>{t('noInvoices')}</div>
           </div>
         ) : (
-          invoices.map((inv) => {
+          invoices.filter(inv => statusFilter === 'all' || inv.status === statusFilter).map((inv) => {
             const priceStr = fiatStr(inv, displayCurrency);
             const isExpanded = expandedInvoice === inv.id;
             const isOverpaid = inv.received_zatoshis > inv.price_zatoshis + 1000 && inv.price_zatoshis > 0;
@@ -197,8 +228,9 @@ export const InvoicesTab = memo(function InvoicesTab({
               <div key={inv.id} className="invoice-card" style={{ cursor: 'pointer' }} onClick={() => setExpandedInvoice(isExpanded ? null : inv.id)}>
                 <div className="invoice-header">
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 10, color: 'var(--cp-text-dim)', transition: 'transform 0.15s', transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)', display: 'inline-block' }}>▸</span>
                     <span className="invoice-id">{inv.memo_code}</span>
-                    <span style={{ fontSize: 8, fontWeight: 600, letterSpacing: 0.5, color: typeBadge.color, background: typeBadge.bg, padding: '1px 6px', borderRadius: 3 }}>
+                    <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: 0.5, color: typeBadge.color, background: typeBadge.bg, padding: '1px 6px', borderRadius: 3 }}>
                       {t(invType === 'billing' ? 'platform' : invType === 'recurring' ? 'recurring' : 'oneTime')}
                     </span>
                     <span style={{ fontSize: 10, color: 'var(--cp-text-dim)' }}>
@@ -207,14 +239,14 @@ export const InvoicesTab = memo(function InvoicesTab({
                   </div>
                   <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                     {isOverpaid && inv.status === 'confirmed' && (
-                      <span className="status-badge" style={{ background: 'rgba(249,115,22,0.15)', color: '#f97316', border: '1px solid rgba(249,115,22,0.3)', fontSize: 8 }}>{t('overpaid')}</span>
+                      <span className="status-badge" style={{ background: 'rgba(249,115,22,0.15)', color: 'var(--cp-orange)', border: '1px solid rgba(249,115,22,0.3)', fontSize: 9 }}>{t('overpaid')}</span>
                     )}
                     <span className={`status-badge status-${inv.status}`}>{inv.status.toUpperCase()}</span>
                   </div>
                 </div>
-                <div className="invoice-meta">
+                <div className="invoice-meta" style={{ justifyContent: 'space-between' }}>
                   <span>{inv.product_name || '—'} {inv.size || ''}</span>
-                  <span><strong>{priceStr}</strong> / {inv.price_zec.toFixed(8)} ZEC</span>
+                  <span><strong>{priceStr}</strong> / {inv.price_zec.toFixed(4)} ZEC</span>
                 </div>
 
                 {isExpanded && (
@@ -228,8 +260,8 @@ export const InvoicesTab = memo(function InvoicesTab({
 
                     {inv.received_zatoshis > 0 && (
                       <div className="stat-row">
-                        <span style={{ color: isOverpaid ? '#f97316' : 'var(--cp-cyan)' }}>{t('received')}</span>
-                        <span style={{ color: isOverpaid ? '#f97316' : 'var(--cp-cyan)', fontWeight: 600 }}>
+                        <span style={{ color: isOverpaid ? 'var(--cp-orange)' : 'var(--cp-cyan)' }}>{t('received')}</span>
+                        <span style={{ color: isOverpaid ? 'var(--cp-orange)' : 'var(--cp-cyan)', fontWeight: 600 }}>
                           {(inv.received_zatoshis / 1e8).toFixed(8)} ZEC
                         </span>
                       </div>
@@ -260,10 +292,14 @@ export const InvoicesTab = memo(function InvoicesTab({
                     {inv.detected_txid && (
                       <div className="stat-row">
                         <span style={{ color: 'var(--cp-text-muted)' }}>{t('txid')}</span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 9 }}>
+                        <a
+                          href={`${isTestnet ? 'https://testnet.cipherscan.app' : 'https://cipherscan.app'}/tx/${inv.detected_txid}`}
+                          target="_blank" rel="noopener noreferrer"
+                          className="text-link"
+                          style={{ fontSize: 10, fontFamily: 'var(--font-geist-mono), monospace' }}
+                        >
                           {inv.detected_txid.substring(0, 16)}...
-                          <CopyButton text={inv.detected_txid} label="" />
-                        </span>
+                        </a>
                       </div>
                     )}
                     {inv.confirmed_at && (
@@ -274,7 +310,7 @@ export const InvoicesTab = memo(function InvoicesTab({
                     )}
                     {inv.refunded_at && (
                       <div className="stat-row">
-                        <span style={{ color: '#f59e0b' }}>{t('refunded')}</span>
+                        <span style={{ color: 'var(--cp-yellow)' }}>{t('refunded')}</span>
                         <span style={{ fontSize: 10 }}>{new Date(inv.refunded_at).toLocaleString()}</span>
                       </div>
                     )}
@@ -289,7 +325,7 @@ export const InvoicesTab = memo(function InvoicesTab({
                       <>
                         <div className="section-title" style={{ marginTop: 12 }}>{t('refundAddress')}</div>
                         <div className="stat-row">
-                          <span style={{ fontSize: 9, color: '#f59e0b', wordBreak: 'break-all', maxWidth: '80%' }}>
+                          <span style={{ fontSize: 9, color: 'var(--cp-yellow)', wordBreak: 'break-all', maxWidth: '80%' }}>
                             {inv.refund_address}
                           </span>
                           <CopyButton text={inv.refund_address} label="" />
@@ -306,10 +342,14 @@ export const InvoicesTab = memo(function InvoicesTab({
                       <>
                         <div className="section-title" style={{ marginTop: 12 }}>{t('refundTxid')}</div>
                         <div className="stat-row">
-                          <span style={{ fontSize: 9, color: '#f59e0b', wordBreak: 'break-all', maxWidth: '80%' }}>
-                            {inv.refund_txid}
-                          </span>
-                          <CopyButton text={inv.refund_txid} label="" />
+                          <a
+                            href={`${isTestnet ? 'https://testnet.cipherscan.app' : 'https://cipherscan.app'}/tx/${inv.refund_txid}`}
+                            target="_blank" rel="noopener noreferrer"
+                            className="text-link"
+                            style={{ fontSize: 9, fontFamily: 'var(--font-geist-mono), monospace' }}
+                          >
+                            {inv.refund_txid.substring(0, 20)}...
+                          </a>
                         </div>
                       </>
                     )}
@@ -320,7 +360,7 @@ export const InvoicesTab = memo(function InvoicesTab({
                         {inv.status === 'confirmed' && (
                           <button
                             onClick={() => setRefundingInvoiceId(inv.id)}
-                            style={{ background: 'none', border: 'none', color: '#f59e0b', cursor: 'pointer', fontSize: 9, letterSpacing: 1, fontFamily: 'inherit', padding: 0, opacity: 0.7 }}
+                            style={{ background: 'none', border: 'none', color: 'var(--cp-yellow)', cursor: 'pointer', fontSize: 9, letterSpacing: 1, fontFamily: 'inherit', padding: 0, opacity: 0.7 }}
                           >
                             {t('refund')}
                           </button>

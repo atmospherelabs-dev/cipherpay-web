@@ -36,5 +36,7 @@
   "partialExpired": "Um pagamento parcial de {amount} ZEC foi recebido. Insira seu endereço de reembolso abaixo para solicitar um reembolso ao comerciante.",
   "expiredMessage": "Esta fatura expirou. Por favor, crie um novo pedido.",
   "backToStore": "← Voltar à Loja",
-  "labelCopied": "{label} copiado"
+  "labelCopied": "{label} copiado",
+  "refundPrivacyHint": "Fornecer um endereço de reembolso o revela ao comerciante, reduzindo sua privacidade.",
+  "mempoolHint": "Após enviar, pode haver um breve atraso antes do seu pagamento aparecer aqui. Se sua carteira confirmar a transação, ela será detectada automaticamente."
 }

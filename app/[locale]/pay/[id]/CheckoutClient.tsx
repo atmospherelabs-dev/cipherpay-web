@@ -10,6 +10,7 @@ import { QRCode } from '@/components/QRCode';
 import { Logo } from '@/components/Logo';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useTheme } from '@/contexts/ThemeContext';
+import { Spinner } from '@/components/Spinner';
 
 function useCountdown(expiresAt: string) {
   const [text, setText] = useState('');
@@ -72,6 +73,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
   const [toast, setToast] = useState('');
   const [refundAddr, setRefundAddr] = useState('');
   const [refundSaved, setRefundSaved] = useState(false);
+  const [showManual, setShowManual] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
   const [finalizeError, setFinalizeError] = useState<string | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
@@ -156,7 +158,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
   if (!invoice) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--cp-cyan)', borderTopColor: 'transparent' }} />
+        <Spinner size={24} />
       </div>
     );
   }
@@ -176,7 +178,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ fontFamily: 'var(--font-geist-mono), monospace', fontSize: 13, lineHeight: 1.6 }}>
-      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid var(--cp-border)' }}>
+      <header className="site-header">
         <Logo size="sm" />
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           {(invoice.status === 'pending' || isUnderpaid) && <span className="tag">{countdown.text}</span>}
@@ -249,6 +251,9 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
                   {primaryPrice}{secondaryPrice && <span style={{ fontSize: 16, color: 'var(--cp-text-muted)', fontWeight: 400, marginLeft: 8 }}>{secondaryPrice}</span>}
                 </div>
                 <div style={{ fontSize: 13, color: 'var(--cp-cyan)', marginTop: 4 }}>≈ {invoice.price_zec.toFixed(8)} ZEC</div>
+                <div style={{ marginTop: 12, fontSize: 10, color: 'var(--cp-text-dim)', letterSpacing: 1 }}>
+                  {t('expiresIn', { time: countdown.text })}
+                </div>
               </div>
 
               {/* QR Code */}
@@ -259,9 +264,12 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
               )}
 
               {/* Instruction */}
-              <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', letterSpacing: 1, marginBottom: 16, lineHeight: 1.6 }}>
+              <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', letterSpacing: 1, marginBottom: 8, lineHeight: 1.6 }}>
                 {t('scanWallet')}<br />
                 <span style={{ color: 'var(--cp-text-muted)' }}>{t('orSendManually')}</span>
+              </div>
+              <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', lineHeight: 1.6, marginBottom: 16, opacity: 0.7 }}>
+                {t('mempoolHint')}
               </div>
 
               {/* Open in Wallet */}
@@ -271,75 +279,88 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
                 </a>
               )}
 
-              {/* Manual payment section */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+              {/* Manual payment toggle */}
+              <button
+                type="button"
+                onClick={() => setShowManual(!showManual)}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer', padding: 0, width: '100%',
+                  display: 'flex', alignItems: 'center', gap: 12,
+                }}
+              >
                 <div style={{ flex: 1, height: 1, background: 'var(--cp-border)' }} />
-                <span style={{ fontSize: 9, color: 'var(--cp-text-dim)', letterSpacing: 2 }}>{t('manualPayment')}</span>
+                <span style={{ fontSize: 9, color: 'var(--cp-text-dim)', letterSpacing: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ transition: 'transform 0.2s', transform: showManual ? 'rotate(90deg)' : 'rotate(0deg)', fontSize: 8 }}>▸</span>
+                  {t('manualPayment')}
+                </span>
                 <div style={{ flex: 1, height: 1, background: 'var(--cp-border)' }} />
-              </div>
+              </button>
 
-              {/* Payment Address */}
-              <div style={{ textAlign: 'left', marginBottom: 16 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <span style={{ fontSize: 10, color: 'var(--cp-text-muted)', letterSpacing: 1 }}>{t('paymentAddress')}</span>
-                  <button
-                    onClick={() => copy(address, 'Address')}
-                    style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', color: 'var(--cp-cyan)', cursor: 'pointer', fontSize: 9, letterSpacing: 1, fontFamily: 'inherit', padding: 0 }}
-                  >
-                    <CopyIcon size={11} /> {tc('copy')}
-                  </button>
-                </div>
-                <div
-                  onClick={() => copy(address, 'Address')}
-                  style={{
-                    background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4,
-                    padding: '10px 12px', cursor: 'pointer', fontSize: 10, color: 'var(--cp-cyan)',
-                    wordBreak: 'break-all', lineHeight: 1.5, transition: 'border-color 0.15s',
-                  }}
-                >
-                  {truncateAddress(address)}
-                </div>
-              </div>
+              {showManual && (
+                <div style={{ marginTop: 20 }}>
+                  {/* Payment Address */}
+                  <div style={{ textAlign: 'left', marginBottom: 16 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                      <span style={{ fontSize: 10, color: 'var(--cp-text-muted)', letterSpacing: 1 }}>{t('paymentAddress')}</span>
+                      <button
+                        onClick={() => copy(address, 'Address')}
+                        style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', color: 'var(--cp-cyan)', cursor: 'pointer', fontSize: 9, letterSpacing: 1, fontFamily: 'inherit', padding: 0 }}
+                      >
+                        <CopyIcon size={11} /> {tc('copy')}
+                      </button>
+                    </div>
+                    <div
+                      onClick={() => copy(address, 'Address')}
+                      style={{
+                        background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4,
+                        padding: '10px 12px', cursor: 'pointer', fontSize: 10, color: 'var(--cp-cyan)',
+                        wordBreak: 'break-all', lineHeight: 1.5, transition: 'border-color 0.15s',
+                      }}
+                    >
+                      {truncateAddress(address)}
+                    </div>
+                  </div>
 
-              {/* Refund address */}
-              <div style={{ borderTop: '1px solid var(--cp-border)', paddingTop: 16, marginBottom: 16, textAlign: 'left' }}>
-                <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', letterSpacing: 1, marginBottom: 6 }}>
-                  {t('refundAddress')} <span style={{ fontWeight: 400 }}>({t('optional')})</span>
+                  {/* Refund address */}
+                  <div style={{ borderTop: '1px solid var(--cp-border)', paddingTop: 16, marginBottom: 16, textAlign: 'left' }}>
+                    <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', letterSpacing: 1, marginBottom: 4 }}>
+                      {t('refundAddress')} <span style={{ fontWeight: 400 }}>({t('optional')})</span>
+                    </div>
+                    <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', opacity: 0.7, marginBottom: 8, lineHeight: 1.5 }}>
+                      {t('refundPrivacyHint')}
+                    </div>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <input
+                        type="text"
+                        value={refundAddr}
+                        onChange={(e) => { setRefundAddr(e.target.value); setRefundSaved(false); }}
+                        placeholder="u1..."
+                        className="input"
+                        style={{ fontSize: 10, flex: 1 }}
+                      />
+                      <button
+                        onClick={async () => {
+                          if (!refundAddr.trim()) return;
+                          const addrErr = validateZcashAddress(refundAddr.trim());
+                          if (addrErr) { setToast(addrErr); return; }
+                          try {
+                            await api.saveRefundAddress(invoiceId, refundAddr.trim());
+                            setRefundSaved(true);
+                            setTimeout(() => setRefundSaved(false), 2000);
+                          } catch (e: unknown) {
+                            setToast(e instanceof Error ? e.message : 'Failed to save');
+                          }
+                        }}
+                        className="btn"
+                        style={{ fontSize: 10, whiteSpace: 'nowrap' }}
+                      >
+                        {refundSaved ? tc('saved') : tc('save')}
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <input
-                    type="text"
-                    value={refundAddr}
-                    onChange={(e) => { setRefundAddr(e.target.value); setRefundSaved(false); }}
-                    placeholder="u1..."
-                    className="input"
-                    style={{ fontSize: 10, flex: 1 }}
-                  />
-                  <button
-                    onClick={async () => {
-                      if (!refundAddr.trim()) return;
-                      const addrErr = validateZcashAddress(refundAddr.trim());
-                      if (addrErr) { setToast(addrErr); return; }
-                      try {
-                        await api.saveRefundAddress(invoiceId, refundAddr.trim());
-                        setRefundSaved(true);
-                        setTimeout(() => setRefundSaved(false), 2000);
-                      } catch (e: unknown) {
-                        setToast(e instanceof Error ? e.message : 'Failed to save');
-                      }
-                    }}
-                    className="btn"
-                    style={{ fontSize: 10, whiteSpace: 'nowrap' }}
-                  >
-                    {refundSaved ? tc('saved') : tc('save')}
-                  </button>
-                </div>
-              </div>
+              )}
 
-              {/* Timer */}
-              <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', letterSpacing: 1 }}>
-                {t('expiresIn', { time: countdown.text })}
-              </div>
             </div>
           )}
 
@@ -574,14 +595,22 @@ function ConfirmedReceipt({ invoice, returnUrl }: { invoice: Invoice; returnUrl:
           <span style={{ fontFamily: 'monospace', fontSize: 11, letterSpacing: 1 }}>{invoice.memo_code}</span>
         </div>
 
-        {invoice.detected_txid && (
-          <div style={{ ...row, borderBottom: 'none', flexDirection: 'column', alignItems: 'flex-start', gap: 6 }}>
-            <span style={label}>{t('txid')}</span>
-            <span style={{ fontSize: 9, color: 'var(--cp-cyan)', wordBreak: 'break-all', lineHeight: 1.5 }}>
-              {invoice.detected_txid}
-            </span>
-          </div>
-        )}
+        {invoice.detected_txid && (() => {
+          const isTestnet = invoice.payment_address?.startsWith('utest');
+          const explorerBase = isTestnet ? 'https://testnet.cipherscan.app' : 'https://cipherscan.app';
+          return (
+            <div style={{ ...row, borderBottom: 'none', flexDirection: 'column', alignItems: 'flex-start', gap: 6 }}>
+              <span style={label}>{t('txid')}</span>
+              <a
+                href={`${explorerBase}/tx/${invoice.detected_txid}`}
+                target="_blank" rel="noopener noreferrer"
+                style={{ fontSize: 9, color: 'var(--cp-cyan)', wordBreak: 'break-all', lineHeight: 1.5, textDecoration: 'none' }}
+              >
+                {invoice.detected_txid}
+              </a>
+            </div>
+          );
+        })()}
       </div>
 
       {invoice.overpaid && invoice.received_zatoshis > invoice.price_zatoshis && (

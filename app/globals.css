@@ -5,6 +5,18 @@
 /* ── Design tokens (dark default, .light override) ── */
 
 :root {
+  /* Spacing scale */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-7: 32px;
+  --sp-8: 48px;
+  --sp-9: 64px;
+  --sp-10: 80px;
+
   --cp-bg: #0a0a0f;
   --cp-surface: #111118;
   --cp-hover: #1a1a24;
@@ -17,6 +29,7 @@
   --cp-purple: #a855f7;
   --cp-green: #22c55e;
   --cp-yellow: #eab308;
+  --cp-orange: #f97316;
   --cp-red: #ef4444;
 }
 
@@ -33,6 +46,7 @@
   --cp-purple: #7c3aed;
   --cp-green: #047857;
   --cp-yellow: #a16207;
+  --cp-orange: #ea580c;
   --cp-red: #dc2626;
 }
 
@@ -113,8 +127,8 @@ body {
   color: var(--cp-text-muted);
   background: var(--cp-hover);
   border: 1px solid var(--cp-border);
-  padding: 3px 8px;
-  border-radius: 3px;
+  padding: 5px 10px;
+  border-radius: 4px;
 }
 
 /* ── Status badges (exact POC) ── */
@@ -280,7 +294,7 @@ body {
 /* ── Invoice cards (exact POC) ── */
 
 .invoice-card {
-  padding: 14px 16px;
+  padding: 16px 18px;
   border-bottom: 1px solid var(--cp-border);
   transition: background 0.1s;
 }
@@ -293,10 +307,16 @@ body {
   border-bottom: none;
 }
 
+.pos-card:hover {
+  border-color: var(--cp-cyan) !important;
+  background: rgba(6, 182, 212, 0.03) !important;
+}
+
 .invoice-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 6px;
   margin-bottom: 8px;
 }
 
@@ -307,10 +327,10 @@ body {
 }
 
 .invoice-meta {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px 16px;
-  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
   color: var(--cp-text-muted);
 }
 
@@ -449,6 +469,83 @@ body {
   margin-bottom: 12px;
 }
 
+/* ── Section label (used inside panels for subsection headings) ── */
+
+.section-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--cp-text-muted);
+  margin-bottom: 14px;
+}
+
+/* ── Help text ── */
+
+.help-text {
+  font-size: 10px;
+  color: var(--cp-text-dim);
+  line-height: 1.5;
+  margin-top: 4px;
+}
+
+/* ── Text link (bare button for actions like delete, refund) ── */
+
+.text-link {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 9px;
+  letter-spacing: 1px;
+  padding: 0;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+
+.text-link:hover {
+  opacity: 1;
+}
+
+.text-link-cyan { color: var(--cp-cyan); }
+.text-link-red { color: var(--cp-red); }
+.text-link-yellow { color: var(--cp-yellow); }
+
+/* ── Panel subtitle ── */
+
+.panel-subtitle {
+  font-size: 11px;
+  color: var(--cp-text-dim);
+  padding: 10px 18px 14px;
+  line-height: 1.5;
+}
+
+/* ── Spinner ── */
+
+.spinner {
+  border: 2px solid var(--cp-cyan);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Button danger ── */
+
+.btn-danger {
+  border-color: rgba(239, 68, 68, 0.5);
+  color: var(--cp-red);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.btn-danger:hover {
+  background: var(--cp-red);
+  border-color: var(--cp-red);
+  color: var(--cp-bg);
+}
+
 /* ── Animations ── */
 
 @keyframes slideIn {
@@ -526,6 +623,16 @@ body {
   align-items: center;
   gap: 16px;
   font-size: 10px;
+}
+
+/* ── Site header ── */
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--cp-border);
 }
 
 /* ── Nav desktop / mobile ── */
@@ -664,10 +771,15 @@ body {
     text-align: center;
   }
 
+  .site-header {
+    padding: 12px 16px;
+  }
+
   .site-footer {
     flex-direction: column;
     gap: 12px;
     text-align: center;
+    padding: 16px;
   }
 
   .footer-links {

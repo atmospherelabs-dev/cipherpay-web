@@ -43,7 +43,7 @@ function RecoverConfirmInner() {
 
   return (
     <div style={{ minHeight: '100vh', fontFamily: 'var(--font-geist-mono), monospace', fontSize: 13, lineHeight: 1.6, display: 'flex', flexDirection: 'column' }}>
-      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid var(--cp-border)' }}>
+      <header className="site-header">
         <Link href="/"><Logo size="sm" /></Link>
         <ThemeToggle />
       </header>

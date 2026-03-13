@@ -28,7 +28,7 @@ export const DashboardNavbar = memo(function DashboardNavbar({
     : '--';
 
   return (
-    <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 24px', borderBottom: '1px solid var(--cp-border)' }}>
+    <header className="site-header">
       <Link href="/"><Logo size="sm" /></Link>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <span className="tag" style={{ color: 'var(--cp-text)', padding: '0 10px', height: 36, display: 'inline-flex', alignItems: 'center', lineHeight: 1 }}>

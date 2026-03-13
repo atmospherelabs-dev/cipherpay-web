@@ -109,7 +109,7 @@ export const SettingsTab = memo(function SettingsTab({
       <div className="panel-header">
         <span className="panel-title">{t('title')}</span>
       </div>
-      <div style={{ fontSize: 11, color: 'var(--cp-text-dim)', padding: '0 16px', marginBottom: -8, lineHeight: 1.5 }}>
+      <div className="panel-subtitle">
         {t('subtitle')}
       </div>
       <div className="panel-body">
@@ -152,11 +152,11 @@ export const SettingsTab = memo(function SettingsTab({
           <>
             <div className="stat-row">
               <span style={{ fontSize: 11, color: 'var(--cp-green)' }}>{merchant.recovery_email_preview}</span>
-              <span className="status-badge status-confirmed" style={{ fontSize: 8 }}>{tc('set')}</span>
+              <span className="status-badge status-confirmed" style={{ fontSize: 9 }}>{tc('set')}</span>
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
               <button onClick={() => setEditingEmail(true)} className="btn btn-small">{t('emailChange')}</button>
-              <button onClick={removeEmail} className="btn btn-small" style={{ background: 'transparent', border: '1px solid var(--cp-red, #e55)', color: 'var(--cp-red, #e55)' }}>{t('emailRemove')}</button>
+              <button onClick={removeEmail} className="btn btn-small" style={{ background: 'transparent', border: '1px solid var(--cp-red)', color: 'var(--cp-red)' }}>{t('emailRemove')}</button>
             </div>
           </>
         ) : (
@@ -250,7 +250,7 @@ export const SettingsTab = memo(function SettingsTab({
 
         {/* 8. Danger Zone */}
         <div style={{ marginTop: 32, paddingTop: 20, borderTop: '1px solid rgba(239,68,68,0.2)' }}>
-          <div style={{ fontSize: 10, letterSpacing: 2, color: '#ef4444', fontWeight: 600, marginBottom: 12 }}>{t('dangerZone')}</div>
+          <div style={{ fontSize: 10, letterSpacing: 2, color: 'var(--cp-red)', fontWeight: 600, marginBottom: 12 }}>{t('dangerZone')}</div>
           <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginBottom: 12, lineHeight: 1.5 }}>
             {t('dangerDesc')}
           </div>
@@ -267,7 +267,7 @@ export const SettingsTab = memo(function SettingsTab({
               }
             }}
             className="btn"
-            style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444' }}
+            style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: 'var(--cp-red)' }}
           >
             {t('deleteAccount')}
           </button>

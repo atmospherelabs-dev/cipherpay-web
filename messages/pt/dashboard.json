@@ -252,7 +252,8 @@
   "x402": {
     "title": "Verificações x402",
     "subtitle": "Verificações HTTP 402 de pagamento das suas integrações de API.",
-    "noVerifications": "Nenhuma verificação x402 ainda"
+    "noVerifications": "Nenhuma verificação x402 ainda",
+    "txid": "TX"
   },
   "pos": {
     "title": "PDV // Ponto de Venda",
@@ -264,7 +265,8 @@
     "creatingInvoice": "CRIANDO FATURA...",
     "addItemsToCheckout": "ADICIONAR ITENS AO CHECKOUT",
     "checkout": "CHECKOUT — {symbol}{total}",
-    "toastCheckoutFailed": "Checkout falhou"
+    "toastCheckoutFailed": "Checkout falhou",
+    "tapToAdd": "Toque para adicionar"
   },
   "refundModal": {
     "title": "Confirmar Reembolso",

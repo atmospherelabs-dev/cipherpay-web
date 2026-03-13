@@ -3,7 +3,7 @@
 import { memo } from 'react';
 import { useTranslations } from 'next-intl';
 import type { MerchantInfo, Invoice, Product, BillingSummary, ZecRates } from '@/lib/api';
-import { currencySymbol, zecToFiat } from '@/lib/currency';
+import { currencySymbol, zecToFiat, fiatLabel } from '@/lib/currency';
 import type { Tab } from '../components/DashboardSidebar';
 import type { TabAction } from '../DashboardClient';
 
@@ -55,7 +55,7 @@ export const OverviewTab = memo(function OverviewTab({
             </div>
             {totalFiat !== null && (
               <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: 2 }}>
-                ~{sym}{totalFiat < 0.01 ? totalFiat.toFixed(4) : totalFiat.toFixed(2)}
+                {fiatLabel(totalFiat, displayCurrency).trim()}
               </div>
             )}
           </div>
@@ -136,7 +136,7 @@ export const OverviewTab = memo(function OverviewTab({
             </div>
           ) : (
             recentInvoices.map((inv) => (
-              <div key={inv.id} className="stat-row" style={{ padding: '8px 0' }}>
+              <div key={inv.id} className="stat-row" style={{ padding: '8px 0', cursor: 'pointer' }} onClick={() => setTab('invoices')}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
                   <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--cp-text)' }}>
                     {inv.product_name || inv.memo_code}
@@ -155,7 +155,7 @@ export const OverviewTab = memo(function OverviewTab({
                     inv.status === 'expired' ? 'status-expired' :
                     inv.status === 'refunded' ? 'status-expired' :
                     'status-pending'
-                  }`} style={{ fontSize: 8, minWidth: 60, textAlign: 'center' }}>
+                  }`} style={{ fontSize: 9, minWidth: 60, textAlign: 'center' }}>
                     {inv.status.toUpperCase()}
                   </span>
                 </div>
@@ -174,7 +174,7 @@ export const OverviewTab = memo(function OverviewTab({
           <div className="stat-row">
             <span style={{ color: 'var(--cp-text-muted)' }}>{t('storeName')}</span>
             {nameConfigured ? (
-              <span style={{ color: 'var(--cp-green)', fontSize: 10, fontWeight: 600 }}>{tc('configured')}</span>
+              <span style={{ color: 'var(--cp-green)', fontSize: 10, fontWeight: 600 }}>✓ {tc('configured')}</span>
             ) : (
               <button onClick={() => setTab('settings')} style={{ background: 'none', border: 'none', color: 'var(--cp-yellow)', fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: 1 }}>
                 {tc('setUp')}
@@ -184,7 +184,7 @@ export const OverviewTab = memo(function OverviewTab({
           <div className="stat-row">
             <span style={{ color: 'var(--cp-text-muted)' }}>{t('webhook')}</span>
             {webhookConfigured ? (
-              <span style={{ color: 'var(--cp-green)', fontSize: 10, fontWeight: 600 }}>{tc('configured')}</span>
+              <span style={{ color: 'var(--cp-green)', fontSize: 10, fontWeight: 600 }}>✓ {tc('configured')}</span>
             ) : (
               <button onClick={() => setTab('settings')} style={{ background: 'none', border: 'none', color: 'var(--cp-yellow)', fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: 1 }}>
                 {tc('setUp')}
@@ -194,7 +194,7 @@ export const OverviewTab = memo(function OverviewTab({
           <div className="stat-row">
             <span style={{ color: 'var(--cp-text-muted)' }}>{t('recoveryEmail')}</span>
             {emailConfigured ? (
-              <span style={{ color: 'var(--cp-green)', fontSize: 10, fontWeight: 600 }}>{tc('configured')}</span>
+              <span style={{ color: 'var(--cp-green)', fontSize: 10, fontWeight: 600 }}>✓ {tc('configured')}</span>
             ) : (
               <button onClick={() => setTab('settings')} style={{ background: 'none', border: 'none', color: 'var(--cp-yellow)', fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: 1 }}>
                 {tc('setUp')}
@@ -208,12 +208,12 @@ export const OverviewTab = memo(function OverviewTab({
                 billing.billing_status === 'active' ? 'status-confirmed' :
                 billing.billing_status === 'past_due' ? 'status-detected' :
                 'status-expired'
-              }`} style={{ fontSize: 8 }}>
+              }`} style={{ fontSize: 9 }}>
                 {billing.billing_status.toUpperCase().replace('_', ' ')}
               </span>
             </div>
           )}
-          <div className="stat-row">
+          <div className="stat-row" style={{ cursor: 'pointer' }} onClick={() => setTab('products')}>
             <span style={{ color: 'var(--cp-text-muted)' }}>{t('productsLabel')}</span>
             <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--cp-text)' }}>{products.length}</span>
           </div>

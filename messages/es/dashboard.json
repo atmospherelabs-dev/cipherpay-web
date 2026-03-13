@@ -252,7 +252,8 @@
   "x402": {
     "title": "Verificaciones x402",
     "subtitle": "Verificaciones HTTP 402 de pago de tus integraciones de API.",
-    "noVerifications": "No hay verificaciones x402 aún"
+    "noVerifications": "No hay verificaciones x402 aún",
+    "txid": "TX"
   },
   "pos": {
     "title": "TPV // Terminal Punto de Venta",
@@ -264,7 +265,8 @@
     "addItemsToCheckout": "AGREGAR ARTÍCULOS AL CHECKOUT",
     "checkout": "CHECKOUT — {symbol}{total}",
     "subtitle": "Crea facturas en persona. Selecciona productos, define cantidades y genera un checkout.",
-    "toastCheckoutFailed": "Checkout falló"
+    "toastCheckoutFailed": "Checkout falló",
+    "tapToAdd": "Toca para añadir"
   },
   "refundModal": {
     "title": "Confirmar Reembolso",

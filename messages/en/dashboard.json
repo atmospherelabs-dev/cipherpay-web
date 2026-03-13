@@ -252,7 +252,8 @@
   "x402": {
     "title": "x402 Verifications",
     "subtitle": "HTTP 402 payment verifications from your API integrations.",
-    "noVerifications": "No x402 verifications yet"
+    "noVerifications": "No x402 verifications yet",
+    "txid": "TX"
   },
   "pos": {
     "title": "POS // Point of Sale",
@@ -264,7 +265,8 @@
     "creatingInvoice": "CREATING INVOICE...",
     "addItemsToCheckout": "ADD ITEMS TO CHECKOUT",
     "checkout": "CHECKOUT — {symbol}{total}",
-    "toastCheckoutFailed": "Checkout failed"
+    "toastCheckoutFailed": "Checkout failed",
+    "tapToAdd": "Tap to add"
   },
   "refundModal": {
     "title": "Confirm Refund",

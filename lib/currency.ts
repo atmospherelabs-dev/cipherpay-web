@@ -47,5 +47,7 @@ export function zecToFiat(zec: number, rates: ZecRates | null, displayCurrency: 
 export function fiatLabel(fiat: number | null, displayCurrency: string): string {
   if (fiat === null) return '';
   const sym = currencySymbol(displayCurrency);
-  return ` (~${sym}${fiat < 0.01 ? fiat.toFixed(6) : fiat.toFixed(2)})`;
+  if (fiat < 0.0001) return ` (~${sym}0.00)`;
+  if (fiat < 0.01) return ` (~${sym}${fiat.toFixed(4)})`;
+  return ` (~${sym}${fiat.toFixed(2)})`;
 }

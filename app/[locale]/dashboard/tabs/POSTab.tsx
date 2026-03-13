@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
 import { api, type Product } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
+import { Spinner } from '@/components/Spinner';
 import { currencySymbol } from '@/lib/currency';
 
 interface POSTabProps {
@@ -93,13 +94,13 @@ export const POSTab = memo(function POSTab({ products, loadingProducts }: POSTab
           <button onClick={() => setCart({})} className="btn btn-small btn-cancel">{t('clear')}</button>
         )}
       </div>
-      <div style={{ fontSize: 11, color: 'var(--cp-text-dim)', padding: '0 16px 12px', lineHeight: 1.5 }}>
+      <div className="panel-subtitle">
         {t('subtitle')}
       </div>
 
       {loadingProducts ? (
         <div className="empty-state">
-          <div className="w-5 h-5 border-2 rounded-full animate-spin mx-auto" style={{ borderColor: 'var(--cp-cyan)', borderTopColor: 'transparent' }} />
+          <Spinner />
         </div>
       ) : activeProducts.length === 0 ? (
         <div className="empty-state">
@@ -108,56 +109,68 @@ export const POSTab = memo(function POSTab({ products, loadingProducts }: POSTab
         </div>
       ) : (
         <>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 8, padding: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 8, padding: 16 }}>
             {activeProducts.map((product) => {
               const qty = cart[product.id] || 0;
               const dp = getDefaultPrice(product);
               return (
                 <div
                   key={product.id}
+                  className="pos-card"
                   style={{
                     border: `1px solid ${qty > 0 ? 'var(--cp-cyan)' : 'var(--cp-border)'}`,
                     borderRadius: 4,
                     padding: 12,
                     background: qty > 0 ? 'rgba(6, 182, 212, 0.05)' : 'transparent',
                     transition: 'all 0.15s',
+                    cursor: qty === 0 ? 'pointer' : 'default',
                   }}
+                  onClick={() => { if (qty === 0) cartAdd(product.id); }}
                 >
                   <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, color: 'var(--cp-text)' }}>
                     {product.name}
                   </div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--cp-text)', marginBottom: 8 }}>
-                    {dp ? `${currencySymbol(dp.currency)}${dp.unit_amount.toFixed(2)}` : '—'}
+                    {dp ? (
+                      <>
+                        {currencySymbol(dp.currency)}{dp.unit_amount.toFixed(2)}
+                        <span style={{ fontSize: 9, fontWeight: 400, color: 'var(--cp-text-dim)', marginLeft: 4 }}>{dp.currency}</span>
+                      </>
+                    ) : '—'}
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <button
-                      onClick={() => cartRemove(product.id)}
-                      disabled={qty === 0}
-                      style={{
-                        width: 28, height: 28, border: '1px solid var(--cp-border)',
-                        borderRadius: 4, background: 'transparent', color: 'var(--cp-text)',
-                        fontSize: 16, cursor: qty === 0 ? 'not-allowed' : 'pointer',
-                        opacity: qty === 0 ? 0.3 : 1, fontFamily: 'inherit',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      }}
-                    >
-                      −
-                    </button>
-                    <span style={{ fontSize: 14, fontWeight: 700, minWidth: 20, textAlign: 'center', color: qty > 0 ? 'var(--cp-cyan)' : 'var(--cp-text-dim)' }}>
-                      {qty}
-                    </span>
-                    <button
-                      onClick={() => cartAdd(product.id)}
-                      style={{
-                        width: 28, height: 28, border: '1px solid var(--cp-cyan)',
-                        borderRadius: 4, background: 'transparent', color: 'var(--cp-cyan)',
-                        fontSize: 16, cursor: 'pointer', fontFamily: 'inherit',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      }}
-                    >
-                      +
-                    </button>
-                  </div>
+                  {qty > 0 ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} onClick={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={() => cartRemove(product.id)}
+                        style={{
+                          width: 28, height: 28, border: '1px solid var(--cp-border)',
+                          borderRadius: 4, background: 'transparent', color: 'var(--cp-text)',
+                          fontSize: 16, cursor: 'pointer', fontFamily: 'inherit',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}
+                      >
+                        −
+                      </button>
+                      <span style={{ fontSize: 14, fontWeight: 700, minWidth: 20, textAlign: 'center', color: 'var(--cp-cyan)' }}>
+                        {qty}
+                      </span>
+                      <button
+                        onClick={() => cartAdd(product.id)}
+                        style={{
+                          width: 28, height: 28, border: '1px solid var(--cp-cyan)',
+                          borderRadius: 4, background: 'transparent', color: 'var(--cp-cyan)',
+                          fontSize: 16, cursor: 'pointer', fontFamily: 'inherit',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}
+                      >
+                        +
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', letterSpacing: 0.5 }}>
+                      {t('tapToAdd')}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -185,7 +198,7 @@ export const POSTab = memo(function POSTab({ products, loadingProducts }: POSTab
                   <span>{cartSymbol}{cartTotal.toFixed(2)}</span>
                 </div>
                 {cartMixedCurrency && (
-                  <div style={{ fontSize: 10, color: '#f59e0b', marginTop: 6 }}>
+                  <div style={{ fontSize: 10, color: 'var(--cp-yellow)', marginTop: 6 }}>
                     {t('mixedCurrency')}
                   </div>
                 )}

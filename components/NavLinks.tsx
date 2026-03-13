@@ -46,9 +46,14 @@ export function NavLinks() {
     letterSpacing: 1,
     color: pathname === href ? 'var(--cp-cyan)' : 'var(--cp-text-muted)',
     fontWeight: pathname === href ? 600 : 400,
-    padding: '8px 0',
+    padding: '8px 10px',
+    minHeight: 36,
+    display: 'inline-flex',
+    alignItems: 'center',
     lineHeight: 1,
     whiteSpace: 'nowrap',
+    borderRadius: 4,
+    transition: 'color 0.15s',
   });
 
   const authLinks = isLoggedIn === null ? (

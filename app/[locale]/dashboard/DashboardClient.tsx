@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 
 import { DashboardNavbar } from './components/DashboardNavbar';
+import { Banner } from '@/components/Banner';
 import { DashboardSidebar, type Tab } from './components/DashboardSidebar';
 import { OverviewTab } from './tabs/OverviewTab';
 import { ProductsTab } from './tabs/ProductsTab';
@@ -124,30 +125,28 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
 
       {/* Billing status banners */}
       {billing?.fee_enabled && billing.billing_status === 'suspended' && (
-        <div style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.5)', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#ef4444', letterSpacing: 1 }}>{t('suspended')}</div>
-            <div style={{ fontSize: 10, color: 'var(--cp-text-muted)', marginTop: 4 }}>
-              {t('suspendedDesc', { amount: billing.outstanding_zec.toFixed(6) })}
-            </div>
-          </div>
-          <button onClick={settleBilling} className="btn" style={{ color: '#ef4444', borderColor: 'rgba(239,68,68,0.5)' }}>
-            {t('payNow')}
-          </button>
-        </div>
+        <Banner
+          variant="error"
+          title={t('suspended')}
+          description={t('suspendedDesc', { amount: billing.outstanding_zec.toFixed(6) })}
+          action={
+            <button onClick={settleBilling} className="btn" style={{ color: 'var(--cp-red)', borderColor: 'rgba(239,68,68,0.5)' }}>
+              {t('payNow')}
+            </button>
+          }
+        />
       )}
       {billing?.fee_enabled && billing.billing_status === 'past_due' && (
-        <div style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.4)', padding: '12px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#f59e0b', letterSpacing: 1 }}>{t('pastDue')}</div>
-            <div style={{ fontSize: 10, color: 'var(--cp-text-muted)', marginTop: 2 }}>
-              {t('pastDueDesc', { amount: billing.outstanding_zec.toFixed(6) })}
-            </div>
-          </div>
-          <button onClick={settleBilling} className="btn" style={{ color: '#f59e0b', borderColor: 'rgba(245,158,11,0.5)' }}>
-            {t('payNow')}
-          </button>
-        </div>
+        <Banner
+          variant="warning"
+          title={t('pastDue')}
+          description={t('pastDueDesc', { amount: billing.outstanding_zec.toFixed(6) })}
+          action={
+            <button onClick={settleBilling} className="btn" style={{ color: 'var(--cp-yellow)', borderColor: 'rgba(245,158,11,0.5)' }}>
+              {t('payNow')}
+            </button>
+          }
+        />
       )}
 
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: 24 }}>
@@ -202,6 +201,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                 checkoutOrigin={checkoutOrigin}
                 initialAction={tabAction}
                 clearAction={() => setTabAction(null)}
+                isTestnet={merchant.payment_address.startsWith('utest')}
               />
             )}
             {tab === 'billing' && (
@@ -228,6 +228,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                 loadX402={loadX402}
                 zecRates={zecRates}
                 displayCurrency={displayCurrency}
+                isTestnet={merchant.payment_address.startsWith('utest')}
               />
             )}
           </div>
