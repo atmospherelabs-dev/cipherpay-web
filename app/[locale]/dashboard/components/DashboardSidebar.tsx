@@ -98,6 +98,30 @@ export const DashboardSidebar = memo(function DashboardSidebar({
           )}
           {navButton('settings', t('settings'))}
         </div>
+
+        <div style={{ borderTop: '1px solid var(--cp-border)', margin: '8px 0' }} />
+
+        <a
+          href="/docs"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            padding: '10px 14px',
+            fontFamily: 'inherit', fontSize: 11, letterSpacing: 1.5, fontWeight: 400,
+            color: 'var(--cp-text-dim)',
+            textDecoration: 'none',
+            borderRadius: 4,
+            transition: 'color 0.15s',
+          }}
+        >
+          {t('docs')}
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.5 }}>
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+            <polyline points="15 3 21 3 21 9" />
+            <line x1="10" y1="14" x2="21" y2="3" />
+          </svg>
+        </a>
       </nav>
     </div>
   );

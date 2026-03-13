@@ -1,0 +1,9 @@
+{
+  "tag": "CHECKOUT",
+  "payWithZec": "PAY WITH SHIELDED ZEC",
+  "payButton": "PAY WITH ZEC",
+  "processing": "PROCESSING...",
+  "productNotFound": "PRODUCT NOT FOUND",
+  "refundTitle": "Refund Address (optional)",
+  "refundDesc": "Provide a Zcash address if you want the option of a refund. Without it, refunds require manual coordination."
+}

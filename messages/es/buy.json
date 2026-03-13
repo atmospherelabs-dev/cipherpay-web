@@ -1,0 +1,9 @@
+{
+  "tag": "CHECKOUT",
+  "payWithZec": "PAGA CON ZEC BLINDADO",
+  "payButton": "PAGAR CON ZEC",
+  "processing": "PROCESANDO...",
+  "productNotFound": "PRODUCTO NO ENCONTRADO",
+  "refundTitle": "Dirección de Reembolso (opcional)",
+  "refundDesc": "Proporciona una dirección Zcash si deseas la opción de reembolso. Sin ella, los reembolsos requieren coordinación manual."
+}

@@ -1,0 +1,16 @@
+{
+  "verifying": "VERIFYING RECOVERY TOKEN...",
+  "failedTitle": "Recovery Failed",
+  "error": "ERROR",
+  "noToken": "No recovery token provided",
+  "recoveryFailed": "Recovery failed",
+  "expiredDesc": "The recovery link may have expired or already been used. Each link is valid for 1 hour and can only be used once.",
+  "tryAgain": "TRY AGAIN",
+  "login": "LOGIN",
+  "successTitle": "Account Recovered",
+  "success": "SUCCESS",
+  "successDesc": "Your account has been recovered. Here is your new dashboard token. Save it now — it will not be shown again.",
+  "newToken": "NEW DASHBOARD TOKEN",
+  "oldTokenInvalidated": "YOUR OLD TOKEN HAS BEEN INVALIDATED.",
+  "signInWithNew": "SIGN IN WITH NEW TOKEN"
+}

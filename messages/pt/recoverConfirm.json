@@ -1,0 +1,16 @@
+{
+  "verifying": "VERIFICANDO TOKEN DE RECUPERAÇÃO...",
+  "failedTitle": "Recuperação Falhou",
+  "error": "ERRO",
+  "noToken": "Nenhum token de recuperação fornecido",
+  "recoveryFailed": "Recuperação falhou",
+  "expiredDesc": "O link de recuperação pode ter expirado ou já ter sido usado. Cada link é válido por 1 hora e só pode ser usado uma vez.",
+  "tryAgain": "TENTAR NOVAMENTE",
+  "login": "LOGIN",
+  "successTitle": "Conta Recuperada",
+  "success": "SUCESSO",
+  "successDesc": "Sua conta foi recuperada. Aqui está seu novo token do painel. Salve agora — não será mostrado novamente.",
+  "newToken": "NOVO TOKEN DO PAINEL",
+  "oldTokenInvalidated": "SEU TOKEN ANTERIOR FOI INVALIDADO.",
+  "signInWithNew": "ENTRAR COM NOVO TOKEN"
+}

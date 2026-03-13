@@ -1,0 +1,23 @@
+{
+  "poweredBy": "Powered by <cyan>CipherPay</cyan>",
+  "copy": "COPIAR",
+  "save": "SALVAR",
+  "saved": "SALVO ✓",
+  "cancel": "CANCELAR",
+  "loading": "Carregando...",
+  "edit": "EDITAR",
+  "remove": "REMOVER",
+  "undo": "DESFAZER",
+  "add": "ADICIONAR",
+  "refresh": "ATUALIZAR",
+  "back": "VOLTAR",
+  "close": "FECHAR",
+  "confirm": "CONFIRMAR",
+  "copied": "Copiado",
+  "viewAll": "VER TUDO",
+  "total": "TOTAL",
+  "signOut": "SAIR",
+  "configured": "CONFIGURADO",
+  "setUp": "CONFIGURAR →",
+  "set": "DEFINIDO"
+}
