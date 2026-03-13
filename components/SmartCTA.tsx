@@ -1,6 +1,7 @@
 'use client';
 
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
+import { useTranslations } from 'next-intl';
 import { useIsLoggedIn } from './NavLinks';
 
 export function SmartCTA({ children, className, style }: {
@@ -9,11 +10,12 @@ export function SmartCTA({ children, className, style }: {
   style?: React.CSSProperties;
 }) {
   const isLoggedIn = useIsLoggedIn();
+  const t = useTranslations('landing');
   const href = isLoggedIn ? '/dashboard' : '/dashboard/register';
 
   return (
     <Link href={href} className={className} style={style}>
-      {isLoggedIn ? 'GO TO DASHBOARD' : children}
+      {isLoggedIn ? t('ctaDashboard') : children}
     </Link>
   );
 }

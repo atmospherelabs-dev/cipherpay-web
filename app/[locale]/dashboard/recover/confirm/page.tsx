@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { api } from '@/lib/api';
 import { Logo } from '@/components/Logo';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -9,6 +10,7 @@ import { CopyButton } from '@/components/CopyButton';
 import { Link } from '@/i18n/navigation';
 
 function RecoverConfirmInner() {
+  const t = useTranslations('recoverConfirm');
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
 
@@ -21,7 +23,7 @@ function RecoverConfirmInner() {
     if (initiated.current) return;
 
     if (!token) {
-      setError('No recovery token provided');
+      setError(t('noToken'));
       setLoading(false);
       return;
     }
@@ -34,10 +36,10 @@ function RecoverConfirmInner() {
         window.history.replaceState({}, '', window.location.pathname);
       })
       .catch((err) => {
-        setError(err instanceof Error ? err.message : 'Recovery failed');
+        setError(err instanceof Error ? err.message : t('recoveryFailed'));
       })
       .finally(() => setLoading(false));
-  }, [token]);
+  }, [token, t]);
 
   return (
     <div style={{ minHeight: '100vh', fontFamily: 'var(--font-geist-mono), monospace', fontSize: 13, lineHeight: 1.6, display: 'flex', flexDirection: 'column' }}>
@@ -52,28 +54,27 @@ function RecoverConfirmInner() {
             <div className="panel">
               <div className="panel-body" style={{ textAlign: 'center', padding: 40 }}>
                 <div style={{ fontSize: 11, color: 'var(--cp-text-muted)', letterSpacing: 1 }}>
-                  VERIFYING RECOVERY TOKEN...
+                  {t('verifying')}
                 </div>
               </div>
             </div>
           ) : error ? (
             <div className="panel">
               <div className="panel-header">
-                <span className="panel-title">Recovery Failed</span>
-                <span className="status-badge status-expired">ERROR</span>
+                <span className="panel-title">{t('failedTitle')}</span>
+                <span className="status-badge status-expired">{t('error')}</span>
               </div>
               <div className="panel-body">
                 <p style={{ fontSize: 11, color: 'var(--cp-red)', marginBottom: 16 }}>{error}</p>
                 <p style={{ fontSize: 11, color: 'var(--cp-text-muted)', marginBottom: 16 }}>
-                  The recovery link may have expired or already been used.
-                  Each link is valid for 1 hour and can only be used once.
+                  {t('expiredDesc')}
                 </p>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <Link href="/dashboard/recover" className="btn" style={{ flex: 1, textAlign: 'center' }}>
-                    TRY AGAIN
+                    {t('tryAgain')}
                   </Link>
                   <Link href="/dashboard/login" className="btn" style={{ flex: 1, textAlign: 'center' }}>
-                    LOGIN
+                    {t('login')}
                   </Link>
                 </div>
               </div>
@@ -81,18 +82,17 @@ function RecoverConfirmInner() {
           ) : (
             <div className="panel">
               <div className="panel-header">
-                <span className="panel-title">Account Recovered</span>
-                <span className="status-badge status-confirmed">SUCCESS</span>
+                <span className="panel-title">{t('successTitle')}</span>
+                <span className="status-badge status-confirmed">{t('success')}</span>
               </div>
               <div className="panel-body">
                 <p style={{ fontSize: 11, color: 'var(--cp-text-muted)', marginBottom: 20 }}>
-                  Your account has been recovered. Here is your new dashboard token.
-                  Save it now — it will not be shown again.
+                  {t('successDesc')}
                 </p>
 
                 <div style={{ padding: 14, background: 'var(--cp-bg)', border: '1px solid var(--cp-cyan)', borderRadius: 4, marginBottom: 16 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <span style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-cyan)' }}>NEW DASHBOARD TOKEN</span>
+                    <span style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-cyan)' }}>{t('newToken')}</span>
                     <CopyButton text={dashboardToken!} label="" />
                   </div>
                   <code style={{ fontSize: 10, wordBreak: 'break-all', display: 'block', color: 'var(--cp-text)' }}>
@@ -102,12 +102,12 @@ function RecoverConfirmInner() {
 
                 <div style={{ padding: 12, background: 'rgba(234,179,8,0.1)', border: '1px solid rgba(234,179,8,0.3)', borderRadius: 4, marginBottom: 16 }}>
                   <p style={{ fontSize: 10, color: 'var(--cp-yellow)', fontWeight: 600, letterSpacing: 1 }}>
-                    YOUR OLD TOKEN HAS BEEN INVALIDATED.
+                    {t('oldTokenInvalidated')}
                   </p>
                 </div>
 
                 <Link href="/dashboard/login" className="btn-primary" style={{ width: '100%', textAlign: 'center' }}>
-                  SIGN IN WITH NEW TOKEN
+                  {t('signInWithNew')}
                 </Link>
               </div>
             </div>

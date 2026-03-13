@@ -1,10 +1,11 @@
 'use client';
 
-import Link from 'next/link';
+import { Link, usePathname } from '@/i18n/navigation';
 import { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { API_URL } from '@/lib/config';
 import { ThemeToggle } from './ThemeToggle';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 export function useIsLoggedIn() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
@@ -23,6 +24,7 @@ export function useIsLoggedIn() {
 export function NavLinks() {
   const isLoggedIn = useIsLoggedIn();
   const pathname = usePathname();
+  const t = useTranslations('nav');
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -53,15 +55,15 @@ export function NavLinks() {
     <span style={{ display: 'inline-block', width: 90, height: 36 }} />
   ) : isLoggedIn ? (
     <Link href="/dashboard" className="btn-primary">
-      DASHBOARD
+      {t('dashboard')}
     </Link>
   ) : (
     <>
       <Link href="/dashboard/login" className="btn">
-        SIGN IN
+        {t('signIn')}
       </Link>
       <Link href="/dashboard/register" className="btn-primary">
-        GET STARTED
+        {t('getStarted')}
       </Link>
     </>
   );
@@ -71,11 +73,12 @@ export function NavLinks() {
       {/* Desktop nav */}
       <div className="nav-desktop">
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <Link href="/docs" style={linkStyle('/docs')}>DOCS</Link>
-          <Link href="/faq" style={linkStyle('/faq')}>FAQ</Link>
+          <Link href="/docs" style={linkStyle('/docs')}>{t('docs')}</Link>
+          <Link href="/faq" style={linkStyle('/faq')}>{t('faq')}</Link>
         </div>
         <div style={{ width: 1, height: 20, background: 'var(--cp-border)', margin: '0 4px' }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <LanguageSwitcher />
           <ThemeToggle />
           {authLinks}
         </div>
@@ -83,6 +86,7 @@ export function NavLinks() {
 
       {/* Mobile burger */}
       <div className="nav-mobile">
+        <LanguageSwitcher />
         <ThemeToggle />
         <button
           onClick={() => setMenuOpen(!menuOpen)}
@@ -101,8 +105,8 @@ export function NavLinks() {
       {menuOpen && (
         <div className="mobile-overlay" onClick={() => setMenuOpen(false)}>
           <nav className="mobile-drawer" onClick={(e) => e.stopPropagation()}>
-            <Link href="/docs" style={{ ...linkStyle('/docs'), fontSize: 14, padding: '12px 0', display: 'block' }}>DOCS</Link>
-            <Link href="/faq" style={{ ...linkStyle('/faq'), fontSize: 14, padding: '12px 0', display: 'block' }}>FAQ</Link>
+            <Link href="/docs" style={{ ...linkStyle('/docs'), fontSize: 14, padding: '12px 0', display: 'block' }}>{t('docs')}</Link>
+            <Link href="/faq" style={{ ...linkStyle('/faq'), fontSize: 14, padding: '12px 0', display: 'block' }}>{t('faq')}</Link>
             <div style={{ borderTop: '1px solid var(--cp-border)', marginTop: 8, paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
               {authLinks}
             </div>
