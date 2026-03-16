@@ -306,9 +306,8 @@ export default async function LandingPage() {
       </section>
 
       {/* AI Agents */}
-      <section style={{ borderTop: '1px solid var(--cp-border)', padding: '60px 24px', position: 'relative', overflow: 'hidden' }}>
-        <div aria-hidden="true" className="hero-gradient hero-gradient-steps" />
-        <div style={{ maxWidth: 900, margin: '0 auto', position: 'relative' }}>
+      <section style={{ borderTop: '1px solid var(--cp-border)', padding: '60px 24px' }}>
+        <div style={{ maxWidth: 900, margin: '0 auto' }}>
           <div className="section-title" style={{ textAlign: 'center', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><LogoMark size={8} /> {t('agentsTitle')}</div>
           <h2 style={{ fontSize: 24, fontWeight: 700, textAlign: 'center', marginBottom: 16 }}>
             {t('agentsSubtitle')}
@@ -320,33 +319,36 @@ export default async function LandingPage() {
             {t('agentsDescHighlight')}
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginBottom: 32 }}>
-            {/* Privacy Comparison */}
-            <div className="panel">
-              <div className="panel-header">
-                <span className="panel-title" style={{ display: 'flex', gap: 24 }}>
-                  <span>{t('agentsPrivacyTitle')}</span>
-                  <span style={{ color: 'var(--cp-cyan)' }}>{t('agentsPrivacyZcash')}</span>
-                </span>
+          {/* Privacy Comparison — full width */}
+          <div className="panel" style={{ marginBottom: 16 }}>
+            <div className="panel-body" style={{ padding: 0 }}>
+              <div style={{
+                display: 'grid', gridTemplateColumns: '1fr 120px 120px', alignItems: 'center',
+                padding: '12px 18px',
+                borderBottom: '1px solid var(--cp-border)',
+                fontSize: 10, letterSpacing: 1.5, fontWeight: 600,
+              }}>
+                <span style={{ color: 'var(--cp-text-dim)' }}>&nbsp;</span>
+                <span style={{ color: 'var(--cp-text-muted)', textAlign: 'center' }}>{t('agentsPrivacyTitle')}</span>
+                <span style={{ color: 'var(--cp-cyan)', textAlign: 'center' }}>{t('agentsPrivacyZcash')}</span>
               </div>
-              <div className="panel-body" style={{ padding: 0 }}>
-                {(['Row1', 'Row2', 'Row3', 'Row4', 'Row5'] as const).map((row, i) => (
-                  <div key={row} style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '10px 18px',
-                    borderBottom: i < 4 ? '1px solid var(--cp-border)' : 'none',
-                    fontSize: 11,
-                  }}>
-                    <span style={{ color: 'var(--cp-text-muted)' }}>{t(`agentsPrivacy${row}`)}</span>
-                    <span style={{ display: 'flex', gap: 24 }}>
-                      <span style={{ color: '#ef4444', fontWeight: 600, width: 48, textAlign: 'center' }}>{t('agentsPrivacyVisible')}</span>
-                      <span style={{ color: 'var(--cp-cyan)', fontWeight: 600, width: 48, textAlign: 'center' }}>{t('agentsPrivacyHidden')}</span>
-                    </span>
-                  </div>
-                ))}
-              </div>
+              {(['Row1', 'Row2', 'Row3', 'Row4', 'Row5'] as const).map((row, i) => (
+                <div key={row} style={{
+                  display: 'grid', gridTemplateColumns: '1fr 120px 120px', alignItems: 'center',
+                  padding: '10px 18px',
+                  borderBottom: i < 4 ? '1px solid var(--cp-border)' : 'none',
+                  fontSize: 11,
+                }}>
+                  <span style={{ color: 'var(--cp-text-muted)' }}>{t(`agentsPrivacy${row}`)}</span>
+                  <span style={{ color: '#ef4444', fontWeight: 600, textAlign: 'center' }}>{t('agentsPrivacyVisible')}</span>
+                  <span style={{ color: 'var(--cp-cyan)', fontWeight: 600, textAlign: 'center' }}>{t('agentsPrivacyHidden')}</span>
+                </div>
+              ))}
             </div>
+          </div>
 
+          {/* x402 Flow + SDK snippet — side by side */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
             {/* x402 Flow */}
             <div className="panel">
               <div className="panel-header">
@@ -373,27 +375,27 @@ export default async function LandingPage() {
                 ))}
               </div>
             </div>
-          </div>
 
-          {/* SDK snippet */}
-          <div className="panel" style={{ maxWidth: 520, margin: '0 auto' }}>
-            <div className="panel-header">
-              <span className="panel-title">{t('agentsSdkTitle')}</span>
-              <span className="tag">TypeScript</span>
-            </div>
-            <div style={{ padding: '4px 18px 6px' }}>
-              <div style={{
-                fontSize: 10, color: 'var(--cp-cyan)', fontFamily: 'var(--font-geist-mono), monospace',
-                background: 'var(--cp-surface)', border: '1px solid var(--cp-border)', borderRadius: 4,
-                padding: '8px 12px', marginBottom: 8, letterSpacing: 0.5,
-              }}>
-                $ {t('agentsNpmInstall')}
+            {/* SDK snippet */}
+            <div className="panel">
+              <div className="panel-header">
+                <span className="panel-title">{t('agentsSdkTitle')}</span>
+                <span className="tag">TypeScript</span>
               </div>
-            </div>
-            <div style={{ padding: '0 18px 18px', overflow: 'auto' }}>
-              <pre style={{ margin: 0, fontSize: 10, lineHeight: 1.8, color: 'var(--cp-text)' }}>
-                <code>{x402Snippet}</code>
-              </pre>
+              <div style={{ padding: '4px 18px 6px' }}>
+                <div style={{
+                  fontSize: 10, color: 'var(--cp-cyan)', fontFamily: 'var(--font-geist-mono), monospace',
+                  background: 'var(--cp-surface)', border: '1px solid var(--cp-border)', borderRadius: 4,
+                  padding: '8px 12px', marginBottom: 8, letterSpacing: 0.5,
+                }}>
+                  $ {t('agentsNpmInstall')}
+                </div>
+              </div>
+              <div style={{ padding: '0 18px 18px', overflow: 'auto' }}>
+                <pre style={{ margin: 0, fontSize: 10, lineHeight: 1.8, color: 'var(--cp-text)' }}>
+                  <code>{x402Snippet}</code>
+                </pre>
+              </div>
             </div>
           </div>
         </div>
