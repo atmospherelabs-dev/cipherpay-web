@@ -301,6 +301,14 @@ export default async function LandingPage() {
                 </p>
               </div>
             </div>
+            <div className="panel">
+              <div className="panel-body">
+                <div style={{ fontSize: 11, color: 'var(--cp-cyan)', letterSpacing: 1, marginBottom: 8 }}>{t('intMcp')}</div>
+                <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>
+                  {t('intMcpDesc')}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>

@@ -34,6 +34,8 @@
   "intShopifyDesc": "Instala la app, agrega tu clave API. Acepta ZEC en tu tienda Shopify en minutos.",
   "intWoo": "WOOCOMMERCE",
   "intWooDesc": "Instala el plugin, ingresa tu clave API. Tu tienda WordPress acepta ZEC.",
+  "intMcp": "MCP (CLAUDE CODE / OPENCLAW)",
+  "intMcpDesc": "Deja que asistentes de IA creen facturas, verifiquen pagos y gestionen tu tienda. Funciona con cualquier agente compatible con MCP.",
   "readyTitle": "¿Listo para aceptar pagos privados?",
   "agentsTitle": "AGENTES IA",
   "agentsSubtitle": "Pagos privados para la economía de agentes",

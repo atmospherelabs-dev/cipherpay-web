@@ -34,6 +34,8 @@
   "intShopifyDesc": "Install the app, add your API key. Accept ZEC on your Shopify store in minutes.",
   "intWoo": "WOOCOMMERCE",
   "intWooDesc": "Install the plugin, enter your API key. Your WordPress store accepts ZEC.",
+  "intMcp": "MCP (CLAUDE CODE / OPENCLAW)",
+  "intMcpDesc": "Let AI assistants create invoices, check payments, and manage your store. Works with any MCP-compatible agent.",
   "agentsTitle": "AI AGENTS",
   "agentsSubtitle": "Private payments for the agent economy",
   "agentsDesc": "Every AI agent payment on Base, Solana, or Polygon is a public record. Your agent's operational strategy — what APIs it calls, what data it buys, how often — is visible to anyone.",
