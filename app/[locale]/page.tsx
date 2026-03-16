@@ -5,6 +5,14 @@ import { SiteFooter } from '@/components/SiteFooter';
 import { DemoQR } from '@/components/DemoQR';
 import { getTranslations } from 'next-intl/server';
 
+const x402Snippet = `import { zcashPaywall } from '@cipherpay/x402/express';
+
+app.use('/api/premium', zcashPaywall({
+  amount: 0.001,
+  address: 'u1abc...',
+  apiKey: process.env.CIPHERPAY_API_KEY,
+}));`;
+
 const codeSnippet = `curl -X POST https://api.cipherpay.app/api/invoices \\
   -H "Authorization: Bearer cpay_sk_..." \\
   -H "Content-Type: application/json" \\
@@ -292,6 +300,100 @@ export default async function LandingPage() {
                   {t('intWooDesc')}
                 </p>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* AI Agents */}
+      <section style={{ borderTop: '1px solid var(--cp-border)', padding: '60px 24px', position: 'relative', overflow: 'hidden' }}>
+        <div aria-hidden="true" className="hero-gradient hero-gradient-steps" />
+        <div style={{ maxWidth: 900, margin: '0 auto', position: 'relative' }}>
+          <div className="section-title" style={{ textAlign: 'center', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><LogoMark size={8} /> {t('agentsTitle')}</div>
+          <h2 style={{ fontSize: 24, fontWeight: 700, textAlign: 'center', marginBottom: 16 }}>
+            {t('agentsSubtitle')}
+          </h2>
+          <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', textAlign: 'center', maxWidth: 560, margin: '0 auto 12px', lineHeight: 1.8 }}>
+            {t('agentsDesc')}
+          </p>
+          <p style={{ fontSize: 13, color: 'var(--cp-cyan)', textAlign: 'center', fontWeight: 600, marginBottom: 40 }}>
+            {t('agentsDescHighlight')}
+          </p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginBottom: 32 }}>
+            {/* Privacy Comparison */}
+            <div className="panel">
+              <div className="panel-header">
+                <span className="panel-title" style={{ display: 'flex', gap: 24 }}>
+                  <span>{t('agentsPrivacyTitle')}</span>
+                  <span style={{ color: 'var(--cp-cyan)' }}>{t('agentsPrivacyZcash')}</span>
+                </span>
+              </div>
+              <div className="panel-body" style={{ padding: 0 }}>
+                {(['Row1', 'Row2', 'Row3', 'Row4', 'Row5'] as const).map((row, i) => (
+                  <div key={row} style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '10px 18px',
+                    borderBottom: i < 4 ? '1px solid var(--cp-border)' : 'none',
+                    fontSize: 11,
+                  }}>
+                    <span style={{ color: 'var(--cp-text-muted)' }}>{t(`agentsPrivacy${row}`)}</span>
+                    <span style={{ display: 'flex', gap: 24 }}>
+                      <span style={{ color: '#ef4444', fontWeight: 600, width: 48, textAlign: 'center' }}>{t('agentsPrivacyVisible')}</span>
+                      <span style={{ color: 'var(--cp-cyan)', fontWeight: 600, width: 48, textAlign: 'center' }}>{t('agentsPrivacyHidden')}</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* x402 Flow */}
+            <div className="panel">
+              <div className="panel-header">
+                <span className="panel-title">{t('agentsHow')}</span>
+                <span className="tag">x402</span>
+              </div>
+              <div className="panel-body" style={{ padding: 0 }}>
+                {[
+                  { step: '1', text: t('agentsStep1'), color: 'var(--cp-text-muted)' },
+                  { step: '2', text: t('agentsStep2'), color: 'var(--cp-text-muted)' },
+                  { step: '3', text: t('agentsStep3'), color: 'var(--cp-cyan)' },
+                  { step: '4', text: t('agentsStep4'), color: 'var(--cp-text-muted)' },
+                  { step: '5', text: t('agentsStep5'), color: 'var(--cp-text-muted)' },
+                ].map((item, i) => (
+                  <div key={i} style={{
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    padding: '10px 18px',
+                    borderBottom: i < 4 ? '1px solid var(--cp-border)' : 'none',
+                    fontSize: 11,
+                  }}>
+                    <span style={{ color: 'var(--cp-text-dim)', fontWeight: 700, fontSize: 10, width: 16 }}>{item.step}</span>
+                    <span style={{ color: item.color }}>{item.text}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* SDK snippet */}
+          <div className="panel" style={{ maxWidth: 520, margin: '0 auto' }}>
+            <div className="panel-header">
+              <span className="panel-title">{t('agentsSdkTitle')}</span>
+              <span className="tag">TypeScript</span>
+            </div>
+            <div style={{ padding: '4px 18px 6px' }}>
+              <div style={{
+                fontSize: 10, color: 'var(--cp-cyan)', fontFamily: 'var(--font-geist-mono), monospace',
+                background: 'var(--cp-surface)', border: '1px solid var(--cp-border)', borderRadius: 4,
+                padding: '8px 12px', marginBottom: 8, letterSpacing: 0.5,
+              }}>
+                $ {t('agentsNpmInstall')}
+              </div>
+            </div>
+            <div style={{ padding: '0 18px 18px', overflow: 'auto' }}>
+              <pre style={{ margin: 0, fontSize: 10, lineHeight: 1.8, color: 'var(--cp-text)' }}>
+                <code>{x402Snippet}</code>
+              </pre>
             </div>
           </div>
         </div>

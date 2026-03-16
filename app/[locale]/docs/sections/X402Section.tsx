@@ -41,6 +41,74 @@ export default function X402Section() {
 
       <SectionDivider />
 
+      <SectionTitle>Why privacy matters for agents</SectionTitle>
+      <Paragraph>
+        Every AI agent payment on Base, Solana, or Polygon is a public record. Competitors can reconstruct
+        your agent&apos;s entire operational strategy — what APIs it calls, what data it buys, how often, and how much
+        it spends. On transparent chains, agent payment metadata is a surveillance goldmine.
+      </Paragraph>
+      <Paragraph>
+        With Zcash shielded payments, all of that is invisible. The sender, receiver, amount, and frequency are
+        fully encrypted on-chain. CipherPay verifies payments using your viewing key, but the <Strong>agent&apos;s identity,
+        balance, and activity remain completely private</Strong>.
+      </Paragraph>
+
+      <SectionDivider />
+
+      <SectionTitle>Quick start — @cipherpay/x402</SectionTitle>
+      <Paragraph>
+        The fastest way to accept shielded ZEC payments on your API. One middleware, one line.
+      </Paragraph>
+      <CodeBlock lang="bash" code={`npm install @cipherpay/x402`} />
+      <CodeBlock lang="typescript" code={`import express from 'express';
+import { zcashPaywall } from '@cipherpay/x402/express';
+
+const app = express();
+
+// Gate premium endpoints behind a ZEC payment
+app.use('/api/premium', zcashPaywall({
+  amount: 0.001,          // ZEC per request
+  address: 'u1abc...',    // Your Zcash Unified Address
+  apiKey: 'cpay_sk_...',  // CipherPay API key
+}));
+
+app.get('/api/premium/data', (req, res) => {
+  res.json({ temperature: 18, conditions: 'partly cloudy' });
+});`} />
+      <Paragraph>
+        The middleware handles the full x402 flow: returns 402 with payment terms when no proof is present,
+        verifies the txid via CipherPay when the <Code>X-PAYMENT</Code> header is provided, and grants access
+        when the payment is valid.
+      </Paragraph>
+
+      <Callout type="tip">
+        For dynamic pricing (e.g. different rates per model or endpoint), use the <Code>getAmount</Code> option
+        instead of a static <Code>amount</Code>.
+      </Callout>
+
+      <CodeBlock lang="typescript" code={`app.use('/api/ai', zcashPaywall({
+  address: 'u1abc...',
+  apiKey: 'cpay_sk_...',
+  amount: 0,
+  getAmount: (req) => {
+    if (req.url.includes('gpt-4')) return 0.01;
+    if (req.url.includes('gpt-3')) return 0.001;
+    return 0.0005;
+  },
+}));`} />
+
+      <Paragraph>
+        The SDK also exports a standalone <Code>verifyPayment</Code> function for custom integrations:
+      </Paragraph>
+      <CodeBlock lang="typescript" code={`import { verifyPayment } from '@cipherpay/x402';
+
+const result = await verifyPayment(txid, 0.001, 'cpay_sk_...');
+if (result.valid) {
+  // Payment confirmed — grant access
+}`} />
+
+      <SectionDivider />
+
       <SectionTitle>Setup guide</SectionTitle>
       <Step n={1} title="Register with CipherPay">
         <Paragraph>
