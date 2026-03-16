@@ -31,7 +31,7 @@ export default function X402Section() {
       <Paragraph>
         Your server responds with HTTP 402 when an unauthenticated request arrives. The response body includes
         how much to pay, what address to pay to, and which facilitator to use. The agent pays, then retries the request
-        with the transaction ID in the <Code>X-PAYMENT</Code> header. Your server forwards the txid to CipherPay for verification.
+        with the transaction ID in the <Code>PAYMENT-SIGNATURE</Code> header (base64-encoded). Your server forwards the txid to CipherPay for verification.
       </Paragraph>
 
       <Callout type="info">
@@ -76,9 +76,9 @@ app.get('/api/premium/data', (req, res) => {
   res.json({ temperature: 18, conditions: 'partly cloudy' });
 });`} />
       <Paragraph>
-        The middleware handles the full x402 flow: returns 402 with payment terms when no proof is present,
-        verifies the txid via CipherPay when the <Code>X-PAYMENT</Code> header is provided, and grants access
-        when the payment is valid.
+        The middleware handles the full x402 v2 flow: returns 402 with <Code>PAYMENT-REQUIRED</Code> header when no proof is present,
+        verifies the txid via CipherPay when the <Code>PAYMENT-SIGNATURE</Code> header is provided, and sets
+        the <Code>PAYMENT-RESPONSE</Code> header when the payment is valid.
       </Paragraph>
 
       <Callout type="tip">
@@ -120,25 +120,27 @@ if (result.valid) {
 
       <Step n={2} title="Return 402 from your server">
         <Paragraph>
-          When your API receives a request without a valid <Code>X-PAYMENT</Code> header, respond with HTTP 402
-          and the payment terms:
+          When your API receives a request without a valid <Code>PAYMENT-SIGNATURE</Code> header, respond with HTTP 402
+          and the x402 v2 payment terms (also set the <Code>PAYMENT-REQUIRED</Code> header with the base64-encoded version):
         </Paragraph>
         <CodeBlock lang="json" code={`{
-  "x402": {
-    "version": 1,
-    "accepts": [{
-      "chain": "zcash:mainnet",
-      "address": "u1yourpaymentaddress...",
-      "amount": "0.001",
-      "facilitator": "https://api.cipherpay.app/api/x402/verify"
-    }]
-  }
+  "x402Version": 2,
+  "resource": { "url": "/api/data" },
+  "accepts": [{
+    "scheme": "exact",
+    "network": "zcash:mainnet",
+    "asset": "ZEC",
+    "amount": "100000",
+    "payTo": "u1yourpaymentaddress...",
+    "maxTimeoutSeconds": 120,
+    "extra": {}
+  }]
 }`} />
       </Step>
 
       <Step n={3} title="Verify the payment">
         <Paragraph>
-          When the agent retries with an <Code>X-PAYMENT</Code> header containing a Zcash txid,
+          When the agent retries with a <Code>PAYMENT-SIGNATURE</Code> header (base64-encoded PaymentPayload containing a Zcash txid),
           call the CipherPay verify endpoint from your server:
         </Paragraph>
         <CodeBlock lang="bash" code={`curl -X POST https://api.cipherpay.app/api/x402/verify \\
@@ -167,51 +169,21 @@ if (result.valid) {
       <Paragraph>
         Here is a minimal Express.js middleware that implements the full x402 flow:
       </Paragraph>
-      <CodeBlock lang="javascript" code={`const CIPHERPAY_API_KEY = process.env.CIPHERPAY_API_KEY;
-const CIPHERPAY_URL = 'https://api.cipherpay.app/api/x402/verify';
-const PAYMENT_ADDRESS = 'u1youraddress...';
-const PRICE_ZEC = 0.001;
+      <CodeBlock lang="typescript" code={`import express from 'express';
+import { zcashPaywall } from '@cipherpay/x402/express';
 
-async function x402Middleware(req, res, next) {
-  const txid = req.headers['x-payment'];
+const app = express();
 
-  if (!txid) {
-    return res.status(402).json({
-      x402: {
-        version: 1,
-        accepts: [{
-          chain: 'zcash:mainnet',
-          address: PAYMENT_ADDRESS,
-          amount: String(PRICE_ZEC),
-          facilitator: CIPHERPAY_URL,
-        }],
-      },
-    });
-  }
+// x402 v2 — one-line middleware handles everything
+app.use('/api/premium', zcashPaywall({
+  amount: 0.001,
+  address: 'u1youraddress...',
+  apiKey: process.env.CIPHERPAY_API_KEY,
+}));
 
-  const resp = await fetch(CIPHERPAY_URL, {
-    method: 'POST',
-    headers: {
-      'Authorization': \`Bearer \${CIPHERPAY_API_KEY}\`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      txid,
-      expected_amount_zec: PRICE_ZEC,
-    }),
-  });
-
-  const result = await resp.json();
-
-  if (!result.valid) {
-    return res.status(402).json({
-      error: 'Payment verification failed',
-      reason: result.reason,
-    });
-  }
-
-  next();
-}`} />
+app.get('/api/premium/data', (req, res) => {
+  res.json({ message: 'You paid for this!' });
+});`} />
 
       <SectionDivider />
 
