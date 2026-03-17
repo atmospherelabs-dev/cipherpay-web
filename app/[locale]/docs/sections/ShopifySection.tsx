@@ -35,7 +35,7 @@ export default function ShopifySection() {
         <Paragraph>
           Install the app by visiting the install link with your store name:
         </Paragraph>
-        <CodeBlock lang="text" code={`https://shopify.cipherpay.app/api/auth?shop=yourstore.myshopify.com`} />
+        <CodeBlock lang="text" code={`https://connect.cipherpay.app/api/auth?shop=yourstore.myshopify.com`} />
         <Paragraph>
           Replace <Code>yourstore</Code> with your actual Shopify store name. This will redirect you to Shopify to authorize the app.
         </Paragraph>
@@ -98,7 +98,7 @@ export default function ShopifySection() {
         <Paragraph>
           CipherPay needs to know where to send payment confirmations. In your CipherPay dashboard &rarr; Settings, set the Webhook URL to:
         </Paragraph>
-        <CodeBlock lang="text" code={`https://shopify.cipherpay.app/api/webhook/cipherpay`} />
+        <CodeBlock lang="text" code={`https://connect.cipherpay.app/api/webhook/cipherpay`} />
         <Paragraph>
           This URL is also displayed on your CipherPay settings page in Shopify for easy copying.
         </Paragraph>
