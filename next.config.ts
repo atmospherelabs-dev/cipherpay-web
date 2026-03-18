@@ -10,6 +10,7 @@ const cspHeader = [
   `connect-src 'self' ${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3080'}`,
   "img-src 'self' data: blob:",
   "font-src 'self'",
+  "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",

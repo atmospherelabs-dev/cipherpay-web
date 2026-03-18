@@ -18,6 +18,7 @@ import SubscriptionsSection from './sections/SubscriptionsSection';
 import BillingSection from './sections/BillingSection';
 import ApiRefSection from './sections/ApiRefSection';
 import X402Section from './sections/X402Section';
+import MCPSection from './sections/MCPSection';
 
 const SECTIONS = [
   { id: 'overview', title: 'Overview' },
@@ -33,13 +34,14 @@ const SECTIONS = [
   { id: 'billing', title: 'Billing & Fees' },
   { id: 'api-ref', title: 'API Reference' },
   { id: 'x402', title: 'x402 Facilitator' },
+  { id: 'mcp', title: 'MCP Server' },
 ] as const;
 
 const SIDEBAR_GROUPS = [
   { label: 'Getting Started', ids: ['overview', 'quickstart', 'sandbox'] },
   { label: 'Guides', ids: ['shopify', 'woocommerce', 'custom', 'products', 'pos'] },
   { label: 'Reference', ids: ['webhooks', 'subscriptions', 'billing', 'api-ref'] },
-  { label: 'AI & Agents', ids: ['x402'] },
+  { label: 'AI & Agents', ids: ['x402', 'mcp'] },
 ];
 
 function SectionContent({ id, onNavigate }: { id: string; onNavigate: (id: string) => void }) {
@@ -57,6 +59,7 @@ function SectionContent({ id, onNavigate }: { id: string; onNavigate: (id: strin
     case 'billing': return <BillingSection />;
     case 'api-ref': return <ApiRefSection />;
     case 'x402': return <X402Section />;
+    case 'mcp': return <MCPSection />;
     default: return null;
   }
 }
