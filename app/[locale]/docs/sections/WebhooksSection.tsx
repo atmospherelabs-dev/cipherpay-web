@@ -93,8 +93,16 @@ export default function WebhooksSection() {
   "event": "confirmed",
   "invoice_id": "a1b2c3d4-...",
   "txid": "17d8dd4df713a677d2f6637c2b449e71...",
-  "timestamp": "2026-02-21T18:30:00Z"
+  "timestamp": "2026-02-21T18:30:00Z",
+  "price_zec": 0.14285714,
+  "received_zec": 0.14285714,
+  "overpaid": false
 }`} />
+      <Paragraph>
+        The <Code>price_zec</Code> and <Code>received_zec</Code> fields are included
+        on <Code>detected</Code>, <Code>underpaid</Code>, and <Code>confirmed</Code> events.
+        Use <Code>overpaid</Code> to detect when a buyer sent more ZEC than required.
+      </Paragraph>
 
       <div style={{ fontSize: 11, color: 'var(--cp-text)', fontWeight: 600, marginBottom: 8, marginTop: 16 }}>Subscription event payload</div>
       <CodeBlock lang="json" code={`{

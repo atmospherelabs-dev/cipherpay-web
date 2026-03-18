@@ -127,7 +127,7 @@ export default function ApiRefSection() {
 
       <Expandable title="Full invoice object">
         <Paragraph>
-          The complete invoice object returned by <Code>GET /api/invoices/&#123;id&#125;</Code>:
+          The invoice object returned by <Code>GET /api/invoices/&#123;id&#125;</Code> (public, no auth required):
         </Paragraph>
         <CodeBlock lang="json" code={`{
   "id": "a1b2c3d4-...",
@@ -137,7 +137,8 @@ export default function ApiRefSection() {
   "amount": 65.0,
   "currency": "EUR",
   "price_id": "cprice_a1b2c3...",
-  "subscription_id": null,
+  "price_eur": 65.0,
+  "price_usd": 70.85,
   "price_zec": 0.14285714,
   "price_zatoshis": 14285714,
   "received_zec": 0.14285714,
@@ -145,19 +146,22 @@ export default function ApiRefSection() {
   "zec_rate_at_creation": 455.0,
   "payment_address": "u1...",
   "zcash_uri": "zcash:u1...?amount=0.14285714&memo=...",
+  "merchant_name": "My Store",
+  "merchant_origin": "https://mystore.com",
   "status": "confirmed",
   "detected_txid": "abc123...",
-  "refund_address": null,
-  "shipping_alias": "Jane Doe",
-  "shipping_address": "123 Privacy St",
-  "shipping_region": "CH",
+  "detected_at": "2026-02-22T00:05:00Z",
+  "confirmed_at": "2026-02-22T00:12:00Z",
+  "refunded_at": null,
+  "refund_txid": null,
+  "overpaid": false,
   "expires_at": "2026-02-22T00:30:00Z",
   "created_at": "2026-02-22T00:00:00Z"
 }`} />
-        <Paragraph>
-          The <Code>subscription_id</Code> field is set when the invoice was generated for a subscription renewal.
-          For regular one-time invoices, it is <Code>null</Code>.
-        </Paragraph>
+        <Callout type="tip">
+          This endpoint is public so the checkout page can fetch invoice details client-side.
+          It returns only checkout-safe fields — shipping info and merchant secrets are never exposed.
+        </Callout>
       </Expandable>
 
       <Expandable title="Price object fields">

@@ -59,7 +59,31 @@ interface SystemData {
   fee_rate: number;
 }
 
-type Tab = 'overview' | 'merchants' | 'billing' | 'system';
+type Tab = 'overview' | 'merchants' | 'billing' | 'webhooks' | 'system';
+
+interface WebhookDelivery {
+  id: string;
+  invoice_id: string;
+  event_type: string | null;
+  merchant_id: string | null;
+  url: string;
+  status: string;
+  response_status: number | null;
+  response_error: string | null;
+  attempts: number;
+  created_at: string;
+  last_attempt_at: string | null;
+}
+
+interface WebhookData {
+  deliveries: WebhookDelivery[];
+  total: number;
+}
+
+function fmtUsd(zec: number, rate: number | undefined): string {
+  if (!rate) return '';
+  return `(~$${(zec * rate).toFixed(2)})`;
+}
 
 export default function AdminDashboard({ adminKey, onLogout }: AdminDashboardProps) {
   const [tab, setTab] = useState<Tab>('overview');
@@ -67,6 +91,7 @@ export default function AdminDashboard({ adminKey, onLogout }: AdminDashboardPro
   const [merchants, setMerchants] = useState<Merchant[]>([]);
   const [billing, setBilling] = useState<BillingData | null>(null);
   const [system, setSystem] = useState<SystemData | null>(null);
+  const [webhookData, setWebhookData] = useState<WebhookData | null>(null);
   const [loading, setLoading] = useState(true);
 
   const headers = useCallback(() => ({ 'X-Admin-Key': adminKey }), [adminKey]);
@@ -74,16 +99,18 @@ export default function AdminDashboard({ adminKey, onLogout }: AdminDashboardPro
   const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [statsRes, merchantsRes, billingRes, systemRes] = await Promise.all([
+      const [statsRes, merchantsRes, billingRes, systemRes, webhooksRes] = await Promise.all([
         fetch(`${API_URL}/api/admin/stats`, { headers: headers() }),
         fetch(`${API_URL}/api/admin/merchants`, { headers: headers() }),
         fetch(`${API_URL}/api/admin/billing`, { headers: headers() }),
         fetch(`${API_URL}/api/admin/system`, { headers: headers() }),
+        fetch(`${API_URL}/api/admin/webhooks?limit=100`, { headers: headers() }),
       ]);
       if (statsRes.ok) setStats(await statsRes.json());
       if (merchantsRes.ok) setMerchants(await merchantsRes.json());
       if (billingRes.ok) setBilling(await billingRes.json());
       if (systemRes.ok) setSystem(await systemRes.json());
+      if (webhooksRes.ok) setWebhookData(await webhooksRes.json());
     } catch (e) {
       console.error('Failed to fetch admin data', e);
     }
@@ -102,6 +129,7 @@ export default function AdminDashboard({ adminKey, onLogout }: AdminDashboardPro
     { id: 'overview', label: 'OVERVIEW' },
     { id: 'merchants', label: 'MERCHANTS' },
     { id: 'billing', label: 'BILLING' },
+    { id: 'webhooks', label: 'WEBHOOKS' },
     { id: 'system', label: 'SYSTEM' },
   ];
 
@@ -150,8 +178,9 @@ export default function AdminDashboard({ adminKey, onLogout }: AdminDashboardPro
           ) : (
             <>
               {tab === 'overview' && stats && <OverviewTab stats={stats} system={system} />}
-              {tab === 'merchants' && <MerchantsTab merchants={merchants} />}
-              {tab === 'billing' && billing && <BillingTab billing={billing} />}
+              {tab === 'merchants' && <MerchantsTab merchants={merchants} system={system} />}
+              {tab === 'billing' && billing && <BillingTab billing={billing} system={system} />}
+              {tab === 'webhooks' && webhookData && <WebhooksTab data={webhookData} adminKey={adminKey} />}
               {tab === 'system' && system && <SystemTab system={system} />}
             </>
           )}
@@ -161,13 +190,14 @@ export default function AdminDashboard({ adminKey, onLogout }: AdminDashboardPro
   );
 }
 
-function StatCard({ value, label, color, sub }: { value: string | number; label: string; color: string; sub?: string }) {
+function StatCard({ value, label, color, sub, sub2 }: { value: string | number; label: string; color: string; sub?: string; sub2?: string }) {
   return (
     <div className="panel" style={{ textAlign: 'center' }}>
       <div className="panel-body" style={{ padding: '20px 16px' }}>
         <div style={{ fontSize: 24, fontWeight: 700, color, lineHeight: 1.2 }}>{value}</div>
         <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>{label}</div>
         {sub && <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: 2 }}>{sub}</div>}
+        {sub2 && <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: 1 }}>{sub2}</div>}
       </div>
     </div>
   );
@@ -177,13 +207,14 @@ function OverviewTab({ stats, system }: { stats: Stats; system: SystemData | nul
   const conversionRate = stats.invoices.total > 0
     ? Math.round((stats.invoices.confirmed / stats.invoices.total) * 100)
     : 0;
+  const usd = system?.price_feed?.zec_usd;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Top stat cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
         <StatCard value={stats.merchants} label="MERCHANTS" color="var(--cp-cyan)" />
-        <StatCard value={stats.volume.total_zec.toFixed(4)} label="TOTAL VOLUME" color="var(--cp-green)" sub="ZEC" />
+        <StatCard value={stats.volume.total_zec.toFixed(4)} label="TOTAL VOLUME" color="var(--cp-green)" sub="ZEC" sub2={fmtUsd(stats.volume.total_zec, usd)} />
         <StatCard value={stats.invoices.confirmed} label="CONFIRMED" color="var(--cp-green)" sub={`of ${stats.invoices.total} total`} />
         <StatCard value={`${conversionRate}%`} label="CONVERSION" color="var(--cp-text)" sub={`${stats.invoices.expired} expired`} />
       </div>
@@ -199,19 +230,19 @@ function OverviewTab({ stats, system }: { stats: Stats; system: SystemData | nul
               <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginBottom: 8 }}>LAST 24H</div>
               <div className="stat-row"><span style={{ color: 'var(--cp-text-muted)' }}>Invoices</span><span style={{ fontWeight: 500 }}>{stats.last_24h.invoices}</span></div>
               <div className="stat-row"><span style={{ color: 'var(--cp-text-muted)' }}>Confirmed</span><span style={{ fontWeight: 500, color: 'var(--cp-green)' }}>{stats.last_24h.confirmed}</span></div>
-              <div className="stat-row"><span style={{ color: 'var(--cp-text-muted)' }}>Volume</span><span style={{ fontWeight: 500 }}>{stats.last_24h.volume_zec.toFixed(4)} ZEC</span></div>
+              <div className="stat-row"><span style={{ color: 'var(--cp-text-muted)' }}>Volume</span><span style={{ fontWeight: 500 }}>{stats.last_24h.volume_zec.toFixed(4)} ZEC <span style={{ color: 'var(--cp-text-dim)', fontWeight: 400 }}>{fmtUsd(stats.last_24h.volume_zec, usd)}</span></span></div>
             </div>
             <div>
               <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginBottom: 8 }}>LAST 7D</div>
               <div className="stat-row"><span style={{ color: 'var(--cp-text-muted)' }}>Invoices</span><span style={{ fontWeight: 500 }}>{stats.last_7d.invoices}</span></div>
               <div className="stat-row"><span style={{ color: 'var(--cp-text-muted)' }}>Confirmed</span><span style={{ fontWeight: 500, color: 'var(--cp-green)' }}>{stats.last_7d.confirmed}</span></div>
-              <div className="stat-row"><span style={{ color: 'var(--cp-text-muted)' }}>Volume</span><span style={{ fontWeight: 500 }}>{stats.last_7d.volume_zec.toFixed(4)} ZEC</span></div>
+              <div className="stat-row"><span style={{ color: 'var(--cp-text-muted)' }}>Volume</span><span style={{ fontWeight: 500 }}>{stats.last_7d.volume_zec.toFixed(4)} ZEC <span style={{ color: 'var(--cp-text-dim)', fontWeight: 400 }}>{fmtUsd(stats.last_7d.volume_zec, usd)}</span></span></div>
             </div>
             <div>
               <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginBottom: 8 }}>LAST 30D</div>
               <div className="stat-row"><span style={{ color: 'var(--cp-text-muted)' }}>Invoices</span><span style={{ fontWeight: 500 }}>{stats.last_30d.invoices}</span></div>
               <div className="stat-row"><span style={{ color: 'var(--cp-text-muted)' }}>Confirmed</span><span style={{ fontWeight: 500, color: 'var(--cp-green)' }}>{stats.last_30d.confirmed}</span></div>
-              <div className="stat-row"><span style={{ color: 'var(--cp-text-muted)' }}>Volume</span><span style={{ fontWeight: 500 }}>{stats.last_30d.volume_zec.toFixed(4)} ZEC</span></div>
+              <div className="stat-row"><span style={{ color: 'var(--cp-text-muted)' }}>Volume</span><span style={{ fontWeight: 500 }}>{stats.last_30d.volume_zec.toFixed(4)} ZEC <span style={{ color: 'var(--cp-text-dim)', fontWeight: 400 }}>{fmtUsd(stats.last_30d.volume_zec, usd)}</span></span></div>
             </div>
           </div>
         </div>
@@ -225,16 +256,16 @@ function OverviewTab({ stats, system }: { stats: Stats; system: SystemData | nul
         <div className="panel-body">
           <div className="stat-row">
             <span style={{ color: 'var(--cp-text-muted)' }}>Total Fees Earned</span>
-            <span style={{ fontWeight: 600, color: 'var(--cp-cyan)' }}>{stats.fees.total.toFixed(8)} ZEC</span>
+            <span style={{ fontWeight: 600, color: 'var(--cp-cyan)' }}>{stats.fees.total.toFixed(8)} ZEC <span style={{ color: 'var(--cp-text-dim)', fontWeight: 400 }}>{fmtUsd(stats.fees.total, usd)}</span></span>
           </div>
           <div className="stat-row">
             <span style={{ color: 'var(--cp-text-muted)' }}>Collected</span>
-            <span style={{ fontWeight: 500, color: 'var(--cp-green)' }}>{stats.fees.collected.toFixed(8)} ZEC</span>
+            <span style={{ fontWeight: 500, color: 'var(--cp-green)' }}>{stats.fees.collected.toFixed(8)} ZEC <span style={{ color: 'var(--cp-text-dim)', fontWeight: 400 }}>{fmtUsd(stats.fees.collected, usd)}</span></span>
           </div>
           <div className="stat-row">
             <span style={{ color: 'var(--cp-text-muted)' }}>Outstanding</span>
             <span style={{ fontWeight: 500, color: stats.fees.outstanding > 0 ? 'var(--cp-yellow)' : 'var(--cp-text-dim)' }}>
-              {stats.fees.outstanding.toFixed(8)} ZEC
+              {stats.fees.outstanding.toFixed(8)} ZEC <span style={{ color: 'var(--cp-text-dim)', fontWeight: 400 }}>{fmtUsd(stats.fees.outstanding, usd)}</span>
             </span>
           </div>
         </div>
@@ -268,7 +299,8 @@ function OverviewTab({ stats, system }: { stats: Stats; system: SystemData | nul
   );
 }
 
-function MerchantsTab({ merchants }: { merchants: Merchant[] }) {
+function MerchantsTab({ merchants, system }: { merchants: Merchant[]; system: SystemData | null }) {
+  const usd = system?.price_feed?.zec_usd;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div className="panel">
@@ -296,8 +328,9 @@ function MerchantsTab({ merchants }: { merchants: Merchant[] }) {
                       <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', fontFamily: 'monospace' }}>{m.id.slice(0, 8)}...</div>
                     </td>
                     <td style={{ padding: '10px 16px', textAlign: 'right', fontWeight: 500 }}>{m.invoice_count}</td>
-                    <td style={{ padding: '10px 16px', textAlign: 'right', fontWeight: 500, color: 'var(--cp-green)' }}>
-                      {m.total_zec.toFixed(4)}
+                    <td style={{ padding: '10px 16px', textAlign: 'right' }}>
+                      <div style={{ fontWeight: 500, color: 'var(--cp-green)' }}>{m.total_zec.toFixed(4)}</div>
+                      {usd && <div style={{ fontSize: 9, color: 'var(--cp-text-dim)' }}>{fmtUsd(m.total_zec, usd)}</div>}
                     </td>
                     <td style={{ padding: '10px 16px', textAlign: 'center' }}>
                       <span style={{ fontSize: 9, color: m.webhook_configured ? 'var(--cp-green)' : 'var(--cp-text-dim)' }}>
@@ -335,12 +368,13 @@ function MerchantsTab({ merchants }: { merchants: Merchant[] }) {
   );
 }
 
-function BillingTab({ billing }: { billing: BillingData }) {
+function BillingTab({ billing, system }: { billing: BillingData; system: SystemData | null }) {
+  const usd = system?.price_feed?.zec_usd;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12 }}>
-        <StatCard value={billing.totals.collected_zec.toFixed(4)} label="COLLECTED" color="var(--cp-green)" sub="ZEC" />
-        <StatCard value={billing.totals.outstanding_zec.toFixed(4)} label="OUTSTANDING" color={billing.totals.outstanding_zec > 0 ? 'var(--cp-yellow)' : 'var(--cp-text-dim)'} sub="ZEC" />
+        <StatCard value={billing.totals.collected_zec.toFixed(4)} label="COLLECTED" color="var(--cp-green)" sub="ZEC" sub2={fmtUsd(billing.totals.collected_zec, usd)} />
+        <StatCard value={billing.totals.outstanding_zec.toFixed(4)} label="OUTSTANDING" color={billing.totals.outstanding_zec > 0 ? 'var(--cp-yellow)' : 'var(--cp-text-dim)'} sub="ZEC" sub2={fmtUsd(billing.totals.outstanding_zec, usd)} />
         <StatCard value={billing.cycles.open} label="OPEN CYCLES" color="var(--cp-cyan)" />
         <StatCard value={billing.cycles.past_due} label="PAST DUE" color={billing.cycles.past_due > 0 ? 'var(--cp-red)' : 'var(--cp-text-dim)'} />
       </div>
@@ -380,9 +414,13 @@ function BillingTab({ billing }: { billing: BillingData }) {
                 {billing.recent_cycles.map(c => (
                   <tr key={c.id} style={{ borderBottom: '1px solid var(--cp-border)' }}>
                     <td style={{ padding: '10px 16px', fontWeight: 500 }}>{c.merchant_name || c.merchant_id.slice(0, 8)}</td>
-                    <td style={{ padding: '10px 16px', textAlign: 'right' }}>{c.total_fees_zec.toFixed(6)}</td>
+                    <td style={{ padding: '10px 16px', textAlign: 'right' }}>
+                      <div>{c.total_fees_zec.toFixed(6)}</div>
+                      {usd && <div style={{ fontSize: 9, color: 'var(--cp-text-dim)' }}>{fmtUsd(c.total_fees_zec, usd)}</div>}
+                    </td>
                     <td style={{ padding: '10px 16px', textAlign: 'right', color: c.outstanding_zec > 0 ? 'var(--cp-yellow)' : 'var(--cp-text-dim)' }}>
-                      {c.outstanding_zec.toFixed(6)}
+                      <div>{c.outstanding_zec.toFixed(6)}</div>
+                      {usd && c.outstanding_zec > 0 && <div style={{ fontSize: 9 }}>{fmtUsd(c.outstanding_zec, usd)}</div>}
                     </td>
                     <td style={{ padding: '10px 16px', textAlign: 'center' }}>
                       <span className={`status-badge ${
@@ -411,6 +449,156 @@ function BillingTab({ billing }: { billing: BillingData }) {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function WebhooksTab({ data, adminKey }: { data: WebhookData; adminKey: string }) {
+  const [filter, setFilter] = useState<string>('all');
+  const [page, setPage] = useState(0);
+  const [deliveries, setDeliveries] = useState(data.deliveries);
+  const [total, setTotal] = useState(data.total);
+  const pageSize = 50;
+
+  const fetchPage = useCallback(async (p: number, status: string) => {
+    const params = new URLSearchParams({ limit: String(pageSize), offset: String(p * pageSize) });
+    if (status !== 'all') params.set('status', status);
+    try {
+      const res = await fetch(`${API_URL}/api/admin/webhooks?${params}`, {
+        headers: { 'X-Admin-Key': adminKey },
+      });
+      if (res.ok) {
+        const d = await res.json();
+        setDeliveries(d.deliveries);
+        setTotal(d.total);
+      }
+    } catch (e) {
+      console.error('Failed to fetch webhooks', e);
+    }
+  }, [adminKey]);
+
+  useEffect(() => { fetchPage(page, filter); }, [page, filter, fetchPage]);
+
+  const totalPages = Math.ceil(total / pageSize);
+  const thStyle = { textAlign: 'left' as const, padding: '10px 12px', fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', fontWeight: 500 };
+  const tdStyle = { padding: '10px 12px', fontSize: 11 };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {['all', 'delivered', 'pending', 'failed'].map(s => (
+            <button
+              key={s}
+              onClick={() => { setFilter(s); setPage(0); }}
+              style={{
+                padding: '4px 12px', fontSize: 9, letterSpacing: 1, fontFamily: 'inherit',
+                border: '1px solid var(--cp-border)', borderRadius: 4, cursor: 'pointer',
+                background: filter === s ? 'var(--cp-hover)' : 'transparent',
+                color: filter === s ? 'var(--cp-cyan)' : 'var(--cp-text-muted)',
+                fontWeight: filter === s ? 600 : 400,
+              }}
+            >
+              {s.toUpperCase()}
+            </button>
+          ))}
+        </div>
+        <span style={{ fontSize: 10, color: 'var(--cp-text-dim)' }}>{total} total</span>
+      </div>
+
+      <div className="panel">
+        <div className="panel-body" style={{ padding: 0 }}>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--cp-border)' }}>
+                  <th style={thStyle}>TIME</th>
+                  <th style={thStyle}>EVENT</th>
+                  <th style={thStyle}>INVOICE</th>
+                  <th style={thStyle}>STATUS</th>
+                  <th style={{ ...thStyle, textAlign: 'center' }}>HTTP</th>
+                  <th style={{ ...thStyle, textAlign: 'center' }}>ATTEMPTS</th>
+                  <th style={thStyle}>ERROR</th>
+                </tr>
+              </thead>
+              <tbody>
+                {deliveries.map(d => (
+                  <tr key={d.id} style={{ borderBottom: '1px solid var(--cp-border)' }}>
+                    <td style={{ ...tdStyle, fontSize: 10, color: 'var(--cp-text-dim)', whiteSpace: 'nowrap' }}>
+                      {new Date(d.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </td>
+                    <td style={tdStyle}>
+                      <span style={{ fontFamily: 'monospace', fontSize: 10, color: 'var(--cp-cyan)' }}>
+                        {d.event_type || '—'}
+                      </span>
+                    </td>
+                    <td style={{ ...tdStyle, fontFamily: 'monospace', fontSize: 10, color: 'var(--cp-text-dim)' }}>
+                      {d.invoice_id.slice(0, 12)}...
+                    </td>
+                    <td style={tdStyle}>
+                      <span className={`status-badge ${
+                        d.status === 'delivered' ? 'status-confirmed' :
+                        d.status === 'pending' ? 'status-pending' :
+                        'status-expired'
+                      }`} style={{ fontSize: 8 }}>
+                        {d.status.toUpperCase()}
+                      </span>
+                    </td>
+                    <td style={{ ...tdStyle, textAlign: 'center' }}>
+                      {d.response_status ? (
+                        <span style={{
+                          fontFamily: 'monospace', fontSize: 10,
+                          color: d.response_status >= 200 && d.response_status < 300 ? 'var(--cp-green)' :
+                                 d.response_status >= 400 ? 'var(--cp-red)' : 'var(--cp-yellow)'
+                        }}>
+                          {d.response_status}
+                        </span>
+                      ) : (
+                        <span style={{ color: 'var(--cp-text-dim)' }}>—</span>
+                      )}
+                    </td>
+                    <td style={{ ...tdStyle, textAlign: 'center', color: 'var(--cp-text-muted)' }}>{d.attempts}</td>
+                    <td style={{ ...tdStyle, fontSize: 10, color: 'var(--cp-red)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {d.response_error || ''}
+                    </td>
+                  </tr>
+                ))}
+                {deliveries.length === 0 && (
+                  <tr>
+                    <td colSpan={7} style={{ padding: '24px 16px', textAlign: 'center', color: 'var(--cp-text-dim)' }}>
+                      No webhook deliveries found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 8 }}>
+          <button
+            onClick={() => setPage(p => Math.max(0, p - 1))}
+            disabled={page === 0}
+            className="btn btn-small"
+            style={{ fontSize: 9, opacity: page === 0 ? 0.4 : 1 }}
+          >
+            PREV
+          </button>
+          <span style={{ fontSize: 10, color: 'var(--cp-text-muted)', lineHeight: '28px' }}>
+            {page + 1} / {totalPages}
+          </span>
+          <button
+            onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+            disabled={page >= totalPages - 1}
+            className="btn btn-small"
+            style={{ fontSize: 9, opacity: page >= totalPages - 1 ? 0.4 : 1 }}
+          >
+            NEXT
+          </button>
+        </div>
+      )}
     </div>
   );
 }

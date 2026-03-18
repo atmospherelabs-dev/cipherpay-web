@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
-import { api, type MerchantInfo, type Product, type Invoice, type BillingSummary, type BillingCycle, type X402Verification, type ZecRates } from '@/lib/api';
+import { api, type MerchantInfo, type Product, type Invoice, type BillingSummary, type BillingCycle, type X402Verification, type ZecRates, type WebhookDelivery } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 
@@ -17,6 +17,7 @@ import { InvoicesTab } from './tabs/InvoicesTab';
 import { BillingTab } from './tabs/BillingTab';
 import { SettingsTab } from './tabs/SettingsTab';
 import { X402Tab } from './tabs/X402Tab';
+import { WebhooksTab } from './tabs/WebhooksTab';
 
 
 export type TabAction = 'add-product' | 'create-paylink' | null;
@@ -43,6 +44,9 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
 
   const [x402Verifications, setX402Verifications] = useState<X402Verification[]>([]);
   const [loadingX402, setLoadingX402] = useState(true);
+
+  const [webhookDeliveries, setWebhookDeliveries] = useState<WebhookDelivery[]>([]);
+  const [webhookTotal, setWebhookTotal] = useState(0);
 
 
   const { logout, refreshMerchant } = useAuth();
@@ -76,10 +80,18 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
     setLoadingX402(false);
   }, []);
 
+  const loadWebhooks = useCallback(async () => {
+    try {
+      const data = await api.webhookHistory({ limit: 50 });
+      setWebhookDeliveries(data.deliveries);
+      setWebhookTotal(data.total);
+    } catch (err) { console.error('Failed to load webhooks', err); }
+  }, []);
+
 
   useEffect(() => {
-    loadProducts(); loadInvoices(); loadBilling(); loadX402();
-  }, [loadProducts, loadInvoices, loadBilling, loadX402]);
+    loadProducts(); loadInvoices(); loadBilling(); loadX402(); loadWebhooks();
+  }, [loadProducts, loadInvoices, loadBilling, loadX402, loadWebhooks]);
 
   useEffect(() => {
     const fetchRates = () => {
@@ -156,6 +168,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
             tab={tab}
             setTab={setTab}
             billing={billing}
+            hasWebhooks={!!merchant.webhook_url}
             hasX402={x402Verifications.length > 0}
           />
 
@@ -219,6 +232,12 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                 displayCurrency={displayCurrency}
                 setDisplayCurrency={setDisplayCurrency}
                 reloadMerchant={refreshMerchant}
+              />
+            )}
+            {tab === 'webhooks' && (
+              <WebhooksTab
+                initialDeliveries={webhookDeliveries}
+                initialTotal={webhookTotal}
               />
             )}
             {tab === 'x402' && (

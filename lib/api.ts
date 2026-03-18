@@ -216,6 +216,23 @@ export interface X402Verification {
   created_at: string;
 }
 
+export interface WebhookDelivery {
+  id: string;
+  invoice_id: string;
+  event_type: string | null;
+  status: string;
+  response_status: number | null;
+  response_error: string | null;
+  attempts: number;
+  created_at: string;
+  last_attempt_at: string | null;
+}
+
+export interface WebhookHistory {
+  deliveries: WebhookDelivery[];
+  total: number;
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     credentials: 'include',
@@ -381,6 +398,14 @@ export const api = {
   // x402
   x402History: (limit = 50, offset = 0) =>
     request<{ verifications: X402Verification[] }>(`/api/merchants/me/x402/history?limit=${limit}&offset=${offset}`),
+
+  webhookHistory: (params?: { status?: string; limit?: number; offset?: number }) => {
+    const p = new URLSearchParams();
+    if (params?.status) p.set('status', params.status);
+    p.set('limit', String(params?.limit ?? 50));
+    p.set('offset', String(params?.offset ?? 0));
+    return request<WebhookHistory>(`/api/merchants/me/webhooks?${p}`);
+  },
 
   // Account
   deleteAccount: () =>

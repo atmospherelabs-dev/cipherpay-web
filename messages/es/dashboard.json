@@ -14,6 +14,7 @@
     "products": "PRODUCTOS",
     "pos": "TPV",
     "invoices": "FACTURAS",
+    "webhooks": "WEBHOOKS",
     "x402": "X402",
     "account": "CUENTA",
     "billing": "FACTURACIÓN",
@@ -250,6 +251,24 @@
     "toastWebhookSecretRegen": "Secreto del webhook regenerado",
     "toastFailedRegen": "Error al regenerar",
     "toastFailedDelete": "Error al eliminar cuenta"
+  },
+  "webhooks": {
+    "title": "Entregas de Webhooks",
+    "total": "total",
+    "all": "TODOS",
+    "delivered": "ENTREGADOS",
+    "pending": "PENDIENTES",
+    "failed": "FALLIDOS",
+    "colTime": "HORA",
+    "colEvent": "EVENTO",
+    "colInvoice": "FACTURA",
+    "colStatus": "ESTADO",
+    "colHttp": "HTTP",
+    "colAttempts": "INTENTOS",
+    "colError": "ERROR",
+    "empty": "No hay entregas de webhooks aún. Configura una URL de webhook en Configuración para recibir eventos.",
+    "prev": "ANT",
+    "next": "SIG"
   },
   "x402": {
     "title": "Verificaciones x402",

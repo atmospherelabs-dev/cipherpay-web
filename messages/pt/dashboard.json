@@ -14,6 +14,7 @@
     "products": "PRODUTOS",
     "pos": "PDV",
     "invoices": "FATURAS",
+    "webhooks": "WEBHOOKS",
     "x402": "X402",
     "account": "CONTA",
     "billing": "FATURAMENTO",
@@ -250,6 +251,24 @@
     "toastWebhookSecretRegen": "Segredo do webhook regenerado",
     "toastFailedRegen": "Falha ao regenerar",
     "toastFailedDelete": "Falha ao excluir conta"
+  },
+  "webhooks": {
+    "title": "Entregas de Webhooks",
+    "total": "total",
+    "all": "TODOS",
+    "delivered": "ENTREGUES",
+    "pending": "PENDENTES",
+    "failed": "FALHADOS",
+    "colTime": "HORA",
+    "colEvent": "EVENTO",
+    "colInvoice": "FATURA",
+    "colStatus": "STATUS",
+    "colHttp": "HTTP",
+    "colAttempts": "TENTATIVAS",
+    "colError": "ERRO",
+    "empty": "Nenhuma entrega de webhook ainda. Configure uma URL de webhook em Configurações para receber eventos.",
+    "prev": "ANT",
+    "next": "PRÓX"
   },
   "x402": {
     "title": "Verificações x402",

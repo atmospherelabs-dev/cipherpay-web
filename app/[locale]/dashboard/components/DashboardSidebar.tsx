@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { CopyButton } from '@/components/CopyButton';
 import type { MerchantInfo, BillingSummary } from '@/lib/api';
 
-export type Tab = 'overview' | 'products' | 'invoices' | 'pos' | 'billing' | 'settings' | 'x402';
+export type Tab = 'overview' | 'products' | 'invoices' | 'pos' | 'billing' | 'webhooks' | 'settings' | 'x402';
 
 interface DashboardSidebarProps {
   merchant: MerchantInfo;
@@ -13,10 +13,11 @@ interface DashboardSidebarProps {
   setTab: (t: Tab) => void;
   billing: BillingSummary | null;
   hasX402: boolean;
+  hasWebhooks: boolean;
 }
 
 export const DashboardSidebar = memo(function DashboardSidebar({
-  merchant, tab, setTab, billing, hasX402,
+  merchant, tab, setTab, billing, hasX402, hasWebhooks,
 }: DashboardSidebarProps) {
   const t = useTranslations('dashboard.sidebar');
   const navButton = (key: Tab, label: string, badge?: React.ReactNode) => (
@@ -80,6 +81,7 @@ export const DashboardSidebar = memo(function DashboardSidebar({
           {navButton('products', t('products'))}
           {navButton('pos', t('pos'))}
           {navButton('invoices', t('invoices'))}
+          {hasWebhooks && navButton('webhooks', t('webhooks'))}
           {hasX402 && navButton('x402', t('x402'))}
         </div>
 

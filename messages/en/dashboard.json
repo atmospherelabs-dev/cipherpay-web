@@ -14,6 +14,7 @@
     "products": "PRODUCTS",
     "pos": "POS",
     "invoices": "INVOICES",
+    "webhooks": "WEBHOOKS",
     "x402": "X402",
     "account": "ACCOUNT",
     "billing": "BILLING",
@@ -250,6 +251,24 @@
     "toastWebhookSecretRegen": "Webhook secret regenerated",
     "toastFailedRegen": "Failed to regenerate",
     "toastFailedDelete": "Failed to delete account"
+  },
+  "webhooks": {
+    "title": "Webhook Deliveries",
+    "total": "total",
+    "all": "ALL",
+    "delivered": "DELIVERED",
+    "pending": "PENDING",
+    "failed": "FAILED",
+    "colTime": "TIME",
+    "colEvent": "EVENT",
+    "colInvoice": "INVOICE",
+    "colStatus": "STATUS",
+    "colHttp": "HTTP",
+    "colAttempts": "ATTEMPTS",
+    "colError": "ERROR",
+    "empty": "No webhook deliveries yet. Configure a webhook URL in Settings to start receiving events.",
+    "prev": "PREV",
+    "next": "NEXT"
   },
   "x402": {
     "title": "x402 Verifications",
