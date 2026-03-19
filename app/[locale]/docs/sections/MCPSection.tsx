@@ -63,17 +63,23 @@ export default function MCPSection() {
 
       <Step n={2} title="Cursor">
         <Paragraph>
-          Add to your MCP settings (Settings &gt; MCP Servers):
+          Go to Settings &gt; Tools &amp; MCP &gt; Add Custom MCP. This opens your <Code>mcp.json</Code>. Paste:
         </Paragraph>
         <CodeBlock lang="json" code={`{
-  "cipherpay": {
-    "command": "npx",
-    "args": ["@cipherpay/mcp"],
-    "env": {
-      "CIPHERPAY_API_KEY": "cpay_sk_your_api_key_here"
+  "mcpServers": {
+    "cipherpay": {
+      "command": "npx",
+      "args": ["@cipherpay/mcp"],
+      "env": {
+        "CIPHERPAY_API_KEY": "cpay_sk_your_api_key_here"
+      }
     }
   }
 }`} />
+        <Paragraph>
+          Save, then reload the window (<Code>Cmd+Shift+P</Code> &gt; &quot;Reload Window&quot;). CipherPay should appear
+          in the Installed MCP Servers list with a green status.
+        </Paragraph>
       </Step>
 
       <SectionDivider />
