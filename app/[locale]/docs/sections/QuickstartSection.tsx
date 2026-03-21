@@ -21,7 +21,7 @@ export default function QuickstartSection() {
           If you don&apos;t have one yet, download a wallet that supports Unified Addresses:
         </Paragraph>
         <div style={{ fontSize: 11, color: 'var(--cp-text-dim)', lineHeight: 2.2, marginBottom: 12 }}>
-          <Strong>Zashi</Strong> — <a href="https://zashi.app" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>zashi.app</a> (iOS, Android) — recommended for beginners<br />
+          <Strong>Zodl</Strong> — <a href="https://zodl.com/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>zodl.com</a> (iOS, Android) — recommended for beginners<br />
           <Strong>YWallet</Strong> — <a href="https://ywallet.app" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>ywallet.app</a> (iOS, Android, desktop) — more advanced features<br />
           <Strong>Zingo!</Strong> — <a href="https://zingolabs.org" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>zingolabs.org</a> — developer-friendly, supports testnet<br />
         </div>
@@ -30,7 +30,7 @@ export default function QuickstartSection() {
         </Paragraph>
         <Callout type="warning">
           For testnet, make sure your wallet is configured for the Zcash testnet network.
-          Zingo! supports testnet natively. For Zashi, you may need the testnet build.
+          Zingo! supports testnet natively. For Zodl, you may need the testnet build.
         </Callout>
       </Step>
 

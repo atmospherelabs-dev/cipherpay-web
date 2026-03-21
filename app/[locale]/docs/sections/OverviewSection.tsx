@@ -56,7 +56,7 @@ export default function OverviewSection({ onNavigate }: { onNavigate: (id: strin
       </Paragraph>
       <Paragraph>
         <Strong>Step 2:</Strong> The customer is redirected to a hosted checkout page. They see a QR code and a payment address.
-        They scan it with their Zcash wallet (like Zashi or YWallet), and the transaction is sent.
+        They scan it with their Zcash wallet (like Zodl or YWallet), and the transaction is sent.
       </Paragraph>
       <Paragraph>
         <Strong>Step 3:</Strong> CipherPay continuously monitors the Zcash network. When the transaction appears in the mempool
@@ -113,7 +113,7 @@ export default function OverviewSection({ onNavigate }: { onNavigate: (id: strin
         <div style={{ marginBottom: 8 }}>
           <Strong>1. A Zcash wallet</Strong><br />
           <span style={{ paddingLeft: 16, display: 'inline-block' }}>
-            Download <a href="https://zashi.app" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>Zashi</a> (mobile) or <a href="https://ywallet.app" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>YWallet</a> (desktop &amp; mobile).
+            Download <a href="https://zodl.com/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>Zodl</a> (mobile) or <a href="https://ywallet.app" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>YWallet</a> (desktop &amp; mobile).
             This is where your payments will arrive. You control the private keys — CipherPay never has access to them.
           </span>
         </div>
