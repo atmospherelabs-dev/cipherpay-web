@@ -10,6 +10,21 @@ export default function QuickstartSection() {
         By the end, you&apos;ll have a CipherPay account, an API key, and a working checkout link you can test immediately.
       </Paragraph>
 
+      <div style={{ margin: '24px 0', borderRadius: 8, overflow: 'hidden', border: '1px solid var(--cp-border)' }}>
+        <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0 }}>
+          <iframe
+            src="https://www.youtube.com/embed/VzSiSMapC_I"
+            title="CipherPay — Get Started with Zcash Payments"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
+          />
+        </div>
+        <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', padding: '8px 12px', background: 'var(--cp-bg)' }}>
+          Video walkthrough — register, explore the dashboard, and create your first product in under 3 minutes.
+        </div>
+      </div>
+
       <Callout type="tip">
         We recommend starting on <Strong>testnet</Strong> so you can make test payments with free testnet ZEC.
         When you&apos;re ready to go live, switch your configuration to mainnet — the code stays the same.
