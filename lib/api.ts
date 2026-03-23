@@ -20,6 +20,7 @@ export interface Invoice {
   id: string;
   merchant_id: string;
   memo_code: string;
+  product_id?: string | null;
   product_name: string | null;
   size: string | null;
   amount: number | null;
@@ -69,6 +70,10 @@ export interface CreateInvoiceResponse {
   payment_address: string;
   zcash_uri: string;
   expires_at: string;
+  price_label?: string | null;
+  event_title?: string | null;
+  event_date?: string | null;
+  event_location?: string | null;
 }
 
 export interface RegisterRequest {
@@ -90,6 +95,8 @@ export interface Price {
   product_id: string;
   currency: string;
   unit_amount: number;
+  label?: string | null;
+  max_quantity?: number | null;
   price_type: string;
   billing_interval: string | null;
   interval_count: number | null;
@@ -233,6 +240,60 @@ export interface WebhookHistory {
   total: number;
 }
 
+export interface EventSummary {
+  id: string;
+  product_id: string;
+  title: string;
+  description: string | null;
+  event_date: string | null;
+  event_location: string | null;
+  status: 'draft' | 'active' | 'cancelled' | 'past';
+  created_at: string;
+  sold_count: number;
+  used_count: number;
+}
+
+export interface Ticket {
+  id: string;
+  invoice_id: string;
+  product_id: string;
+  price_id: string | null;
+  merchant_id: string;
+  code: string;
+  status: 'valid' | 'used' | 'void';
+  used_at: string | null;
+  created_at: string;
+}
+
+export interface TicketListItem {
+  id: string;
+  invoice_id: string;
+  code: string;
+  status: 'valid' | 'used' | 'void';
+  used_at: string | null;
+  created_at: string;
+  product_id: string;
+  product_name: string | null;
+  price_id: string | null;
+  price_label: string | null;
+  event_title: string | null;
+  event_date: string | null;
+  event_location: string | null;
+}
+
+export interface CreateEventRequest {
+  title: string;
+  description?: string;
+  event_date?: string;
+  event_location?: string;
+  prices: Array<{
+    currency: string;
+    unit_amount: number;
+    label?: string;
+    max_quantity?: number;
+  }>;
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     credentials: 'include',
@@ -346,7 +407,7 @@ export const api = {
     request<PublicProduct>(`/api/products/${id}/public`),
 
   // Prices
-  createPrice: (data: { product_id: string; currency: string; unit_amount: number; price_type?: string; billing_interval?: string; interval_count?: number }) =>
+  createPrice: (data: { product_id: string; currency: string; unit_amount: number; label?: string; max_quantity?: number; price_type?: string; billing_interval?: string; interval_count?: number }) =>
     request<Price>('/api/prices', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -355,7 +416,7 @@ export const api = {
   listPrices: (productId: string) =>
     request<Price[]>(`/api/products/${productId}/prices`),
 
-  updatePrice: (id: string, data: { unit_amount?: number; currency?: string; price_type?: string; billing_interval?: string; interval_count?: number }) =>
+  updatePrice: (id: string, data: { unit_amount?: number; currency?: string; label?: string; max_quantity?: number; price_type?: string; billing_interval?: string; interval_count?: number }) =>
     request<Price>(`/api/prices/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
@@ -386,6 +447,35 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+
+  // Events
+  listEvents: () =>
+    request<EventSummary[]>('/api/events'),
+
+  createEvent: (data: CreateEventRequest) =>
+    request<EventSummary>('/api/events', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  archiveEvent: (id: string) =>
+    request<{ status: string }>(`/api/events/${id}/archive`, { method: 'POST' }),
+
+  // Tickets
+  getTicketByInvoice: (invoiceId: string) =>
+    request<{ code: string; status: string }>(`/api/tickets/invoice/${invoiceId}`),
+
+  scanTicket: (code: string) =>
+    request<{ valid: boolean; already_used: boolean; voided: boolean; ticket_status: string; ticket_id: string }>(
+      '/api/tickets/scan',
+      { method: 'POST', body: JSON.stringify({ code }) }
+    ),
+
+  listTickets: () =>
+    request<TicketListItem[]>('/api/tickets'),
+
+  voidTicket: (id: string) =>
+    request<{ status: string }>(`/api/tickets/${id}/void`, { method: 'POST' }),
 
   // Billing
   getBilling: () => request<BillingSummary>('/api/merchants/me/billing'),

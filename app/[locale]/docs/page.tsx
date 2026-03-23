@@ -18,6 +18,7 @@ import SubscriptionsSection from './sections/SubscriptionsSection';
 import BillingSection from './sections/BillingSection';
 import ApiRefSection from './sections/ApiRefSection';
 import X402Section from './sections/X402Section';
+import EventsSection from './sections/EventsSection';
 import MCPSection from './sections/MCPSection';
 
 const SECTIONS = [
@@ -29,6 +30,7 @@ const SECTIONS = [
   { id: 'custom', title: 'Custom Integration' },
   { id: 'products', title: 'Product Pages' },
   { id: 'pos', title: 'In-Person POS' },
+  { id: 'events', title: 'Events & Tickets' },
   { id: 'webhooks', title: 'Webhooks' },
   { id: 'subscriptions', title: 'Subscriptions' },
   { id: 'billing', title: 'Billing & Fees' },
@@ -39,7 +41,7 @@ const SECTIONS = [
 
 const SIDEBAR_GROUPS = [
   { label: 'Getting Started', ids: ['overview', 'quickstart', 'sandbox'] },
-  { label: 'Guides', ids: ['shopify', 'woocommerce', 'custom', 'products', 'pos'] },
+  { label: 'Guides', ids: ['shopify', 'woocommerce', 'custom', 'products', 'pos', 'events'] },
   { label: 'Reference', ids: ['webhooks', 'subscriptions', 'billing', 'api-ref'] },
   { label: 'AI & Agents', ids: ['x402', 'mcp'] },
 ];
@@ -54,6 +56,7 @@ function SectionContent({ id, onNavigate }: { id: string; onNavigate: (id: strin
     case 'custom': return <CustomSection />;
     case 'products': return <ProductsSection />;
     case 'pos': return <POSSection />;
+    case 'events': return <EventsSection />;
     case 'webhooks': return <WebhooksSection />;
     case 'subscriptions': return <SubscriptionsSection />;
     case 'billing': return <BillingSection />;

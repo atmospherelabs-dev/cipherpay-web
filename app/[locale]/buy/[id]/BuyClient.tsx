@@ -10,6 +10,29 @@ import { Logo } from '@/components/Logo';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Spinner } from '@/components/Spinner';
 
+const LOCALE_CURRENCY: Record<string, string> = {
+  US: 'USD', GB: 'GBP', CA: 'CAD', AU: 'AUD', JP: 'JPY',
+  BR: 'BRL', MX: 'MXN', AR: 'ARS', NG: 'NGN', IN: 'INR',
+  CH: 'CHF', DE: 'EUR', FR: 'EUR', ES: 'EUR', IT: 'EUR',
+  NL: 'EUR', PT: 'EUR', BE: 'EUR', AT: 'EUR', IE: 'EUR',
+  FI: 'EUR', GR: 'EUR', LU: 'EUR', SK: 'EUR', SI: 'EUR',
+  EE: 'EUR', LV: 'EUR', LT: 'EUR', MT: 'EUR', CY: 'EUR',
+};
+
+function detectCurrency(): string {
+  try {
+    const locale = Intl.DateTimeFormat().resolvedOptions().locale;
+    const region = locale.split('-').pop()?.toUpperCase();
+    if (region && LOCALE_CURRENCY[region]) return LOCALE_CURRENCY[region];
+  } catch { /* fallback below */ }
+  return 'USD';
+}
+
+function pickBestPrice(prices: Price[]): Price {
+  const detected = detectCurrency();
+  return prices.find(p => p.currency === detected) || prices[0];
+}
+
 export default function BuyClient({ productId }: { productId: string }) {
   const t = useTranslations('buy');
   const tc = useTranslations('common');
@@ -27,12 +50,16 @@ export default function BuyClient({ productId }: { productId: string }) {
       .then((p) => {
         setProduct(p);
         const active = (p.prices || []).filter(pr => pr.active === 1);
-        if (active.length > 0) setSelectedPrice(active[0]);
+        if (active.length > 0) {
+          const hasTierLabels = active.some(pr => pr.label);
+          setSelectedPrice(hasTierLabels ? active[0] : pickBestPrice(active));
+        }
       })
       .catch((e) => setError(e.message));
   }, [productId]);
 
   const activePrices = (product?.prices || []).filter(pr => pr.active === 1);
+  const hasTierLabels = activePrices.some(p => p.label);
 
   const handleCheckout = async () => {
     setFormError('');
@@ -99,16 +126,16 @@ export default function BuyClient({ productId }: { productId: string }) {
                 : '—'}
             </div>
 
-            {activePrices.length > 1 && (
-              <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 8 }}>
+            {hasTierLabels && activePrices.length > 1 && (
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 8, flexWrap: 'wrap' }}>
                 {activePrices.map((p) => (
                   <button
                     key={p.id}
                     onClick={() => setSelectedPrice(p)}
                     className={selectedPrice?.id === p.id ? 'btn-primary' : 'btn'}
-                    style={{ minWidth: 54, textAlign: 'center', fontSize: 11 }}
+                    style={{ minWidth: 80, textAlign: 'center', fontSize: 11, padding: '6px 12px' }}
                   >
-                    {currencySymbol(p.currency)} {p.currency}
+                    {p.label || p.currency} · {currencySymbol(p.currency)}{p.unit_amount.toFixed(2)}
                   </button>
                 ))}
               </div>
