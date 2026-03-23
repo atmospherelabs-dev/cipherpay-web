@@ -76,6 +76,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
   const [showManual, setShowManual] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
   const [finalizeError, setFinalizeError] = useState<string | null>(null);
+  const [ticketCode, setTicketCode] = useState<string | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
 
   const searchParams = useSearchParams();
@@ -131,6 +132,20 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
     es.onerror = () => {};
     return () => { es.close(); eventSourceRef.current = null; };
   }, [invoice?.status, invoiceId]);
+
+  useEffect(() => {
+    if (!invoice) return;
+    if (invoice.status !== 'detected' && invoice.status !== 'confirmed') return;
+    let cancelled = false;
+    api.getTicketByInvoice(invoice.id)
+      .then((ticket) => {
+        if (!cancelled) setTicketCode(ticket.code);
+      })
+      .catch(() => {
+        if (!cancelled) setTicketCode(null);
+      });
+    return () => { cancelled = true; };
+  }, [invoice]);
 
   const address = invoice?.payment_address || '';
   const zcashUri = invoice?.zcash_uri || '';
@@ -425,7 +440,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
 
           {/* ── Receipt ── */}
           {showReceipt && (
-            <ConfirmedReceipt invoice={invoice} returnUrl={returnUrl} />
+            <ConfirmedReceipt invoice={invoice} returnUrl={returnUrl} ticketCode={ticketCode} />
           )}
 
           {/* ── Expired ── */}
@@ -525,7 +540,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
   );
 }
 
-function ConfirmedReceipt({ invoice, returnUrl }: { invoice: Invoice; returnUrl: string | null }) {
+function ConfirmedReceipt({ invoice, returnUrl, ticketCode }: { invoice: Invoice; returnUrl: string | null; ticketCode: string | null }) {
   const t = useTranslations('checkout');
   const [redirectIn, setRedirectIn] = useState(returnUrl ? 5 : -1);
 
@@ -562,6 +577,20 @@ function ConfirmedReceipt({ invoice, returnUrl }: { invoice: Invoice; returnUrl:
       <div className="checkout-status confirmed" style={{ marginBottom: 24, padding: 20 }}>
         <div style={{ fontSize: 15, fontWeight: 700 }}>{t('paymentAccepted')}</div>
       </div>
+
+      {ticketCode && (
+        <div style={{ marginTop: 18, border: '1px solid var(--cp-border)', borderRadius: 6, padding: '16px 20px' }}>
+          <div style={{ fontSize: 10, color: 'var(--cp-text-muted)', letterSpacing: 1, marginBottom: 10 }}>
+            TICKET
+          </div>
+          <div className="qr-container" style={{ marginBottom: 12 }}>
+            <QRCode data={ticketCode} size={180} />
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--cp-cyan)', fontFamily: 'monospace', wordBreak: 'break-all', textAlign: 'center' }}>
+            {ticketCode}
+          </div>
+        </div>
+      )}
 
       <div style={{ border: '1px solid var(--cp-border)', borderRadius: 6, padding: '0 24px' }}>
         {invoice.merchant_name && (

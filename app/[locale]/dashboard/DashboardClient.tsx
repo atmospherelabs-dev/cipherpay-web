@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
-import { api, type MerchantInfo, type Product, type Invoice, type BillingSummary, type BillingCycle, type X402Verification, type ZecRates, type WebhookDelivery } from '@/lib/api';
+import { api, type MerchantInfo, type Product, type Invoice, type BillingSummary, type BillingCycle, type X402Verification, type ZecRates, type WebhookDelivery, type EventSummary } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 
@@ -12,6 +12,7 @@ import { Banner } from '@/components/Banner';
 import { DashboardSidebar, type Tab } from './components/DashboardSidebar';
 import { OverviewTab } from './tabs/OverviewTab';
 import { ProductsTab } from './tabs/ProductsTab';
+import { EventsTab } from './tabs/EventsTab';
 import { POSTab } from './tabs/POSTab';
 import { InvoicesTab } from './tabs/InvoicesTab';
 import { BillingTab } from './tabs/BillingTab';
@@ -28,8 +29,10 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
   const [tabAction, setTabAction] = useState<TabAction>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [events, setEvents] = useState<EventSummary[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [loadingInvoices, setLoadingInvoices] = useState(true);
+  const [loadingEvents, setLoadingEvents] = useState(true);
 
   const [displayCurrency, setDisplayCurrency] = useState<string>(() => {
     if (typeof window !== 'undefined') {
@@ -65,6 +68,12 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
     setLoadingInvoices(false);
   }, []);
 
+  const loadEvents = useCallback(async () => {
+    try { setEvents(await api.listEvents()); }
+    catch (err) { console.error('Failed to load events', err); }
+    setLoadingEvents(false);
+  }, []);
+
   const loadBilling = useCallback(async () => {
     try {
       setBilling(await api.getBilling());
@@ -90,8 +99,8 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
 
 
   useEffect(() => {
-    loadProducts(); loadInvoices(); loadBilling(); loadX402(); loadWebhooks();
-  }, [loadProducts, loadInvoices, loadBilling, loadX402, loadWebhooks]);
+    loadProducts(); loadEvents(); loadInvoices(); loadBilling(); loadX402(); loadWebhooks();
+  }, [loadProducts, loadEvents, loadInvoices, loadBilling, loadX402, loadWebhooks]);
 
   useEffect(() => {
     const fetchRates = () => {
@@ -195,6 +204,14 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                 displayCurrency={displayCurrency}
                 initialAction={tabAction}
                 clearAction={() => setTabAction(null)}
+              />
+            )}
+            {tab === 'events' && (
+              <EventsTab
+                events={events}
+                loadingEvents={loadingEvents}
+                reloadEvents={loadEvents}
+                checkoutOrigin={checkoutOrigin}
               />
             )}
             {tab === 'pos' && (
