@@ -38,5 +38,9 @@
   "backToStore": "← Voltar à Loja",
   "labelCopied": "{label} copiado",
   "refundPrivacyHint": "Fornecer um endereço de reembolso o revela ao comerciante, reduzindo sua privacidade.",
-  "mempoolHint": "Após enviar, pode haver um breve atraso antes do seu pagamento aparecer aqui. Se sua carteira confirmar a transação, ela será detectada automaticamente."
+  "mempoolHint": "Após enviar, pode haver um breve atraso antes do seu pagamento aparecer aqui. Se sua carteira confirmar a transação, ela será detectada automaticamente.",
+  "ticketGenerating": "GERANDO SEU INGRESSO",
+  "ticketGeneratingHint": "Aguardando confirmação da rede. Não feche esta página.",
+  "ticketLabel": "SEU INGRESSO",
+  "ticketScreenshot": "Salve uma captura de tela deste ingresso. Você precisará dele na entrada."
 }

@@ -133,19 +133,36 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
     return () => { es.close(); eventSourceRef.current = null; };
   }, [invoice?.status, invoiceId]);
 
+  const [ticketPending, setTicketPending] = useState(false);
+
   useEffect(() => {
     if (!invoice) return;
     if (invoice.status !== 'detected' && invoice.status !== 'confirmed') return;
+    if (ticketCode) return;
     let cancelled = false;
-    api.getTicketByInvoice(invoice.id)
-      .then((ticket) => {
-        if (!cancelled) setTicketCode(ticket.code);
-      })
-      .catch(() => {
-        if (!cancelled) setTicketCode(null);
-      });
+    let retries = 0;
+
+    const poll = () => {
+      api.getTicketByInvoice(invoice.id)
+        .then((ticket) => {
+          if (!cancelled) { setTicketCode(ticket.code); setTicketPending(false); }
+        })
+        .catch(() => {
+          if (cancelled) return;
+          retries++;
+          if (invoice.status === 'confirmed') {
+            if (retries < 3) { setTimeout(poll, 2000); return; }
+            setTicketPending(false);
+            return;
+          }
+          if (retries >= 60) { setTicketPending(false); return; }
+          setTicketPending(true);
+          setTimeout(poll, 5000);
+        });
+    };
+    poll();
     return () => { cancelled = true; };
-  }, [invoice]);
+  }, [invoice?.status, invoice?.id, ticketCode]);
 
   const address = invoice?.payment_address || '';
   const zcashUri = invoice?.zcash_uri || '';
@@ -440,7 +457,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
 
           {/* ── Receipt ── */}
           {showReceipt && (
-            <ConfirmedReceipt invoice={invoice} returnUrl={returnUrl} ticketCode={ticketCode} />
+            <ConfirmedReceipt invoice={invoice} returnUrl={returnUrl} ticketCode={ticketCode} ticketPending={ticketPending} />
           )}
 
           {/* ── Expired ── */}
@@ -540,15 +557,20 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
   );
 }
 
-function ConfirmedReceipt({ invoice, returnUrl, ticketCode }: { invoice: Invoice; returnUrl: string | null; ticketCode: string | null }) {
+function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending }: { invoice: Invoice; returnUrl: string | null; ticketCode: string | null; ticketPending: boolean }) {
   const t = useTranslations('checkout');
-  const [redirectIn, setRedirectIn] = useState(returnUrl ? 5 : -1);
+  const shouldRedirect = returnUrl && !ticketPending;
+  const [redirectIn, setRedirectIn] = useState(shouldRedirect ? 5 : -1);
 
   useEffect(() => {
-    if (!returnUrl || redirectIn <= 0) return;
+    if (shouldRedirect && redirectIn < 0) setRedirectIn(5);
+  }, [shouldRedirect, redirectIn]);
+
+  useEffect(() => {
+    if (!shouldRedirect || redirectIn <= 0) return;
     const id = setTimeout(() => setRedirectIn(prev => prev - 1), 1000);
     return () => clearTimeout(id);
-  }, [redirectIn, returnUrl]);
+  }, [redirectIn, shouldRedirect]);
 
   useEffect(() => {
     if (redirectIn === 0 && returnUrl) {
@@ -578,16 +600,34 @@ function ConfirmedReceipt({ invoice, returnUrl, ticketCode }: { invoice: Invoice
         <div style={{ fontSize: 15, fontWeight: 700 }}>{t('paymentAccepted')}</div>
       </div>
 
+      {ticketPending && !ticketCode && (
+        <div style={{
+          marginTop: 18, border: '1px solid var(--cp-border)', borderRadius: 6, padding: '24px 20px',
+          textAlign: 'center',
+        }}>
+          <Spinner size={20} />
+          <div style={{ fontSize: 11, color: 'var(--cp-cyan)', letterSpacing: 1, marginTop: 12, fontWeight: 600 }}>
+            {t('ticketGenerating')}
+          </div>
+          <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: 6, lineHeight: 1.6 }}>
+            {t('ticketGeneratingHint')}
+          </div>
+        </div>
+      )}
+
       {ticketCode && (
         <div style={{ marginTop: 18, border: '1px solid var(--cp-border)', borderRadius: 6, padding: '16px 20px' }}>
           <div style={{ fontSize: 10, color: 'var(--cp-text-muted)', letterSpacing: 1, marginBottom: 10 }}>
-            TICKET
+            {t('ticketLabel')}
           </div>
           <div className="qr-container" style={{ marginBottom: 12 }}>
             <QRCode data={ticketCode} size={180} />
           </div>
           <div style={{ fontSize: 11, color: 'var(--cp-cyan)', fontFamily: 'monospace', wordBreak: 'break-all', textAlign: 'center' }}>
             {ticketCode}
+          </div>
+          <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', textAlign: 'center', marginTop: 8, letterSpacing: 0.5 }}>
+            {t('ticketScreenshot')}
           </div>
         </div>
       )}
@@ -668,7 +708,7 @@ function ConfirmedReceipt({ invoice, returnUrl, ticketCode }: { invoice: Invoice
         </div>
       )}
 
-      {!returnUrl && (
+      {!returnUrl && !ticketPending && (
         <div style={{ textAlign: 'center', marginTop: 24, fontSize: 10, color: 'var(--cp-text-dim)', letterSpacing: 1 }}>
           {t('canClosePage')}
         </div>

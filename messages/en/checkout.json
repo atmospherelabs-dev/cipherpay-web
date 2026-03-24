@@ -38,5 +38,9 @@
   "backToStore": "← Back to Store",
   "labelCopied": "{label} copied",
   "refundPrivacyHint": "Providing a refund address reveals it to the merchant, reducing your privacy.",
-  "mempoolHint": "After sending, there may be a short delay before your payment appears here. If your wallet confirms the transaction, it will be detected automatically."
+  "mempoolHint": "After sending, there may be a short delay before your payment appears here. If your wallet confirms the transaction, it will be detected automatically.",
+  "ticketGenerating": "GENERATING YOUR TICKET",
+  "ticketGeneratingHint": "Waiting for network confirmation. Please do not close this page.",
+  "ticketLabel": "YOUR TICKET",
+  "ticketScreenshot": "Save a screenshot of this ticket. You will need it at the door."
 }
