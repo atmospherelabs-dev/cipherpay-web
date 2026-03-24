@@ -288,6 +288,27 @@ body {
   color: var(--cp-text-muted);
 }
 
+.input[type="date"],
+.input[type="time"],
+.input[type="datetime-local"] {
+  color-scheme: dark;
+}
+
+.input[type="date"]::-webkit-calendar-picker-indicator,
+.input[type="time"]::-webkit-calendar-picker-indicator,
+.input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.7);
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
+
+.input[type="date"]::-webkit-calendar-picker-indicator:hover,
+.input[type="time"]::-webkit-calendar-picker-indicator:hover,
+.input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
 /* ── Stat rows ── */
 
 .stat-row {

@@ -42,6 +42,34 @@ function HelperText({ children }: { children: React.ReactNode }) {
   );
 }
 
+function DateTimePicker({ value, onChange, label }: {
+  value: string; onChange: (v: string) => void; label?: string;
+}) {
+  const dateVal = value ? value.substring(0, 10) : '';
+  const timeVal = value && value.length > 10 ? value.substring(11, 16) : '';
+
+  const handleDateChange = (d: string) => {
+    if (!d) { onChange(''); return; }
+    onChange(d + 'T' + (timeVal || '19:00'));
+  };
+  const handleTimeChange = (t: string) => {
+    if (!dateVal) return;
+    onChange(dateVal + 'T' + (t || '19:00'));
+  };
+
+  return (
+    <div>
+      {label && <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', letterSpacing: 0.5, marginBottom: 4, textTransform: 'uppercase' }}>{label}</div>}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px', gap: 6 }}>
+        <input className="input" type="date" value={dateVal} onChange={(e) => handleDateChange(e.target.value)} />
+        <input className="input" type="time" value={timeVal} onChange={(e) => handleTimeChange(e.target.value)} disabled={!dateVal}
+          style={{ opacity: dateVal ? 1 : 0.4 }}
+        />
+      </div>
+    </div>
+  );
+}
+
 function SoldDisplay({ sold, capacity, t }: { sold: number; capacity: number | null; t: (key: string, values?: Record<string, string | number>) => string }) {
   if (capacity != null) {
     return <>{t('soldOf', { sold, total: capacity })}</>;
@@ -375,9 +403,12 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
                 </div>
                 <div className="form-group">
                   <label className="form-label">{t('dateAndLocation')}</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                    <input className="input" type="datetime-local" value={editDate} onChange={(e) => setEditDate(e.target.value)} />
-                    <input className="input" placeholder={t('locationPlaceholder')} value={editLocation} onChange={(e) => setEditLocation(e.target.value)} />
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'end' }}>
+                    <DateTimePicker value={editDate} onChange={setEditDate} label={t('date')} />
+                    <div>
+                      <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', letterSpacing: 0.5, marginBottom: 4, textTransform: 'uppercase' }}>{t('location')}</div>
+                      <input className="input" placeholder={t('locationPlaceholder')} value={editLocation} onChange={(e) => setEditLocation(e.target.value)} />
+                    </div>
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
@@ -578,9 +609,12 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
           </div>
           <div className="form-group">
             <label className="form-label">{t('dateAndLocation')}</label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <input className="input" type="datetime-local" value={eventDate} onChange={(e) => setEventDate(e.target.value)} />
-              <input className="input" placeholder={t('locationPlaceholder')} value={eventLocation} onChange={(e) => setEventLocation(e.target.value)} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'end' }}>
+              <DateTimePicker value={eventDate} onChange={setEventDate} label={t('date')} />
+              <div>
+                <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', letterSpacing: 0.5, marginBottom: 4, textTransform: 'uppercase' }}>{t('location')}</div>
+                <input className="input" placeholder={t('locationPlaceholder')} value={eventLocation} onChange={(e) => setEventLocation(e.target.value)} />
+              </div>
             </div>
             <HelperText>{t('dateLocationHelp')}</HelperText>
           </div>
