@@ -7,6 +7,7 @@ import { api, type Invoice } from '@/lib/api';
 import { validateZcashAddress } from '@/lib/validation';
 import { currencySymbol } from '@/lib/currency';
 import { QRCode } from '@/components/QRCode';
+import { QRCodeCanvas } from 'qrcode.react';
 import { Logo } from '@/components/Logo';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -557,6 +558,54 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
   );
 }
 
+function saveTicketImage(ticketCode: string, eventName: string | null | undefined, merchantName: string | null | undefined) {
+  const qrCanvas = document.getElementById('ticket-qr-canvas') as HTMLCanvasElement | null;
+  if (!qrCanvas) return;
+
+  const w = 400, pad = 32, qrSize = 240;
+  const h = pad + 28 + 16 + qrSize + 16 + 20 + (eventName ? 24 : 0) + (merchantName ? 20 : 0) + pad;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d')!;
+
+  ctx.fillStyle = '#0a0e14';
+  ctx.fillRect(0, 0, w, h);
+
+  let y = pad;
+  ctx.fillStyle = '#56D4C8';
+  ctx.font = '600 14px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('YOUR TICKET', w / 2, y + 14);
+  y += 28 + 16;
+
+  const qrX = (w - qrSize) / 2;
+  ctx.drawImage(qrCanvas, qrX, y, qrSize, qrSize);
+  y += qrSize + 16;
+
+  ctx.fillStyle = '#56D4C8';
+  ctx.font = '11px monospace';
+  ctx.fillText(ticketCode, w / 2, y + 10);
+  y += 20;
+
+  if (eventName) {
+    ctx.fillStyle = '#e2e8f0';
+    ctx.font = '600 13px monospace';
+    ctx.fillText(eventName, w / 2, y + 14);
+    y += 24;
+  }
+  if (merchantName) {
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '10px monospace';
+    ctx.fillText(merchantName, w / 2, y + 12);
+  }
+
+  const link = document.createElement('a');
+  link.download = `ticket-${ticketCode.slice(4, 12)}.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
 function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending }: { invoice: Invoice; returnUrl: string | null; ticketCode: string | null; ticketPending: boolean }) {
   const t = useTranslations('checkout');
   const shouldRedirect = returnUrl && !ticketPending;
@@ -626,9 +675,20 @@ function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending }: { i
           <div style={{ fontSize: 11, color: 'var(--cp-cyan)', fontFamily: 'monospace', wordBreak: 'break-all', textAlign: 'center' }}>
             {ticketCode}
           </div>
-          <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', textAlign: 'center', marginTop: 8, letterSpacing: 0.5 }}>
-            {t('ticketScreenshot')}
+          <div style={{ display: 'none' }}>
+            <QRCodeCanvas id="ticket-qr-canvas" value={ticketCode} size={240} bgColor="#0a0e14" fgColor="#ffffff" level="M" />
           </div>
+          <button
+            onClick={() => saveTicketImage(ticketCode, invoice.product_name, invoice.merchant_name)}
+            className="btn"
+            style={{
+              display: 'block', width: '100%', marginTop: 14,
+              fontSize: 10, letterSpacing: 1.5, textTransform: 'uppercase',
+              color: 'var(--cp-cyan)', borderColor: 'rgba(86,212,200,0.3)',
+            }}
+          >
+            {t('ticketSave')}
+          </button>
         </div>
       )}
 

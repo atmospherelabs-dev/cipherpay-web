@@ -42,5 +42,5 @@
   "ticketGenerating": "GERANDO SEU INGRESSO",
   "ticketGeneratingHint": "Aguardando confirmação da rede. Não feche esta página.",
   "ticketLabel": "SEU INGRESSO",
-  "ticketScreenshot": "Salve uma captura de tela deste ingresso. Você precisará dele na entrada."
+  "ticketSave": "Salvar Ingresso"
 }

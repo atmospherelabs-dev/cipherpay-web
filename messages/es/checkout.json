@@ -42,5 +42,5 @@
   "ticketGenerating": "GENERANDO TU ENTRADA",
   "ticketGeneratingHint": "Esperando confirmación de la red. No cierres esta página.",
   "ticketLabel": "TU ENTRADA",
-  "ticketScreenshot": "Guarda una captura de pantalla de esta entrada. La necesitarás en la puerta."
+  "ticketSave": "Guardar Entrada"
 }
