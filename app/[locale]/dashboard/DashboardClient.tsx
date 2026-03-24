@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
 import { api, type MerchantInfo, type Product, type Invoice, type BillingSummary, type BillingCycle, type X402Verification, type ZecRates, type WebhookDelivery, type EventSummary } from '@/lib/api';
+import { isTestnet } from '@/lib/config';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 
@@ -99,7 +100,8 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
 
 
   useEffect(() => {
-    loadProducts(); loadEvents(); loadInvoices(); loadBilling(); loadX402(); loadWebhooks();
+    loadProducts(); loadInvoices(); loadBilling(); loadX402(); loadWebhooks();
+    if (isTestnet()) loadEvents();
   }, [loadProducts, loadEvents, loadInvoices, loadBilling, loadX402, loadWebhooks]);
 
   useEffect(() => {
@@ -206,7 +208,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                 clearAction={() => setTabAction(null)}
               />
             )}
-            {tab === 'events' && (
+            {tab === 'events' && isTestnet() && (
               <EventsTab
                 events={events}
                 loadingEvents={loadingEvents}

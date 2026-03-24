@@ -17,3 +17,8 @@ function resolveApiUrl(): string {
 }
 
 export const API_URL = resolveApiUrl();
+
+export function isTestnet(): boolean {
+  if (typeof window === 'undefined') return false;
+  return window.location.hostname.startsWith('testnet.') || window.location.hostname === 'localhost';
+}

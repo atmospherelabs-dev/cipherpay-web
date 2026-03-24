@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
 import { SidebarGroup } from './components/DocComponents';
+import { isTestnet } from '@/lib/config';
 
 import OverviewSection from './sections/OverviewSection';
 import QuickstartSection from './sections/QuickstartSection';
@@ -69,8 +70,12 @@ function SectionContent({ id, onNavigate }: { id: string; onNavigate: (id: strin
 
 export default function DocsPage() {
   const [activeSection, setActiveSection] = useState('overview');
+  const testnet = isTestnet();
+  const hiddenIds = testnet ? [] : ['events'];
+  const sections = useMemo(() => SECTIONS.filter(s => !hiddenIds.includes(s.id)), [testnet]);
+  const groups = useMemo(() => SIDEBAR_GROUPS.map(g => ({ ...g, ids: g.ids.filter(id => !hiddenIds.includes(id)) })).filter(g => g.ids.length > 0), [testnet]);
 
-  const current = SECTIONS.find((s) => s.id === activeSection) || SECTIONS[0];
+  const current = sections.find((s) => s.id === activeSection) || sections[0];
 
   return (
     <div style={{ minHeight: '100vh', fontFamily: 'var(--font-geist-mono), monospace', fontSize: 13, lineHeight: 1.6 }}>
@@ -90,11 +95,11 @@ export default function DocsPage() {
           {/* Sidebar */}
           <div>
             <div className="panel" style={{ position: 'sticky', top: 24 }}>
-              {SIDEBAR_GROUPS.map((group) => (
+              {groups.map((group) => (
                 <div key={group.label}>
                   <SidebarGroup label={group.label} />
                   {group.ids.map((id) => {
-                    const section = SECTIONS.find((s) => s.id === id);
+                    const section = sections.find((s) => s.id === id);
                     if (!section) return null;
                     return (
                       <button
