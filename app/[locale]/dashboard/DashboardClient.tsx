@@ -100,8 +100,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
 
 
   useEffect(() => {
-    loadProducts(); loadInvoices(); loadBilling(); loadX402(); loadWebhooks();
-    if (isTestnet()) loadEvents();
+    loadProducts(); loadInvoices(); loadBilling(); loadX402(); loadWebhooks(); loadEvents();
   }, [loadProducts, loadEvents, loadInvoices, loadBilling, loadX402, loadWebhooks]);
 
   useEffect(() => {
@@ -208,7 +207,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                 clearAction={() => setTabAction(null)}
               />
             )}
-            {tab === 'events' && isTestnet() && (
+            {tab === 'events' && (
               <EventsTab
                 events={events}
                 loadingEvents={loadingEvents}
