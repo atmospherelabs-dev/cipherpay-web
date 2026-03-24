@@ -497,7 +497,7 @@ export const api = {
 
   // Tickets
   getTicketByInvoice: (invoiceId: string) =>
-    request<{ code: string; status: string }>(`/api/tickets/invoice/${invoiceId}`),
+    request<{ code: string; status: string; event_date?: string | null; event_location?: string | null; price_label?: string | null }>(`/api/tickets/invoice/${invoiceId}`),
 
   scanTicket: (code: string) =>
     request<{ valid: boolean; already_used: boolean; voided: boolean; ticket_status: string; ticket_id: string }>(

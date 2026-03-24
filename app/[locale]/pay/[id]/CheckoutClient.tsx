@@ -77,6 +77,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
   const [finalizing, setFinalizing] = useState(false);
   const [finalizeError, setFinalizeError] = useState<string | null>(null);
   const [ticketCode, setTicketCode] = useState<string | null>(null);
+  const [ticketMeta, setTicketMeta] = useState<{ event_date?: string | null; event_location?: string | null; price_label?: string | null }>({});
   const eventSourceRef = useRef<EventSource | null>(null);
 
   const searchParams = useSearchParams();
@@ -145,7 +146,11 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
     const poll = () => {
       api.getTicketByInvoice(invoice.id)
         .then((ticket) => {
-          if (!cancelled) { setTicketCode(ticket.code); setTicketPending(false); }
+          if (!cancelled) {
+            setTicketCode(ticket.code);
+            setTicketMeta({ event_date: ticket.event_date, event_location: ticket.event_location, price_label: ticket.price_label });
+            setTicketPending(false);
+          }
         })
         .catch(() => {
           if (cancelled) return;
@@ -457,7 +462,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
 
           {/* ── Receipt ── */}
           {showReceipt && (
-            <ConfirmedReceipt invoice={invoice} returnUrl={returnUrl} ticketCode={ticketCode} ticketPending={ticketPending} />
+            <ConfirmedReceipt invoice={invoice} returnUrl={returnUrl} ticketCode={ticketCode} ticketPending={ticketPending} ticketMeta={ticketMeta} />
           )}
 
           {/* ── Expired ── */}
@@ -634,7 +639,10 @@ function ReceiptDetails({ invoice, row, label, primaryPrice, secondaryPrice, t }
   );
 }
 
-function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending }: { invoice: Invoice; returnUrl: string | null; ticketCode: string | null; ticketPending: boolean }) {
+function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending, ticketMeta }: {
+  invoice: Invoice; returnUrl: string | null; ticketCode: string | null; ticketPending: boolean;
+  ticketMeta?: { event_date?: string | null; event_location?: string | null; price_label?: string | null };
+}) {
   const t = useTranslations('checkout');
   const receiptRef = useRef<HTMLDivElement>(null);
   const shouldRedirect = returnUrl && !ticketPending;
@@ -694,37 +702,63 @@ function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending }: { i
       )}
 
       {ticketCode && (
-        <div ref={receiptRef} style={{ marginTop: 18, padding: 16, borderRadius: 8, background: 'var(--cp-bg, #0a0e14)' }}>
-          <div style={{ border: '1px solid var(--cp-border)', borderRadius: 6, padding: '16px 20px', marginBottom: 16 }}>
-            <div style={{ fontSize: 10, color: 'var(--cp-text-muted)', letterSpacing: 1, marginBottom: 10 }}>
-              {t('ticketLabel')}
-            </div>
-            <div style={{ marginBottom: 12, textAlign: 'center' }}>
-              <div className="qr-container">
-                <QRCode data={ticketCode} size={180} />
+        <>
+          <div ref={receiptRef} style={{ marginTop: 18, padding: 16, borderRadius: 8, background: 'var(--cp-bg, #0a0e14)' }}>
+            <div style={{ border: '1px solid var(--cp-border)', borderRadius: 6, padding: '20px 20px 16px', marginBottom: 16 }}>
+              <div style={{ textAlign: 'center', marginBottom: 14 }}>
+                <div style={{ fontSize: 10, color: 'var(--cp-text-muted)', letterSpacing: 1.5, marginBottom: 12 }}>
+                  {t('ticketLabel')}
+                </div>
+                <div className="qr-container">
+                  <QRCode data={ticketCode} size={180} />
+                </div>
+                <div style={{ fontSize: 10, color: 'var(--cp-cyan)', fontFamily: 'monospace', wordBreak: 'break-all', marginTop: 10 }}>
+                  {ticketCode}
+                </div>
               </div>
+
+              {(ticketMeta?.event_date || ticketMeta?.event_location || ticketMeta?.price_label) && (
+                <div style={{
+                  borderTop: '1px solid var(--cp-border)', paddingTop: 12, marginTop: 4,
+                  display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center',
+                }}>
+                  {ticketMeta.event_date && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--cp-text-muted)' }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                      <span>{(() => { try { return new Date(ticketMeta.event_date!).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch { return ticketMeta.event_date; } })()}</span>
+                    </div>
+                  )}
+                  {ticketMeta.event_location && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--cp-text-muted)' }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                      <span>{ticketMeta.event_location}</span>
+                    </div>
+                  )}
+                  {ticketMeta.price_label && (
+                    <div style={{ fontSize: 10, color: 'var(--cp-cyan)', fontWeight: 600, letterSpacing: 0.5 }}>
+                      {ticketMeta.price_label}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-            <div style={{ fontSize: 11, color: 'var(--cp-cyan)', fontFamily: 'monospace', wordBreak: 'break-all', textAlign: 'center' }}>
-              {ticketCode}
-            </div>
+
+            <ReceiptDetails invoice={invoice} row={row} label={label} primaryPrice={primaryPrice} secondaryPrice={secondaryPrice} t={t} />
           </div>
 
-          <ReceiptDetails invoice={invoice} row={row} label={label} primaryPrice={primaryPrice} secondaryPrice={secondaryPrice} t={t} />
-        </div>
-      )}
-
-      {ticketCode && (
-        <button
-          onClick={() => receiptRef.current && saveReceiptImage(receiptRef.current, ticketCode)}
-          className="btn"
-          style={{
-            display: 'block', width: '100%', marginTop: 14,
-            fontSize: 10, letterSpacing: 1.5, textTransform: 'uppercase',
-            color: 'var(--cp-cyan)', borderColor: 'rgba(86,212,200,0.3)',
-          }}
-        >
-          {t('ticketSave')}
-        </button>
+          <button
+            onClick={() => receiptRef.current && saveReceiptImage(receiptRef.current, ticketCode)}
+            className="btn"
+            style={{
+              display: 'block', width: '100%', marginTop: 16,
+              fontSize: 10, letterSpacing: 1.5, textTransform: 'uppercase',
+              padding: '12px 0',
+              color: 'var(--cp-cyan)', borderColor: 'rgba(86,212,200,0.3)',
+            }}
+          >
+            {t('ticketSave')}
+          </button>
+        </>
       )}
 
       {!ticketCode && !ticketPending && (

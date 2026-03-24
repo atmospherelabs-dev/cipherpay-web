@@ -33,6 +33,15 @@ function pickBestPrice(prices: Price[]): Price {
   return prices.find(p => p.currency === detected) || prices[0];
 }
 
+function formatEventDate(dateStr: string): string {
+  try {
+    return new Date(dateStr).toLocaleDateString(undefined, {
+      weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+    });
+  } catch { return dateStr; }
+}
+
 export default function BuyClient({ productId }: { productId: string }) {
   const t = useTranslations('buy');
   const tc = useTranslations('common');
@@ -60,6 +69,7 @@ export default function BuyClient({ productId }: { productId: string }) {
 
   const activePrices = (product?.prices || []).filter(pr => pr.active === 1);
   const hasTierLabels = activePrices.some(p => p.label);
+  const isEvent = !!(product?.event_date || product?.event_location || hasTierLabels);
 
   const handleCheckout = async () => {
     setFormError('');
@@ -118,48 +128,59 @@ export default function BuyClient({ productId }: { productId: string }) {
       <main className="flex-1 flex items-center justify-center" style={{ padding: '48px 24px' }}>
         <div style={{ maxWidth: 440, width: '100%' }}>
           <div className="checkout-preview">
-            <div style={{ fontSize: 10, letterSpacing: 1, color: 'var(--cp-text-dim)' }}>{t('payWithZec')}</div>
-            <div className="price">{product.name}</div>
-            <div className="price-zec">
-              {selectedPrice
-                ? `${currencySymbol(selectedPrice.currency)}${selectedPrice.unit_amount.toFixed(2)} ${selectedPrice.currency}`
-                : '—'}
+            <div style={{ fontSize: 10, letterSpacing: 1, color: 'var(--cp-text-dim)' }}>
+              {isEvent ? t('getTickets') : t('payWithZec')}
             </div>
+            <div className="price">{product.name}</div>
 
-            {(product.event_date || product.event_location) && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center', marginTop: 10, marginBottom: 4 }}>
+            {isEvent && (product.event_date || product.event_location) && (
+              <div style={{
+                display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center',
+                marginTop: 6, marginBottom: 2,
+              }}>
                 {product.event_date && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--cp-text-muted)' }}>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                    <span>{(() => { try { return new Date(product.event_date!).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch { return product.event_date; } })()}</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <span>{formatEventDate(product.event_date)}</span>
                   </div>
                 )}
                 {product.event_location && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--cp-text-muted)' }}>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
                     <span>{product.event_location}</span>
                   </div>
                 )}
               </div>
             )}
 
-            {hasTierLabels && activePrices.length > 1 && (
-              <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 8, flexWrap: 'wrap' }}>
-                {activePrices.map((p) => (
-                  <button
-                    key={p.id}
-                    onClick={() => setSelectedPrice(p)}
-                    className={selectedPrice?.id === p.id ? 'btn-primary' : 'btn'}
-                    style={{ minWidth: 80, textAlign: 'center', fontSize: 11, padding: '6px 12px' }}
-                  >
-                    {p.label || p.currency} · {currencySymbol(p.currency)}{p.unit_amount.toFixed(2)}
-                  </button>
-                ))}
+            {hasTierLabels && activePrices.length > 1 ? (
+              <div style={{ marginTop: 14 }}>
+                <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-dim)', marginBottom: 8 }}>
+                  {t('selectTier')}
+                </div>
+                <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
+                  {activePrices.map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => setSelectedPrice(p)}
+                      className={selectedPrice?.id === p.id ? 'btn-primary' : 'btn'}
+                      style={{ minWidth: 100, textAlign: 'center', fontSize: 11, padding: '8px 14px' }}
+                    >
+                      {p.label || p.currency} · {currencySymbol(p.currency)}{p.unit_amount.toFixed(2)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="price-zec">
+                {selectedPrice
+                  ? `${currencySymbol(selectedPrice.currency)}${selectedPrice.unit_amount.toFixed(2)} ${selectedPrice.currency}`
+                  : '—'}
               </div>
             )}
 
             {product.description && (
-              <div style={{ fontSize: 11, color: 'var(--cp-text-muted)', marginTop: 4, marginBottom: 16 }}>
+              <div style={{ fontSize: 11, color: 'var(--cp-text-muted)', marginTop: 10, marginBottom: 4, lineHeight: 1.5 }}>
                 {product.description}
               </div>
             )}
@@ -191,7 +212,7 @@ export default function BuyClient({ productId }: { productId: string }) {
               className="btn-primary"
               style={{ width: '100%', opacity: submitting ? 0.5 : 1 }}
             >
-              {submitting ? t('processing') : t('payButton')}
+              {submitting ? t('processing') : (isEvent ? t('buyTicket') : t('payButton'))}
             </button>
           </div>
         </div>

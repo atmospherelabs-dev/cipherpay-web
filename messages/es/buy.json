@@ -6,5 +6,8 @@
   "productNotFound": "PRODUCTO NO ENCONTRADO",
   "refundTitle": "Dirección de Reembolso (opcional)",
   "refundDesc": "Proporciona una dirección Zcash si deseas la opción de reembolso. Sin ella, los reembolsos requieren coordinación manual.",
-  "refundPrivacyHint": "Proporcionar una dirección de reembolso la revela al comerciante, reduciendo tu privacidad."
+  "refundPrivacyHint": "Proporcionar una dirección de reembolso la revela al comerciante, reduciendo tu privacidad.",
+  "getTickets": "OBTENER ENTRADAS",
+  "selectTier": "SELECCIONAR NIVEL",
+  "buyTicket": "COMPRAR ENTRADA CON ZEC"
 }
