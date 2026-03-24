@@ -138,6 +138,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
 
   useEffect(() => {
     if (!invoice) return;
+    if (!invoice.is_event) return;
     if (invoice.status !== 'detected' && invoice.status !== 'confirmed') return;
     if (ticketCode) return;
     let cancelled = false;
@@ -167,7 +168,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
     };
     poll();
     return () => { cancelled = true; };
-  }, [invoice?.status, invoice?.id, ticketCode]);
+  }, [invoice?.status, invoice?.id, invoice?.is_event, ticketCode]);
 
   const address = invoice?.payment_address || '';
   const zcashUri = invoice?.zcash_uri || '';
