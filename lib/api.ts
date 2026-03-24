@@ -48,6 +48,7 @@ export interface Invoice {
   price_zatoshis: number;
   received_zatoshis: number;
   overpaid?: boolean;
+  is_event?: boolean;
 }
 
 export interface CreateInvoiceRequest {
@@ -251,6 +252,28 @@ export interface EventSummary {
   created_at: string;
   sold_count: number;
   used_count: number;
+  total_capacity: number | null;
+}
+
+export interface EventTierStat {
+  price_id: string;
+  label: string | null;
+  currency: string;
+  unit_amount: number;
+  max_quantity: number | null;
+  sold_count: number;
+  used_count: number;
+}
+
+export interface EventDetail extends EventSummary {
+  tiers: EventTierStat[];
+}
+
+export interface UpdateEventRequest {
+  title?: string;
+  description?: string;
+  event_date?: string;
+  event_location?: string;
 }
 
 export interface Ticket {
@@ -455,6 +478,15 @@ export const api = {
   createEvent: (data: CreateEventRequest) =>
     request<EventSummary>('/api/events', {
       method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  getEvent: (id: string) =>
+    request<EventDetail>(`/api/events/${id}`),
+
+  updateEvent: (id: string, data: UpdateEventRequest) =>
+    request<EventSummary>(`/api/events/${id}`, {
+      method: 'PATCH',
       body: JSON.stringify(data),
     }),
 

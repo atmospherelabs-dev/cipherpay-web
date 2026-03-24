@@ -40,6 +40,7 @@ export const InvoicesTab = memo(function InvoicesTab({
 }: InvoicesTabProps) {
   const { showToast } = useToast();
   const t = useTranslations('dashboard.invoices');
+  const te = useTranslations('dashboard.events');
   const tc = useTranslations('common');
   const sym = currencySymbol(displayCurrency);
 
@@ -233,6 +234,11 @@ export const InvoicesTab = memo(function InvoicesTab({
                     <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: 0.5, color: typeBadge.color, background: typeBadge.bg, padding: '1px 6px', borderRadius: 3 }}>
                       {t(invType === 'billing' ? 'platform' : invType === 'recurring' ? 'recurring' : 'oneTime')}
                     </span>
+                    {inv.is_event && (
+                      <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: 0.5, color: 'var(--cp-cyan)', background: 'rgba(86,212,200,0.1)', padding: '1px 6px', borderRadius: 3 }}>
+                        {te('ticketBadge')}
+                      </span>
+                    )}
                     <span style={{ fontSize: 10, color: 'var(--cp-text-dim)' }}>
                       {new Date(inv.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                     </span>

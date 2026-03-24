@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "html5-qrcode": "^2.3.8",
     "next": "^15.5.7",
     "next-intl": "^4.8.3",
     "qrcode.react": "^4.2.0",
