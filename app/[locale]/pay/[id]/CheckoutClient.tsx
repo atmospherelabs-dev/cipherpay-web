@@ -7,7 +7,6 @@ import { api, type Invoice } from '@/lib/api';
 import { validateZcashAddress } from '@/lib/validation';
 import { currencySymbol } from '@/lib/currency';
 import { QRCode } from '@/components/QRCode';
-import { QRCodeCanvas } from 'qrcode.react';
 import { Logo } from '@/components/Logo';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -558,56 +557,86 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
   );
 }
 
-function saveTicketImage(ticketCode: string, eventName: string | null | undefined, merchantName: string | null | undefined) {
-  const qrCanvas = document.getElementById('ticket-qr-canvas') as HTMLCanvasElement | null;
-  if (!qrCanvas) return;
-
-  const w = 400, pad = 32, qrSize = 240;
-  const h = pad + 28 + 16 + qrSize + 16 + 20 + (eventName ? 24 : 0) + (merchantName ? 20 : 0) + pad;
-  const canvas = document.createElement('canvas');
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext('2d')!;
-
-  ctx.fillStyle = '#0a0e14';
-  ctx.fillRect(0, 0, w, h);
-
-  let y = pad;
-  ctx.fillStyle = '#56D4C8';
-  ctx.font = '600 14px monospace';
-  ctx.textAlign = 'center';
-  ctx.fillText('YOUR TICKET', w / 2, y + 14);
-  y += 28 + 16;
-
-  const qrX = (w - qrSize) / 2;
-  ctx.drawImage(qrCanvas, qrX, y, qrSize, qrSize);
-  y += qrSize + 16;
-
-  ctx.fillStyle = '#56D4C8';
-  ctx.font = '11px monospace';
-  ctx.fillText(ticketCode, w / 2, y + 10);
-  y += 20;
-
-  if (eventName) {
-    ctx.fillStyle = '#e2e8f0';
-    ctx.font = '600 13px monospace';
-    ctx.fillText(eventName, w / 2, y + 14);
-    y += 24;
-  }
-  if (merchantName) {
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '10px monospace';
-    ctx.fillText(merchantName, w / 2, y + 12);
-  }
-
+async function saveReceiptImage(el: HTMLElement, ticketCode: string) {
+  const html2canvas = (await import('html2canvas')).default;
+  const canvas = await html2canvas(el, {
+    backgroundColor: '#0a0e14',
+    scale: 2,
+    useCORS: true,
+  });
   const link = document.createElement('a');
   link.download = `ticket-${ticketCode.slice(4, 12)}.png`;
   link.href = canvas.toDataURL('image/png');
   link.click();
 }
 
+function ReceiptDetails({ invoice, row, label, primaryPrice, secondaryPrice, t }: {
+  invoice: Invoice; row: React.CSSProperties; label: React.CSSProperties;
+  primaryPrice: string; secondaryPrice: string | null;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  return (
+    <>
+      <div style={{ border: '1px solid var(--cp-border)', borderRadius: 6, padding: '0 24px' }}>
+        {invoice.merchant_name && (
+          <div style={row}>
+            <span style={label}>{t('merchant')}</span>
+            <span style={{ fontWeight: 600 }}>{invoice.merchant_name}</span>
+          </div>
+        )}
+        {invoice.product_name && (
+          <div style={row}>
+            <span style={label}>{t('item')}</span>
+            <span style={{ fontWeight: 600 }}>{invoice.product_name}{invoice.size ? ` · ${invoice.size}` : ''}</span>
+          </div>
+        )}
+        <div style={row}>
+          <span style={label}>{t('amount')}</span>
+          <span style={{ fontWeight: 700, fontSize: 14 }}>{primaryPrice}{secondaryPrice && <span style={{ fontWeight: 400, fontSize: 11, color: 'var(--cp-text-muted)', marginLeft: 6 }}>{secondaryPrice}</span>}</span>
+        </div>
+        <div style={row}>
+          <span style={label}>{t('zecPaid')}</span>
+          <span style={{ color: 'var(--cp-cyan)', fontWeight: 600 }}>
+            {invoice.received_zatoshis > 0 ? (invoice.received_zatoshis / 1e8).toFixed(8) : invoice.price_zec.toFixed(8)}
+          </span>
+        </div>
+        <div style={row}>
+          <span style={label}>{t('reference')}</span>
+          <span style={{ fontFamily: 'monospace', fontSize: 11, letterSpacing: 1 }}>{invoice.memo_code}</span>
+        </div>
+        {invoice.detected_txid && (() => {
+          const isTestnet = invoice.payment_address?.startsWith('utest');
+          const explorerBase = isTestnet ? 'https://testnet.cipherscan.app' : 'https://cipherscan.app';
+          return (
+            <div style={{ ...row, borderBottom: 'none', flexDirection: 'column', alignItems: 'flex-start', gap: 6 }}>
+              <span style={label}>{t('txid')}</span>
+              <a
+                href={`${explorerBase}/tx/${invoice.detected_txid}`}
+                target="_blank" rel="noopener noreferrer"
+                style={{ fontSize: 9, color: 'var(--cp-cyan)', wordBreak: 'break-all', lineHeight: 1.5, textDecoration: 'none' }}
+              >
+                {invoice.detected_txid}
+              </a>
+            </div>
+          );
+        })()}
+      </div>
+      {invoice.overpaid && invoice.received_zatoshis > invoice.price_zatoshis && (
+        <div style={{
+          marginTop: 16, padding: '14px 20px', borderRadius: 6,
+          background: 'rgba(249, 115, 22, 0.1)', border: '1px solid rgba(249, 115, 22, 0.3)',
+          fontSize: 11, color: '#f97316', lineHeight: 1.6,
+        }}>
+          {t('overpaidMessage', { amount: ((invoice.received_zatoshis - invoice.price_zatoshis) / 1e8).toFixed(8) })}
+        </div>
+      )}
+    </>
+  );
+}
+
 function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending }: { invoice: Invoice; returnUrl: string | null; ticketCode: string | null; ticketPending: boolean }) {
   const t = useTranslations('checkout');
+  const receiptRef = useRef<HTMLDivElement>(null);
   const shouldRedirect = returnUrl && !ticketPending;
   const [redirectIn, setRedirectIn] = useState(shouldRedirect ? 5 : -1);
 
@@ -665,93 +694,41 @@ function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending }: { i
       )}
 
       {ticketCode && (
-        <div style={{ marginTop: 18, border: '1px solid var(--cp-border)', borderRadius: 6, padding: '16px 20px' }}>
-          <div style={{ fontSize: 10, color: 'var(--cp-text-muted)', letterSpacing: 1, marginBottom: 10 }}>
-            {t('ticketLabel')}
-          </div>
-          <div style={{ marginBottom: 12, textAlign: 'center' }}>
-            <div className="qr-container">
-              <QRCode data={ticketCode} size={180} />
+        <div ref={receiptRef} style={{ marginTop: 18, padding: 16, borderRadius: 8, background: 'var(--cp-bg, #0a0e14)' }}>
+          <div style={{ border: '1px solid var(--cp-border)', borderRadius: 6, padding: '16px 20px', marginBottom: 16 }}>
+            <div style={{ fontSize: 10, color: 'var(--cp-text-muted)', letterSpacing: 1, marginBottom: 10 }}>
+              {t('ticketLabel')}
+            </div>
+            <div style={{ marginBottom: 12, textAlign: 'center' }}>
+              <div className="qr-container">
+                <QRCode data={ticketCode} size={180} />
+              </div>
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--cp-cyan)', fontFamily: 'monospace', wordBreak: 'break-all', textAlign: 'center' }}>
+              {ticketCode}
             </div>
           </div>
-          <div style={{ fontSize: 11, color: 'var(--cp-cyan)', fontFamily: 'monospace', wordBreak: 'break-all', textAlign: 'center' }}>
-            {ticketCode}
-          </div>
-          <div style={{ display: 'none' }}>
-            <QRCodeCanvas id="ticket-qr-canvas" value={ticketCode} size={240} bgColor="#0a0e14" fgColor="#ffffff" level="M" />
-          </div>
-          <button
-            onClick={() => saveTicketImage(ticketCode, invoice.product_name, invoice.merchant_name)}
-            className="btn"
-            style={{
-              display: 'block', width: '100%', marginTop: 14,
-              fontSize: 10, letterSpacing: 1.5, textTransform: 'uppercase',
-              color: 'var(--cp-cyan)', borderColor: 'rgba(86,212,200,0.3)',
-            }}
-          >
-            {t('ticketSave')}
-          </button>
+
+          <ReceiptDetails invoice={invoice} row={row} label={label} primaryPrice={primaryPrice} secondaryPrice={secondaryPrice} t={t} />
         </div>
       )}
 
-      <div style={{ border: '1px solid var(--cp-border)', borderRadius: 6, padding: '0 24px' }}>
-        {invoice.merchant_name && (
-          <div style={row}>
-            <span style={label}>{t('merchant')}</span>
-            <span style={{ fontWeight: 600 }}>{invoice.merchant_name}</span>
-          </div>
-        )}
+      {ticketCode && (
+        <button
+          onClick={() => receiptRef.current && saveReceiptImage(receiptRef.current, ticketCode)}
+          className="btn"
+          style={{
+            display: 'block', width: '100%', marginTop: 14,
+            fontSize: 10, letterSpacing: 1.5, textTransform: 'uppercase',
+            color: 'var(--cp-cyan)', borderColor: 'rgba(86,212,200,0.3)',
+          }}
+        >
+          {t('ticketSave')}
+        </button>
+      )}
 
-        {invoice.product_name && (
-          <div style={row}>
-            <span style={label}>{t('item')}</span>
-            <span style={{ fontWeight: 600 }}>{invoice.product_name}{invoice.size ? ` · ${invoice.size}` : ''}</span>
-          </div>
-        )}
-
-        <div style={row}>
-          <span style={label}>{t('amount')}</span>
-          <span style={{ fontWeight: 700, fontSize: 14 }}>{primaryPrice}{secondaryPrice && <span style={{ fontWeight: 400, fontSize: 11, color: 'var(--cp-text-muted)', marginLeft: 6 }}>{secondaryPrice}</span>}</span>
-        </div>
-
-        <div style={row}>
-          <span style={label}>{t('zecPaid')}</span>
-          <span style={{ color: 'var(--cp-cyan)', fontWeight: 600 }}>
-            {invoice.received_zatoshis > 0 ? (invoice.received_zatoshis / 1e8).toFixed(8) : invoice.price_zec.toFixed(8)}
-          </span>
-        </div>
-
-        <div style={row}>
-          <span style={label}>{t('reference')}</span>
-          <span style={{ fontFamily: 'monospace', fontSize: 11, letterSpacing: 1 }}>{invoice.memo_code}</span>
-        </div>
-
-        {invoice.detected_txid && (() => {
-          const isTestnet = invoice.payment_address?.startsWith('utest');
-          const explorerBase = isTestnet ? 'https://testnet.cipherscan.app' : 'https://cipherscan.app';
-          return (
-            <div style={{ ...row, borderBottom: 'none', flexDirection: 'column', alignItems: 'flex-start', gap: 6 }}>
-              <span style={label}>{t('txid')}</span>
-              <a
-                href={`${explorerBase}/tx/${invoice.detected_txid}`}
-                target="_blank" rel="noopener noreferrer"
-                style={{ fontSize: 9, color: 'var(--cp-cyan)', wordBreak: 'break-all', lineHeight: 1.5, textDecoration: 'none' }}
-              >
-                {invoice.detected_txid}
-              </a>
-            </div>
-          );
-        })()}
-      </div>
-
-      {invoice.overpaid && invoice.received_zatoshis > invoice.price_zatoshis && (
-        <div style={{
-          marginTop: 16, padding: '14px 20px', borderRadius: 6,
-          background: 'rgba(249, 115, 22, 0.1)', border: '1px solid rgba(249, 115, 22, 0.3)',
-          fontSize: 11, color: '#f97316', lineHeight: 1.6,
-        }}>
-          {t('overpaidMessage', { amount: ((invoice.received_zatoshis - invoice.price_zatoshis) / 1e8).toFixed(8) })}
-        </div>
+      {!ticketCode && !ticketPending && (
+        <ReceiptDetails invoice={invoice} row={row} label={label} primaryPrice={primaryPrice} secondaryPrice={secondaryPrice} t={t} />
       )}
 
       {returnUrl && (

@@ -139,6 +139,8 @@ export interface PublicProduct {
   metadata: Record<string, string> | null;
   slug: string;
   prices?: Price[];
+  event_date?: string | null;
+  event_location?: string | null;
 }
 
 export interface CreateProductRequest {
