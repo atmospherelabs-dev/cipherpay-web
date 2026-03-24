@@ -669,7 +669,7 @@ function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending }: { i
           <div style={{ fontSize: 10, color: 'var(--cp-text-muted)', letterSpacing: 1, marginBottom: 10 }}>
             {t('ticketLabel')}
           </div>
-          <div className="qr-container" style={{ marginBottom: 12 }}>
+          <div className="qr-container" style={{ marginBottom: 12, display: 'flex', justifyContent: 'center' }}>
             <QRCode data={ticketCode} size={180} />
           </div>
           <div style={{ fontSize: 11, color: 'var(--cp-cyan)', fontFamily: 'monospace', wordBreak: 'break-all', textAlign: 'center' }}>
