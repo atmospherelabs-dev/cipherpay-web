@@ -235,8 +235,8 @@ export const InvoicesTab = memo(function InvoicesTab({
                       {t(invType === 'billing' ? 'platform' : invType === 'recurring' ? 'recurring' : 'oneTime')}
                     </span>
                     {inv.is_event && (
-                      <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: 0.5, color: 'var(--cp-cyan)', background: 'rgba(86,212,200,0.1)', padding: '1px 6px', borderRadius: 3 }}>
-                        {te('ticketBadge')}
+                      <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: 0.5, color: inv.is_luma ? '#E8C48D' : 'var(--cp-cyan)', background: inv.is_luma ? 'rgba(232,196,141,0.1)' : 'rgba(86,212,200,0.1)', padding: '1px 6px', borderRadius: 3 }}>
+                        {inv.is_luma ? te('lumaBadge') : te('ticketBadge')}
                       </span>
                     )}
                     <span style={{ fontSize: 10, color: 'var(--cp-text-dim)' }}>

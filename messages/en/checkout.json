@@ -42,5 +42,14 @@
   "ticketGenerating": "GENERATING YOUR TICKET",
   "ticketGeneratingHint": "Waiting for network confirmation. Please do not close this page.",
   "ticketLabel": "YOUR TICKET",
-  "ticketSave": "Save Ticket"
+  "ticketSave": "Save Ticket",
+  "lumaRegistering": "REGISTERING ON LUMA",
+  "lumaRegisteringHint": "Your payment is confirmed. Registering you on Luma...",
+  "lumaYoureIn": "YOU'RE IN",
+  "lumaCheckInQr": "CHECK-IN QR",
+  "lumaPaidWithZcash": "Paid with Zcash",
+  "lumaEmailNote": "Luma will email your ticket and calendar invite.",
+  "lumaOpenOnLuma": "Open on Luma",
+  "lumaRegistrationFailed": "Payment confirmed. Luma registration is being processed.",
+  "lumaRegistrationFailedHint": "Contact the event organizer if your registration doesn't appear."
 }

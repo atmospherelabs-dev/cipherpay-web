@@ -49,8 +49,11 @@ export default function BuyClient({ productId }: { productId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [selectedPrice, setSelectedPrice] = useState<Price | null>(null);
   const [refundAddr, setRefundAddr] = useState('');
+  const [attendeeName, setAttendeeName] = useState('');
+  const [attendeeEmail, setAttendeeEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
+  const [soldOut, setSoldOut] = useState(false);
 
   const router = useRouter();
 
@@ -71,8 +74,15 @@ export default function BuyClient({ productId }: { productId: string }) {
   const hasTierLabels = activePrices.some(p => p.label);
   const isEvent = !!(product?.event_date || product?.event_location || hasTierLabels);
 
+  const isLuma = !!product?.is_luma;
+
   const handleCheckout = async () => {
     setFormError('');
+
+    if (isLuma && !attendeeEmail.trim()) {
+      setFormError(t('attendeeRequired'));
+      return;
+    }
 
     if (refundAddr) {
       const e = validateZcashAddress(refundAddr);
@@ -85,11 +95,18 @@ export default function BuyClient({ productId }: { productId: string }) {
         product_id: product?.id || productId,
         price_id: selectedPrice?.id,
         refund_address: refundAddr || undefined,
+        attendee_name: isLuma && attendeeName.trim() ? attendeeName.trim() : undefined,
+        attendee_email: isLuma && attendeeEmail.trim() ? attendeeEmail.trim() : undefined,
       };
       const resp = await api.checkout(req);
       router.push(`/pay/${resp.invoice_id}`);
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Checkout failed');
+      const msg = err instanceof Error ? err.message : 'Checkout failed';
+      if (msg.toLowerCase().includes('sold out')) {
+        setSoldOut(true);
+      } else {
+        setFormError(msg);
+      }
     }
     setSubmitting(false);
   };
@@ -185,7 +202,51 @@ export default function BuyClient({ productId }: { productId: string }) {
               </div>
             )}
 
+            {isLuma && product?.luma_event_url && (
+              <div style={{ marginTop: 6, textAlign: 'center' }}>
+                <a
+                  href={product.luma_event_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: 10, color: 'var(--cp-cyan)', textDecoration: 'none', opacity: 0.8 }}
+                >
+                  {t('openOnLuma')} ↗
+                </a>
+              </div>
+            )}
+
             <div className="divider" />
+
+            {isLuma && (
+              <div style={{ textAlign: 'left', marginBottom: 16 }}>
+                <div style={{ fontSize: 10, letterSpacing: 1, color: 'var(--cp-text-dim)', marginBottom: 6, lineHeight: 1.5 }}>
+                  {t('attendeeRequired')}
+                </div>
+                <div className="form-group" style={{ marginBottom: 8 }}>
+                  <label style={{ fontSize: 10, letterSpacing: 0.5, color: 'var(--cp-text-muted)', marginBottom: 2, display: 'block' }}>{t('attendeeName')}</label>
+                  <input
+                    type="text"
+                    value={attendeeName}
+                    onChange={(e) => setAttendeeName(e.target.value)}
+                    placeholder={t('attendeeNamePlaceholder')}
+                    className="input"
+                    style={{ fontSize: 11 }}
+                  />
+                </div>
+                <div className="form-group">
+                  <label style={{ fontSize: 10, letterSpacing: 0.5, color: 'var(--cp-text-muted)', marginBottom: 2, display: 'block' }}>{t('attendeeEmail')} *</label>
+                  <input
+                    type="email"
+                    value={attendeeEmail}
+                    onChange={(e) => setAttendeeEmail(e.target.value)}
+                    placeholder={t('attendeeEmailPlaceholder')}
+                    className="input"
+                    style={{ fontSize: 11 }}
+                    required
+                  />
+                </div>
+              </div>
+            )}
 
             <div style={{ textAlign: 'left' }}>
               <div className="section-title">{t('refundTitle')}</div>
@@ -206,13 +267,28 @@ export default function BuyClient({ productId }: { productId: string }) {
               </div>
             )}
 
+            {soldOut && (
+              <div style={{
+                textAlign: 'center', padding: '16px 20px', marginBottom: 12,
+                border: '1px solid var(--cp-red)', borderRadius: 6,
+                background: 'rgba(239,68,68,0.06)',
+              }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--cp-red)', letterSpacing: 1 }}>
+                  {t('soldOut')}
+                </div>
+                <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: 6, lineHeight: 1.5 }}>
+                  {t('soldOutHint')}
+                </div>
+              </div>
+            )}
+
             <button
               onClick={handleCheckout}
-              disabled={submitting}
+              disabled={submitting || soldOut}
               className="btn-primary"
-              style={{ width: '100%', opacity: submitting ? 0.5 : 1 }}
+              style={{ width: '100%', opacity: (submitting || soldOut) ? 0.5 : 1 }}
             >
-              {submitting ? t('processing') : (isEvent ? t('buyTicket') : t('payButton'))}
+              {submitting ? t('processing') : soldOut ? t('soldOut') : (isEvent ? t('buyTicket') : t('payButton'))}
             </button>
           </div>
         </div>

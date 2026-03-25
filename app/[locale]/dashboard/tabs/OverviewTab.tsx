@@ -2,7 +2,7 @@
 
 import { memo } from 'react';
 import { useTranslations } from 'next-intl';
-import type { MerchantInfo, Invoice, Product, BillingSummary, ZecRates } from '@/lib/api';
+import type { MerchantInfo, Invoice, Product, BillingSummary, ZecRates, EventSummary } from '@/lib/api';
 import { currencySymbol, zecToFiat, fiatLabel } from '@/lib/currency';
 import type { Tab } from '../components/DashboardSidebar';
 import type { TabAction } from '../DashboardClient';
@@ -17,10 +17,12 @@ interface OverviewTabProps {
   displayCurrency: string;
   setTab: (t: Tab) => void;
   navigateWithAction: (t: Tab, action?: TabAction) => void;
+  events: EventSummary[];
+  hasLumaKey?: boolean;
 }
 
 export const OverviewTab = memo(function OverviewTab({
-  merchant, products, invoices, loadingInvoices, billing, zecRates, displayCurrency, setTab, navigateWithAction,
+  merchant, products, invoices, loadingInvoices, billing, zecRates, displayCurrency, setTab, navigateWithAction, events, hasLumaKey,
 }: OverviewTabProps) {
   const t = useTranslations('dashboard.overview');
   const tc = useTranslations('common');
@@ -37,6 +39,13 @@ export const OverviewTab = memo(function OverviewTab({
   const recentInvoices = [...invoices]
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 5);
+  const activeEvents = events.filter(e => e.status === 'active');
+  const totalTicketsSold = events.reduce((sum, e) => sum + e.sold_count, 0);
+  const upcomingEvents = activeEvents
+    .filter(e => e.event_date)
+    .sort((a, b) => new Date(a.event_date!).getTime() - new Date(b.event_date!).getTime())
+    .slice(0, 3);
+
   const webhookConfigured = !!merchant.webhook_url;
   const emailConfigured = merchant.has_recovery_email;
   const nameConfigured = !!merchant.name;
@@ -44,61 +53,76 @@ export const OverviewTab = memo(function OverviewTab({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Stat cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10 }}>
         <div className="panel" style={{ textAlign: 'center' }}>
-          <div className="panel-body" style={{ padding: '20px 16px' }}>
-            <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--cp-cyan)', lineHeight: 1.2 }}>
+          <div className="panel-body" style={{ padding: '16px 10px' }}>
+            <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--cp-cyan)', lineHeight: 1.2 }}>
               {merchant.stats.total_zec.toFixed(4)}
             </div>
-            <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
+            <div style={{ fontSize: 8, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
               {t('totalZec')}
             </div>
             {totalFiat !== null && (
-              <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: 2 }}>
+              <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 2 }}>
                 {fiatLabel(totalFiat, displayCurrency).trim()}
               </div>
             )}
           </div>
         </div>
-        <div className="panel" style={{ textAlign: 'center' }}>
-          <div className="panel-body" style={{ padding: '20px 16px' }}>
-            <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--cp-green)', lineHeight: 1.2 }}>
+        <div className="panel" style={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => setTab('invoices')}>
+          <div className="panel-body" style={{ padding: '16px 10px' }}>
+            <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--cp-green)', lineHeight: 1.2 }}>
               {merchant.stats.confirmed}
             </div>
-            <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
+            <div style={{ fontSize: 8, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
               {t('confirmed')}
             </div>
-            <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: 2 }}>
+            <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 2 }}>
               {t('ofTotal', { total: merchant.stats.total_invoices })}
             </div>
           </div>
         </div>
-        <div className="panel" style={{ textAlign: 'center' }}>
-          <div className="panel-body" style={{ padding: '20px 16px' }}>
-            <div style={{ fontSize: 24, fontWeight: 700, color: pending > 0 ? 'var(--cp-yellow)' : 'var(--cp-text-dim)', lineHeight: 1.2 }}>
+        <div className="panel" style={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => setTab('invoices')}>
+          <div className="panel-body" style={{ padding: '16px 10px' }}>
+            <div style={{ fontSize: 22, fontWeight: 700, color: pending > 0 ? 'var(--cp-yellow)' : 'var(--cp-text-dim)', lineHeight: 1.2 }}>
               {pending + detected}
             </div>
-            <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
+            <div style={{ fontSize: 8, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
               {t('pending')}
             </div>
             {detected > 0 && (
-              <div style={{ fontSize: 10, color: 'var(--cp-purple)', marginTop: 2 }}>
+              <div style={{ fontSize: 9, color: 'var(--cp-purple)', marginTop: 2 }}>
                 {t('detected', { count: detected })}
               </div>
             )}
           </div>
         </div>
         <div className="panel" style={{ textAlign: 'center' }}>
-          <div className="panel-body" style={{ padding: '20px 16px' }}>
-            <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--cp-text)', lineHeight: 1.2 }}>
+          <div className="panel-body" style={{ padding: '16px 10px' }}>
+            <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--cp-text)', lineHeight: 1.2 }}>
               {rate}%
             </div>
-            <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
+            <div style={{ fontSize: 8, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
               {t('conversion')}
             </div>
-            <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: 2 }}>
+            <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 2 }}>
               {t('expired', { count: expired })}
             </div>
+          </div>
+        </div>
+        <div className="panel" style={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => setTab('events')}>
+          <div className="panel-body" style={{ padding: '16px 10px' }}>
+            <div style={{ fontSize: 22, fontWeight: 700, color: '#E8C48D', lineHeight: 1.2 }}>
+              {activeEvents.length}
+            </div>
+            <div style={{ fontSize: 8, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
+              {t('activeEvents')}
+            </div>
+            {totalTicketsSold > 0 && (
+              <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 2 }}>
+                {t('ticketsSold', { count: totalTicketsSold })}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -118,6 +142,14 @@ export const OverviewTab = memo(function OverviewTab({
           <button onClick={() => setTab('pos')} className="btn" style={{ fontSize: 10 }}>
             {t('openPos')}
           </button>
+          <button onClick={() => navigateWithAction('events', 'create-event')} className="btn" style={{ fontSize: 10 }}>
+            {t('createEvent')}
+          </button>
+          {hasLumaKey && (
+            <button onClick={() => navigateWithAction('events', 'import-luma')} className="btn" style={{ fontSize: 10, color: '#E8C48D', borderColor: 'rgba(232,196,141,0.3)' }}>
+              {t('importFromLuma')}
+            </button>
+          )}
         </div>
       </div>
 
@@ -164,6 +196,48 @@ export const OverviewTab = memo(function OverviewTab({
           )}
         </div>
       </div>
+
+      {/* Upcoming events */}
+      {upcomingEvents.length > 0 && (
+        <div className="panel">
+          <div className="panel-header">
+            <span className="panel-title">{t('upcomingEvents')}</span>
+            <button onClick={() => setTab('events')} className="btn btn-small">{tc('viewAll')}</button>
+          </div>
+          <div className="panel-body">
+            {upcomingEvents.map((ev) => (
+              <div key={ev.id} className="stat-row" style={{ padding: '8px 0', cursor: 'pointer' }} onClick={() => setTab('events')}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--cp-text)' }}>
+                      {ev.title}
+                    </span>
+                    {ev.luma_event_id && (
+                      <span style={{ fontSize: 8, fontWeight: 600, letterSpacing: 0.5, color: '#E8C48D', background: 'rgba(232,196,141,0.1)', padding: '1px 5px', borderRadius: 3, border: '1px solid rgba(232,196,141,0.3)' }}>
+                        LUMA
+                      </span>
+                    )}
+                  </div>
+                  <span style={{ fontSize: 9, color: 'var(--cp-text-dim)' }}>
+                    {new Date(ev.event_date!).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                    {ev.event_location && ` · ${ev.event_location}`}
+                  </span>
+                </div>
+                <div style={{ flexShrink: 0, textAlign: 'right' }}>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--cp-cyan)' }}>
+                    {ev.total_capacity != null
+                      ? `${ev.sold_count} / ${ev.total_capacity}`
+                      : ev.sold_count}
+                  </span>
+                  <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', letterSpacing: 0.5 }}>
+                    {t('soldLabel')}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Account health */}
       <div className="panel">
@@ -213,9 +287,23 @@ export const OverviewTab = memo(function OverviewTab({
               </span>
             </div>
           )}
+          <div className="stat-row">
+            <span style={{ color: 'var(--cp-text-muted)' }}>{t('lumaIntegration')}</span>
+            {hasLumaKey ? (
+              <span style={{ color: 'var(--cp-green)', fontSize: 10, fontWeight: 600 }}>✓ {tc('configured')}</span>
+            ) : (
+              <button onClick={() => setTab('settings')} style={{ background: 'none', border: 'none', color: 'var(--cp-text-dim)', fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: 1 }}>
+                {tc('optional')}
+              </button>
+            )}
+          </div>
           <div className="stat-row" style={{ cursor: 'pointer' }} onClick={() => setTab('products')}>
             <span style={{ color: 'var(--cp-text-muted)' }}>{t('productsLabel')}</span>
             <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--cp-text)' }}>{products.length}</span>
+          </div>
+          <div className="stat-row" style={{ cursor: 'pointer' }} onClick={() => setTab('events')}>
+            <span style={{ color: 'var(--cp-text-muted)' }}>{t('eventsLabel')}</span>
+            <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--cp-text)' }}>{events.length}</span>
           </div>
           <div className="stat-row">
             <span style={{ color: 'var(--cp-text-muted)' }}>{t('network')}</span>

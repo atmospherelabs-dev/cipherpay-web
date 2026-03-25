@@ -22,7 +22,7 @@ import { X402Tab } from './tabs/X402Tab';
 import { WebhooksTab } from './tabs/WebhooksTab';
 
 
-export type TabAction = 'add-product' | 'create-paylink' | null;
+export type TabAction = 'add-product' | 'create-paylink' | 'create-event' | 'import-luma' | null;
 
 export default function DashboardClient({ merchant }: { merchant: MerchantInfo }) {
   const t = useTranslations('dashboard');
@@ -194,6 +194,8 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                 displayCurrency={displayCurrency}
                 setTab={setTab}
                 navigateWithAction={navigateWithAction}
+                events={events}
+                hasLumaKey={merchant?.has_luma_key}
               />
             )}
             {tab === 'products' && (
@@ -213,6 +215,9 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                 loadingEvents={loadingEvents}
                 reloadEvents={loadEvents}
                 checkoutOrigin={checkoutOrigin}
+                hasLumaKey={merchant?.has_luma_key}
+                initialAction={tabAction}
+                clearAction={() => setTabAction(null)}
               />
             )}
             {tab === 'pos' && (

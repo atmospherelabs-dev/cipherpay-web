@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { api, type Invoice } from '@/lib/api';
+import { api, type Invoice, type LumaPassData } from '@/lib/api';
 import { validateZcashAddress } from '@/lib/validation';
 import { currencySymbol } from '@/lib/currency';
 import { QRCode } from '@/components/QRCode';
@@ -78,6 +78,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
   const [finalizeError, setFinalizeError] = useState<string | null>(null);
   const [ticketCode, setTicketCode] = useState<string | null>(null);
   const [ticketMeta, setTicketMeta] = useState<{ event_date?: string | null; event_location?: string | null; price_label?: string | null }>({});
+  const [lumaPass, setLumaPass] = useState<LumaPassData | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
 
   const searchParams = useSearchParams();
@@ -136,9 +137,11 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
 
   const [ticketPending, setTicketPending] = useState(false);
 
+  // Private event: poll for CipherPay ticket
   useEffect(() => {
     if (!invoice) return;
     if (!invoice.is_event) return;
+    if (invoice.is_luma) return;
     if (invoice.status !== 'detected' && invoice.status !== 'confirmed') return;
     if (ticketCode) return;
     let cancelled = false;
@@ -168,7 +171,43 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
     };
     poll();
     return () => { cancelled = true; };
-  }, [invoice?.status, invoice?.id, invoice?.is_event, ticketCode]);
+  }, [invoice?.status, invoice?.id, invoice?.is_event, invoice?.is_luma, ticketCode]);
+
+  // Luma event: poll for Luma pass
+  useEffect(() => {
+    if (!invoice) return;
+    if (!invoice.is_luma) return;
+    if (invoice.status !== 'detected' && invoice.status !== 'confirmed') return;
+    if (lumaPass?.status === 'registered' || lumaPass?.status === 'failed') return;
+    let cancelled = false;
+    let retries = 0;
+
+    const poll = () => {
+      api.getLumaPass(invoice.id)
+        .then((data) => {
+          if (cancelled) return;
+          if (data.status === 'registered' || data.status === 'failed') {
+            setLumaPass(data);
+            setTicketPending(false);
+          } else if (data.status === 'pending') {
+            setTicketPending(true);
+            retries++;
+            if (retries < 60) setTimeout(poll, 3000);
+          } else {
+            setTicketPending(true);
+            retries++;
+            if (retries < 60) setTimeout(poll, 5000);
+          }
+        })
+        .catch(() => {
+          if (cancelled) return;
+          retries++;
+          if (retries < 60) setTimeout(poll, 5000);
+        });
+    };
+    poll();
+    return () => { cancelled = true; };
+  }, [invoice?.status, invoice?.id, invoice?.is_luma, lumaPass?.status]);
 
   const address = invoice?.payment_address || '';
   const zcashUri = invoice?.zcash_uri || '';
@@ -463,7 +502,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
 
           {/* ── Receipt ── */}
           {showReceipt && (
-            <ConfirmedReceipt invoice={invoice} returnUrl={returnUrl} ticketCode={ticketCode} ticketPending={ticketPending} ticketMeta={ticketMeta} />
+            <ConfirmedReceipt invoice={invoice} returnUrl={returnUrl} ticketCode={ticketCode} ticketPending={ticketPending} ticketMeta={ticketMeta} lumaPass={lumaPass} />
           )}
 
           {/* ── Expired ── */}
@@ -640,9 +679,10 @@ function ReceiptDetails({ invoice, row, label, primaryPrice, secondaryPrice, t }
   );
 }
 
-function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending, ticketMeta }: {
+function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending, ticketMeta, lumaPass }: {
   invoice: Invoice; returnUrl: string | null; ticketCode: string | null; ticketPending: boolean;
   ticketMeta?: { event_date?: string | null; event_location?: string | null; price_label?: string | null };
+  lumaPass?: LumaPassData | null;
 }) {
   const t = useTranslations('checkout');
   const receiptRef = useRef<HTMLDivElement>(null);
@@ -687,17 +727,97 @@ function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending, ticke
         <div style={{ fontSize: 15, fontWeight: 700 }}>{t('paymentAccepted')}</div>
       </div>
 
-      {ticketPending && !ticketCode && (
+      {ticketPending && !ticketCode && !lumaPass && (
         <div style={{
           marginTop: 18, border: '1px solid var(--cp-border)', borderRadius: 6, padding: '24px 20px',
           textAlign: 'center',
         }}>
           <Spinner size={20} />
-          <div style={{ fontSize: 11, color: 'var(--cp-cyan)', letterSpacing: 1, marginTop: 12, fontWeight: 600 }}>
-            {t('ticketGenerating')}
+          <div style={{ fontSize: 11, color: invoice.is_luma ? '#E8C48D' : 'var(--cp-cyan)', letterSpacing: 1, marginTop: 12, fontWeight: 600 }}>
+            {invoice.is_luma ? t('lumaRegistering') : t('ticketGenerating')}
           </div>
           <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: 6, lineHeight: 1.6 }}>
-            {t('ticketGeneratingHint')}
+            {invoice.is_luma ? t('lumaRegisteringHint') : t('ticketGeneratingHint')}
+          </div>
+        </div>
+      )}
+
+      {lumaPass?.status === 'registered' && (
+        <div style={{ marginTop: 18, border: '1px solid rgba(232,196,141,0.3)', borderRadius: 8, padding: '24px 20px', textAlign: 'center' }}>
+          <div style={{ fontSize: 18, fontWeight: 700, color: '#E8C48D', letterSpacing: 1, marginBottom: 16 }}>
+            {t('lumaYoureIn')}
+          </div>
+
+          {lumaPass.guest?.check_in_qr_code && (
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', letterSpacing: 1.5, marginBottom: 8 }}>
+                {t('lumaCheckInQr')}
+              </div>
+              <img
+                src={lumaPass.guest.check_in_qr_code}
+                alt="Luma Check-in QR"
+                style={{ width: 180, height: 180, borderRadius: 8, background: '#fff', padding: 8, display: 'inline-block' }}
+              />
+            </div>
+          )}
+
+          {(lumaPass.event_date || lumaPass.event_location || lumaPass.ticket_type) && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center', marginBottom: 14 }}>
+              {lumaPass.event_title && (
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--cp-text)' }}>{lumaPass.event_title}</div>
+              )}
+              {lumaPass.event_date && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--cp-text-muted)' }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  <span>{(() => { try { return new Date(lumaPass.event_date!).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch { return lumaPass.event_date; } })()}</span>
+                </div>
+              )}
+              {lumaPass.event_location && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--cp-text-muted)' }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  <span>{lumaPass.event_location}</span>
+                </div>
+              )}
+              {lumaPass.ticket_type && (
+                <div style={{ fontSize: 10, color: '#E8C48D', fontWeight: 600, letterSpacing: 0.5 }}>
+                  {lumaPass.ticket_type}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div style={{ fontSize: 10, color: 'var(--cp-cyan)', fontWeight: 600, letterSpacing: 0.5, marginBottom: 8 }}>
+            {t('lumaPaidWithZcash')}
+          </div>
+
+          <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', lineHeight: 1.6, marginBottom: 16 }}>
+            {t('lumaEmailNote')}
+          </div>
+
+          {lumaPass.luma_event_url && (
+            <a
+              href={lumaPass.luma_event_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn"
+              style={{
+                display: 'inline-block', color: '#E8C48D', borderColor: 'rgba(232,196,141,0.3)',
+                fontSize: 10, letterSpacing: 1.5, padding: '10px 24px', textDecoration: 'none',
+              }}
+            >
+              {t('lumaOpenOnLuma')} ↗
+            </a>
+          )}
+        </div>
+      )}
+
+      {lumaPass?.status === 'failed' && (
+        <div style={{ marginTop: 18, border: '1px solid var(--cp-border)', borderRadius: 6, padding: '24px 20px', textAlign: 'center' }}>
+          <div style={{ fontSize: 11, color: 'var(--cp-text-muted)', lineHeight: 1.6 }}>
+            {t('lumaRegistrationFailed')}
+          </div>
+          <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: 8, lineHeight: 1.6 }}>
+            {t('lumaRegistrationFailedHint')}
           </div>
         </div>
       )}
@@ -762,7 +882,7 @@ function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending, ticke
         </>
       )}
 
-      {!ticketCode && !ticketPending && (
+      {!ticketCode && !ticketPending && !lumaPass && (
         <ReceiptDetails invoice={invoice} row={row} label={label} primaryPrice={primaryPrice} secondaryPrice={secondaryPrice} t={t} />
       )}
 

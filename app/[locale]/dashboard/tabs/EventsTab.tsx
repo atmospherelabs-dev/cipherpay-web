@@ -2,17 +2,21 @@
 
 import { memo, useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import { api, type EventSummary, type EventTierStat } from '@/lib/api';
+import { api, type EventSummary, type EventTierStat, type LumaEventEntry } from '@/lib/api';
 import { CopyButton } from '@/components/CopyButton';
 import { Spinner } from '@/components/Spinner';
 import { SUPPORTED_CURRENCIES, currencySymbol } from '@/lib/currency';
 import { useToast } from '@/contexts/ToastContext';
+import type { TabAction } from '../DashboardClient';
 
 interface EventsTabProps {
   events: EventSummary[];
   loadingEvents: boolean;
   reloadEvents: () => Promise<void>;
   checkoutOrigin: string;
+  hasLumaKey?: boolean;
+  initialAction?: TabAction;
+  clearAction?: () => void;
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -77,12 +81,17 @@ function SoldDisplay({ sold, capacity, t }: { sold: number; capacity: number | n
   return <>{sold}</>;
 }
 
-export const EventsTab = memo(function EventsTab({ events, loadingEvents, reloadEvents, checkoutOrigin }: EventsTabProps) {
+export const EventsTab = memo(function EventsTab({ events, loadingEvents, reloadEvents, checkoutOrigin, hasLumaKey, initialAction, clearAction }: EventsTabProps) {
   const { showToast } = useToast();
   const t = useTranslations('dashboard.events');
   const tc = useTranslations('common');
 
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showLumaImport, setShowLumaImport] = useState(false);
+  const [lumaEvents, setLumaEvents] = useState<LumaEventEntry[]>([]);
+  const [lumaLoading, setLumaLoading] = useState(false);
+  const [lumaImporting, setLumaImporting] = useState<string | null>(null);
+  const [lumaSyncing, setLumaSyncing] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
 
@@ -127,6 +136,26 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
     setTitle(''); setDescription(''); setEventDate(''); setEventLocation('');
     setCreateTiers([defaultTier()]);
   };
+
+  useEffect(() => {
+    if (initialAction === 'create-event') {
+      setShowAddForm(true);
+      setShowLumaImport(false);
+      clearAction?.();
+    } else if (initialAction === 'import-luma' && hasLumaKey) {
+      setShowLumaImport(true);
+      setShowAddForm(false);
+      if (lumaEvents.length === 0) {
+        setLumaLoading(true);
+        api.listLumaEvents()
+          .then(setLumaEvents)
+          .catch(() => showToast(t('lumaImportFailed'), 'error'))
+          .finally(() => setLumaLoading(false));
+      }
+      clearAction?.();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialAction]);
 
   const loadTierData = useCallback(async (eventId: string) => {
     setLoadingTiers(true);
@@ -364,6 +393,34 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
             {t('backToEvents')}
           </button>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            {event.luma_event_id && !editing && (
+              <button
+                onClick={async () => {
+                  setLumaSyncing(true);
+                  try {
+                    const result = await api.syncLumaEvent(event.id);
+                    await reloadEvents();
+                    await loadTierData(event.id);
+                    const parts: string[] = [];
+                    if (result.synced > 0) parts.push(`${result.synced} updated`);
+                    if (result.added > 0) parts.push(`${result.added} added`);
+                    if (result.deactivated > 0) parts.push(`${result.deactivated} removed`);
+                    showToast(parts.length > 0
+                      ? t('lumaSynced', { details: parts.join(', ') })
+                      : t('lumaSyncUpToDate'));
+                  } catch {
+                    showToast(t('lumaSyncFailed'), true);
+                  } finally {
+                    setLumaSyncing(false);
+                  }
+                }}
+                className="btn btn-small"
+                disabled={lumaSyncing}
+                style={{ fontSize: 9, color: '#E8C48D', borderColor: 'rgba(232,196,141,0.3)', opacity: lumaSyncing ? 0.5 : 1 }}
+              >
+                {lumaSyncing ? t('lumaSyncing') : t('lumaSyncButton')}
+              </button>
+            )}
             {canEdit && !editing && (
               <button
                 onClick={() => startEditing(event)}
@@ -588,9 +645,29 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
     <div className="panel">
       <div className="panel-header">
         <span className="panel-title">{t('title')}</span>
-        <button onClick={() => setShowAddForm(!showAddForm)} className="btn btn-small">
-          {showAddForm ? tc('cancel') : t('addEvent')}
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {hasLumaKey && (
+            <button
+              onClick={() => {
+                setShowLumaImport(!showLumaImport);
+                if (!showLumaImport && lumaEvents.length === 0) {
+                  setLumaLoading(true);
+                  api.listLumaEvents()
+                    .then(setLumaEvents)
+                    .catch(() => showToast(t('lumaImportFailed'), 'error'))
+                    .finally(() => setLumaLoading(false));
+                }
+              }}
+              className="btn btn-small"
+              style={{ color: '#E8C48D', borderColor: 'rgba(232,196,141,0.3)' }}
+            >
+              {showLumaImport ? tc('cancel') : t('importFromLuma')}
+            </button>
+          )}
+          <button onClick={() => setShowAddForm(!showAddForm)} className="btn btn-small">
+            {showAddForm ? tc('cancel') : t('addEvent')}
+          </button>
+        </div>
       </div>
       <div className="panel-subtitle">
         {t('subtitle')}
@@ -668,6 +745,59 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
         </div>
       )}
 
+      {showLumaImport && (
+        <div className="panel-body" style={{ borderBottom: '1px solid var(--cp-border)', padding: '20px 24px' }}>
+          <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 4 }}>{t('lumaImportTitle')}</div>
+          <div style={{ fontSize: 10, color: 'var(--cp-text-muted)', marginBottom: 16 }}>{t('lumaImportSubtitle')}</div>
+          {lumaLoading ? (
+            <div style={{ textAlign: 'center', padding: 24 }}><Spinner size={18} /><div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: 8 }}>{t('lumaLoading')}</div></div>
+          ) : lumaEvents.length === 0 ? (
+            <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', textAlign: 'center', padding: 16 }}>{t('lumaNoEvents')}</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {lumaEvents.map((ev) => (
+                <div key={ev.api_id} style={{ border: '1px solid var(--cp-border)', borderRadius: 6, padding: '12px 16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 600 }}>{ev.name}</div>
+                      {ev.start_at && (
+                        <div style={{ fontSize: 10, color: 'var(--cp-text-muted)', marginTop: 2 }}>
+                          {new Date(ev.start_at).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                        </div>
+                      )}
+                      {ev.ticket_types.length > 0 && (
+                        <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 4 }}>
+                          {t('lumaTicketTypes')}: {ev.ticket_types.map(tt => tt.name || 'General').join(', ')}
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      className="btn btn-small"
+                      disabled={lumaImporting === ev.api_id}
+                      style={{ color: '#E8C48D', borderColor: 'rgba(232,196,141,0.3)', opacity: lumaImporting === ev.api_id ? 0.5 : 1 }}
+                      onClick={async () => {
+                        setLumaImporting(ev.api_id);
+                        try {
+                          await api.importLumaEvent(ev.api_id);
+                          showToast(t('lumaImported'), 'success');
+                          setLumaEvents((prev) => prev.filter((e) => e.api_id !== ev.api_id));
+                          await reloadEvents();
+                        } catch {
+                          showToast(t('lumaImportFailed'), 'error');
+                        }
+                        setLumaImporting(null);
+                      }}
+                    >
+                      {lumaImporting === ev.api_id ? t('importingLuma') : t('lumaImportButton')}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {loadingEvents ? (
         <div className="empty-state">
           <Spinner />
@@ -689,6 +819,11 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span className="invoice-id">{event.title}</span>
                 <StatusBadge status={event.status} />
+                {event.luma_event_id && (
+                  <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: 0.5, color: '#E8C48D', background: 'rgba(232,196,141,0.1)', padding: '2px 7px', borderRadius: 3, border: '1px solid rgba(232,196,141,0.3)' }}>
+                    {t('lumaBadge')}
+                  </span>
+                )}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--cp-cyan)' }}>

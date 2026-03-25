@@ -9,5 +9,13 @@
   "refundPrivacyHint": "Fornecer um endereço de reembolso o revela ao comerciante, reduzindo sua privacidade.",
   "getTickets": "OBTER INGRESSOS",
   "selectTier": "SELECIONAR NÍVEL",
-  "buyTicket": "COMPRAR INGRESSO COM ZEC"
+  "buyTicket": "COMPRAR INGRESSO COM ZEC",
+  "attendeeName": "Seu Nome",
+  "attendeeNamePlaceholder": "João Silva",
+  "attendeeEmail": "Seu Email",
+  "attendeeEmailPlaceholder": "joao@exemplo.com",
+  "attendeeRequired": "Obrigatório para registro no Luma",
+  "openOnLuma": "Abrir no Luma",
+  "soldOut": "ESGOTADO",
+  "soldOutHint": "Este nível de ingressos atingiu sua capacidade máxima. Não há mais ingressos disponíveis."
 }

@@ -19,5 +19,6 @@
   "signOut": "SIGN OUT",
   "configured": "CONFIGURED",
   "setUp": "SET UP →",
-  "set": "SET"
+  "set": "SET",
+  "optional": "OPTIONAL"
 }

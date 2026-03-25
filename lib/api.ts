@@ -8,6 +8,7 @@ export interface MerchantInfo {
   webhook_secret_preview: string;
   has_recovery_email: boolean;
   recovery_email_preview: string | null;
+  has_luma_key?: boolean;
   created_at: string;
   stats: {
     total_invoices: number;
@@ -49,6 +50,7 @@ export interface Invoice {
   received_zatoshis: number;
   overpaid?: boolean;
   is_event?: boolean;
+  is_luma?: boolean;
 }
 
 export interface CreateInvoiceRequest {
@@ -141,6 +143,8 @@ export interface PublicProduct {
   prices?: Price[];
   event_date?: string | null;
   event_location?: string | null;
+  is_luma?: boolean;
+  luma_event_url?: string | null;
 }
 
 export interface CreateProductRequest {
@@ -167,6 +171,8 @@ export interface CheckoutRequest {
   product_id?: string;
   price_id?: string;
   refund_address?: string;
+  attendee_name?: string;
+  attendee_email?: string;
 }
 
 export interface ZecRates {
@@ -255,6 +261,7 @@ export interface EventSummary {
   sold_count: number;
   used_count: number;
   total_capacity: number | null;
+  luma_event_id?: string | null;
 }
 
 export interface EventTierStat {
@@ -319,6 +326,45 @@ export interface CreateEventRequest {
   }>;
 }
 
+export interface LumaTicketTypePrice {
+  amount?: number | null;
+  currency?: string | null;
+}
+
+export interface LumaTicketType {
+  api_id: string;
+  name?: string | null;
+  description?: string | null;
+  price?: LumaTicketTypePrice | null;
+}
+
+export interface LumaEventEntry {
+  api_id: string;
+  name: string;
+  start_at?: string | null;
+  end_at?: string | null;
+  cover_url?: string | null;
+  url?: string | null;
+  timezone?: string | null;
+  geo_address_json?: Record<string, unknown> | null;
+  ticket_types: LumaTicketType[];
+}
+
+export interface LumaPassData {
+  status: 'not_luma' | 'pending' | 'registered' | 'failed';
+  guest?: {
+    api_id?: string | null;
+    approval_status?: string | null;
+    check_in_qr_code?: string | null;
+    event_ticket?: Record<string, unknown> | null;
+  } | null;
+  event_title?: string | null;
+  event_date?: string | null;
+  event_location?: string | null;
+  luma_event_url?: string | null;
+  ticket_type?: string | null;
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     credentials: 'include',
@@ -347,7 +393,7 @@ export const api = {
 
   myInvoices: () => request<Invoice[]>('/api/merchants/me/invoices'),
 
-  updateMe: (data: { name?: string; webhook_url?: string; recovery_email?: string }) =>
+  updateMe: (data: { name?: string; webhook_url?: string; recovery_email?: string; luma_api_key?: string }) =>
     request<{ status: string }>('/api/merchants/me', {
       method: 'PATCH',
       body: JSON.stringify(data),
@@ -530,6 +576,25 @@ export const api = {
     p.set('offset', String(params?.offset ?? 0));
     return request<WebhookHistory>(`/api/merchants/me/webhooks?${p}`);
   },
+
+  // Luma
+  listLumaEvents: () =>
+    request<LumaEventEntry[]>('/api/luma/events'),
+
+  importLumaEvent: (lumaEventId: string) =>
+    request<{ event_id: string; product_id: string; title: string; luma_event_id: string }>(
+      '/api/luma/import',
+      { method: 'POST', body: JSON.stringify({ luma_event_id: lumaEventId }) }
+    ),
+
+  syncLumaEvent: (eventId: string) =>
+    request<{ synced: number; added: number; deactivated: number; title: string }>(
+      `/api/luma/sync/${eventId}`,
+      { method: 'POST' }
+    ),
+
+  getLumaPass: (invoiceId: string) =>
+    request<LumaPassData>(`/api/invoices/${invoiceId}/luma-pass`),
 
   // Account
   deleteAccount: () =>

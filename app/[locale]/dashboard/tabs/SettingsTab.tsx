@@ -248,6 +248,9 @@ export const SettingsTab = memo(function SettingsTab({
           </div>
         )}
 
+        {/* Luma Integration */}
+        <LumaSettings merchant={merchant} reloadMerchant={reloadMerchant} />
+
         {/* 8. Danger Zone */}
         <div style={{ marginTop: 32, paddingTop: 20, borderTop: '1px solid rgba(239,68,68,0.2)' }}>
           <div style={{ fontSize: 10, letterSpacing: 2, color: 'var(--cp-red)', fontWeight: 600, marginBottom: 12 }}>{t('dangerZone')}</div>
@@ -276,3 +279,78 @@ export const SettingsTab = memo(function SettingsTab({
     </div>
   );
 });
+
+function LumaSettings({ merchant, reloadMerchant }: { merchant: MerchantInfo; reloadMerchant: () => Promise<void> }) {
+  const tl = useTranslations('dashboard.luma');
+  const { showToast } = useToast();
+  const [lumaKey, setLumaKey] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  return (
+    <div style={{ marginTop: 32, paddingTop: 20, borderTop: '1px solid var(--cp-border)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+        <span style={{ fontSize: 10, letterSpacing: 2, color: '#E8C48D', fontWeight: 600 }}>{tl('title')}</span>
+        <span style={{
+          fontSize: 9, fontWeight: 600, letterSpacing: 0.5,
+          color: merchant.has_luma_key ? 'var(--cp-green)' : 'var(--cp-text-dim)',
+          background: merchant.has_luma_key ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.05)',
+          padding: '2px 7px', borderRadius: 3,
+        }}>
+          {merchant.has_luma_key ? tl('connected') : tl('notConfigured')}
+        </span>
+      </div>
+      <div className="form-group" style={{ marginBottom: 8 }}>
+        <label style={{ fontSize: 10, color: 'var(--cp-text-muted)', marginBottom: 4, display: 'block' }}>{tl('apiKeyLabel')}</label>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input
+            type="password"
+            value={lumaKey}
+            onChange={(e) => setLumaKey(e.target.value)}
+            placeholder={merchant.has_luma_key ? '••••••••••••••••' : tl('apiKeyPlaceholder')}
+            className="input"
+            style={{ fontSize: 10, flex: 1 }}
+          />
+          <button
+            className="btn btn-small"
+            disabled={saving || !lumaKey.trim()}
+            style={{ opacity: saving || !lumaKey.trim() ? 0.5 : 1 }}
+            onClick={async () => {
+              setSaving(true);
+              try {
+                await api.updateMe({ luma_api_key: lumaKey.trim() });
+                showToast(tl('toastKeySaved'), 'success');
+                setLumaKey('');
+                await reloadMerchant();
+              } catch {
+                showToast(tl('toastKeyFailed'), 'error');
+              }
+              setSaving(false);
+            }}
+          >
+            {saving ? tl('savingKey') : tl('saveKey')}
+          </button>
+          {merchant.has_luma_key && (
+            <button
+              className="btn btn-small"
+              style={{ color: 'var(--cp-red)', borderColor: 'rgba(239,68,68,0.3)' }}
+              onClick={async () => {
+                try {
+                  await api.updateMe({ luma_api_key: '' });
+                  showToast(tl('toastKeyRemoved'), 'success');
+                  await reloadMerchant();
+                } catch {
+                  showToast(tl('toastKeyFailed'), 'error');
+                }
+              }}
+            >
+              {tl('removeKey')}
+            </button>
+          )}
+        </div>
+      </div>
+      <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', lineHeight: 1.5 }}>
+        {tl('apiKeyHelp')}
+      </div>
+    </div>
+  );
+}

@@ -42,5 +42,14 @@
   "ticketGenerating": "GERANDO SEU INGRESSO",
   "ticketGeneratingHint": "Aguardando confirmação da rede. Não feche esta página.",
   "ticketLabel": "SEU INGRESSO",
-  "ticketSave": "Salvar Ingresso"
+  "ticketSave": "Salvar Ingresso",
+  "lumaRegistering": "REGISTRANDO NO LUMA",
+  "lumaRegisteringHint": "Seu pagamento foi confirmado. Registrando você no Luma...",
+  "lumaYoureIn": "VOCÊ ESTÁ DENTRO!",
+  "lumaCheckInQr": "QR DE ENTRADA",
+  "lumaPaidWithZcash": "Pago com Zcash",
+  "lumaEmailNote": "O Luma enviará seu ingresso e convite de calendário por email.",
+  "lumaOpenOnLuma": "Abrir no Luma",
+  "lumaRegistrationFailed": "Pagamento confirmado. O registro no Luma está sendo processado.",
+  "lumaRegistrationFailedHint": "Contate o organizador do evento se seu registro não aparecer."
 }
