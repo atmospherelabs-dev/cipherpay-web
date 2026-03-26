@@ -153,7 +153,7 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
           setLumaLoading(true);
           api.listLumaEvents()
             .then(setLumaEvents)
-            .catch(() => showToast(t('lumaImportFailed'), 'error'))
+            .catch(() => showToast(t('lumaImportFailed'), true))
             .finally(() => setLumaLoading(false));
         }
       }
@@ -716,7 +716,7 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
                   setLumaLoading(true);
                   api.listLumaEvents()
                     .then(setLumaEvents)
-                    .catch(() => showToast(t('lumaImportFailed'), 'error'))
+                    .catch(() => showToast(t('lumaImportFailed'), true))
                     .finally(() => setLumaLoading(false));
                 }
               }}
@@ -845,7 +845,7 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
                           setLumaEvents((prev) => prev.filter((e) => e.api_id !== ev.api_id));
                           await reloadEvents();
                         } catch {
-                          showToast(t('lumaImportFailed'), 'error');
+                          showToast(t('lumaImportFailed'), true);
                         }
                         setLumaImporting(null);
                       }}

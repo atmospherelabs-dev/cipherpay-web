@@ -322,7 +322,7 @@ function LumaSettings({ merchant, reloadMerchant }: { merchant: MerchantInfo; re
                 setLumaKey('');
                 await reloadMerchant();
               } catch {
-                showToast(tl('toastKeyFailed'), 'error');
+                showToast(tl('toastKeyFailed'), true);
               }
               setSaving(false);
             }}
@@ -339,7 +339,7 @@ function LumaSettings({ merchant, reloadMerchant }: { merchant: MerchantInfo; re
                   showToast(tl('toastKeyRemoved'), 'success');
                   await reloadMerchant();
                 } catch {
-                  showToast(tl('toastKeyFailed'), 'error');
+                  showToast(tl('toastKeyFailed'), true);
                 }
               }}
             >
