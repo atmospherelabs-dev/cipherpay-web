@@ -263,6 +263,7 @@ export interface EventSummary {
   used_count: number;
   total_capacity: number | null;
   luma_event_id?: string | null;
+  luma_event_url?: string | null;
 }
 
 export interface EventTierStat {
