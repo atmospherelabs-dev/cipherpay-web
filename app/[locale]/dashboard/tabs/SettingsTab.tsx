@@ -318,7 +318,7 @@ function LumaSettings({ merchant, reloadMerchant }: { merchant: MerchantInfo; re
               setSaving(true);
               try {
                 await api.updateMe({ luma_api_key: lumaKey.trim() });
-                showToast(tl('toastKeySaved'), 'success');
+                showToast(tl('toastKeySaved'));
                 setLumaKey('');
                 await reloadMerchant();
               } catch {
@@ -336,7 +336,7 @@ function LumaSettings({ merchant, reloadMerchant }: { merchant: MerchantInfo; re
               onClick={async () => {
                 try {
                   await api.updateMe({ luma_api_key: '' });
-                  showToast(tl('toastKeyRemoved'), 'success');
+                  showToast(tl('toastKeyRemoved'));
                   await reloadMerchant();
                 } catch {
                   showToast(tl('toastKeyFailed'), true);

@@ -841,7 +841,7 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
                         setLumaImporting(ev.api_id);
                         try {
                           await api.importLumaEvent(ev.api_id);
-                          showToast(t('lumaImported'), 'success');
+                          showToast(t('lumaImported'));
                           setLumaEvents((prev) => prev.filter((e) => e.api_id !== ev.api_id));
                           await reloadEvents();
                         } catch {
