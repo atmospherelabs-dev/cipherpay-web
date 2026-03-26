@@ -15,6 +15,7 @@ interface EventsTabProps {
   reloadEvents: () => Promise<void>;
   checkoutOrigin: string;
   hasLumaKey?: boolean;
+  isTestnet?: boolean;
   initialAction?: TabAction;
   clearAction?: () => void;
 }
@@ -81,7 +82,7 @@ function SoldDisplay({ sold, capacity, t }: { sold: number; capacity: number | n
   return <>{sold}</>;
 }
 
-export const EventsTab = memo(function EventsTab({ events, loadingEvents, reloadEvents, checkoutOrigin, hasLumaKey, initialAction, clearAction }: EventsTabProps) {
+export const EventsTab = memo(function EventsTab({ events, loadingEvents, reloadEvents, checkoutOrigin, hasLumaKey, isTestnet, initialAction, clearAction }: EventsTabProps) {
   const { showToast } = useToast();
   const t = useTranslations('dashboard.events');
   const tc = useTranslations('common');
@@ -142,15 +143,19 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
       setShowAddForm(true);
       setShowLumaImport(false);
       clearAction?.();
-    } else if (initialAction === 'import-luma' && hasLumaKey) {
-      setShowLumaImport(true);
-      setShowAddForm(false);
-      if (lumaEvents.length === 0) {
-        setLumaLoading(true);
-        api.listLumaEvents()
-          .then(setLumaEvents)
-          .catch(() => showToast(t('lumaImportFailed'), 'error'))
-          .finally(() => setLumaLoading(false));
+    } else if (initialAction === 'import-luma') {
+      if (!hasLumaKey) {
+        showToast(t('lumaKeyRequired'));
+      } else {
+        setShowLumaImport(true);
+        setShowAddForm(false);
+        if (lumaEvents.length === 0) {
+          setLumaLoading(true);
+          api.listLumaEvents()
+            .then(setLumaEvents)
+            .catch(() => showToast(t('lumaImportFailed'), 'error'))
+            .finally(() => setLumaLoading(false));
+        }
       }
       clearAction?.();
     }
@@ -400,14 +405,22 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
                   try {
                     const result = await api.syncLumaEvent(event.id);
                     await reloadEvents();
-                    await loadTierData(event.id);
-                    const parts: string[] = [];
-                    if (result.synced > 0) parts.push(`${result.synced} updated`);
-                    if (result.added > 0) parts.push(`${result.added} added`);
-                    if (result.deactivated > 0) parts.push(`${result.deactivated} removed`);
-                    showToast(parts.length > 0
-                      ? t('lumaSynced', { details: parts.join(', ') })
-                      : t('lumaSyncUpToDate'));
+                    if (result.cancelled) {
+                      showToast(t('lumaSyncCancelled'));
+                      setSelectedEvent(null);
+                    } else if (result.past) {
+                      showToast(t('lumaSyncPast'));
+                      setSelectedEvent(null);
+                    } else {
+                      await loadTierData(event.id);
+                      const parts: string[] = [];
+                      if (result.synced && result.synced > 0) parts.push(`${result.synced} updated`);
+                      if (result.added && result.added > 0) parts.push(`${result.added} added`);
+                      if (result.deactivated && result.deactivated > 0) parts.push(`${result.deactivated} removed`);
+                      showToast(parts.length > 0
+                        ? t('lumaSynced', { details: parts.join(', ') })
+                        : t('lumaSyncUpToDate'));
+                    }
                   } catch {
                     showToast(t('lumaSyncFailed'), true);
                   } finally {
@@ -421,7 +434,7 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
                 {lumaSyncing ? t('lumaSyncing') : t('lumaSyncButton')}
               </button>
             )}
-            {canEdit && !editing && (
+            {canEdit && !editing && !event.luma_event_id && (
               <button
                 onClick={() => startEditing(event)}
                 className="btn btn-small"
@@ -430,7 +443,7 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
                 {t('editEvent')}
               </button>
             )}
-            {event.status === 'active' && !editing && (
+            {event.status === 'active' && !editing && !event.luma_event_id && (
               <button
                 onClick={() => { cancelEvent(event.id); setSelectedEvent(null); }}
                 style={{
@@ -488,29 +501,76 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
                     {event.description}
                   </div>
                 )}
-                <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', fontSize: 10, color: 'var(--cp-text-dim)', marginTop: 8 }}>
+                <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', fontSize: 10, color: 'var(--cp-text-dim)', marginTop: 8, alignItems: 'center' }}>
                   {event.event_date && <span>{t('date')}: {new Date(event.event_date).toLocaleString()}</span>}
                   {event.event_location && <span>{t('location')}: {event.event_location}</span>}
                   <span>{t('created')}: {new Date(event.created_at).toLocaleDateString()}</span>
+                  {event.luma_event_url && (
+                    <a
+                      href={event.luma_event_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: '#E8C48D', textDecoration: 'none', fontWeight: 600, letterSpacing: 0.5 }}
+                    >
+                      {t('viewOnLuma')}
+                    </a>
+                  )}
                 </div>
               </>
             )}
           </div>
 
+          {/* Buy / Share link */}
+          {!editing && (
+            <div style={{
+              padding: '16px 24px',
+              borderBottom: '1px solid var(--cp-border)',
+              background: 'rgba(86,212,200,0.04)',
+            }}>
+              <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', letterSpacing: 1, marginBottom: 6, textTransform: 'uppercase' }}>
+                {t('buyLink')}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{
+                  fontSize: 11, fontFamily: 'var(--font-mono, monospace)', color: 'var(--cp-cyan)',
+                  flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                }}>
+                  {buyLink}
+                </span>
+                <CopyButton text={buyLink} label={tc('copy')} />
+                <a
+                  href={buyLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    fontSize: 9, letterSpacing: 0.5, color: 'var(--cp-text-dim)',
+                    textDecoration: 'none', whiteSpace: 'nowrap',
+                  }}
+                >
+                  {tc('open')} ↗
+                </a>
+              </div>
+            </div>
+          )}
+
           {/* Attendance stats */}
           <div style={{ padding: 24, borderBottom: '1px solid var(--cp-border)' }}>
             <div className="section-label">{t('attendance')}</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: event.luma_event_id ? '1fr' : '1fr 1fr', gap: 12 }}>
               <div style={{ border: '1px solid var(--cp-border)', borderRadius: 6, padding: '12px 16px' }}>
                 <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--cp-cyan)' }}>
                   <SoldDisplay sold={event.sold_count} capacity={event.total_capacity} t={t} />
                 </div>
-                <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', letterSpacing: 0.5 }}>{t('sold')}</div>
+                <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', letterSpacing: 0.5 }}>
+                  {event.luma_event_id ? t('registered') : t('sold')}
+                </div>
               </div>
-              <div style={{ border: '1px solid var(--cp-border)', borderRadius: 6, padding: '12px 16px' }}>
-                <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--cp-green)' }}>{event.used_count}</div>
-                <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', letterSpacing: 0.5 }}>{t('checkedIn')}</div>
-              </div>
+              {!event.luma_event_id && (
+                <div style={{ border: '1px solid var(--cp-border)', borderRadius: 6, padding: '12px 16px' }}>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--cp-green)' }}>{event.used_count}</div>
+                  <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', letterSpacing: 0.5 }}>{t('checkedIn')}</div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -525,7 +585,7 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {tiers.map((tier) => (
                   <div key={tier.price_id} style={{
-                    display: 'grid', gridTemplateColumns: '1fr auto auto auto', gap: 16, alignItems: 'center',
+                    display: 'grid', gridTemplateColumns: event.luma_event_id ? '1fr auto' : '1fr auto auto', gap: 16, alignItems: 'center',
                     border: '1px solid var(--cp-border)', borderRadius: 6, padding: '10px 14px',
                   }}>
                     <div>
@@ -542,18 +602,20 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
                       </div>
                       <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', letterSpacing: 0.5 }}>{t('tierSold')}</div>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--cp-green)' }}>{tier.used_count}</div>
-                      <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', letterSpacing: 0.5 }}>{t('tierCheckedIn')}</div>
-                    </div>
+                    {!event.luma_event_id && (
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--cp-green)' }}>{tier.used_count}</div>
+                        <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', letterSpacing: 0.5 }}>{t('tierCheckedIn')}</div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Scanner */}
-          {(event.status === 'active' || event.status === 'past') && (
+          {/* Scanner — only for CipherPay-native events (Luma handles its own check-in) */}
+          {!event.luma_event_id && (event.status === 'active' || event.status === 'past') && (
             <div style={{ padding: 24, borderBottom: '1px solid var(--cp-border)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                 <div className="section-label" style={{ margin: 0 }}>
@@ -626,13 +688,9 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
               <span style={{ fontSize: 11, color: 'var(--cp-text-dim)' }}>{t('eventId')}</span>
               <CopyButton text={event.id} label={event.id.substring(0, 8) + '...'} />
             </div>
-            <div className="stat-row" style={{ marginBottom: 10 }}>
+            <div className="stat-row">
               <span style={{ fontSize: 11, color: 'var(--cp-text-dim)' }}>{t('productId')}</span>
               <CopyButton text={event.product_id} label={event.product_id.substring(0, 8) + '...'} />
-            </div>
-            <div className="stat-row">
-              <span style={{ fontSize: 11, color: 'var(--cp-text-dim)' }}>{t('buyLink')}</span>
-              <CopyButton text={buyLink} label={buyLink.replace(/^https?:\/\//, '').substring(0, 30) + '...'} />
             </div>
           </div>
         </div>
@@ -646,9 +704,13 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
       <div className="panel-header">
         <span className="panel-title">{t('title')}</span>
         <div style={{ display: 'flex', gap: 8 }}>
-          {hasLumaKey && (
+          {isTestnet && (
             <button
               onClick={() => {
+                if (!hasLumaKey) {
+                  showToast(t('lumaKeyRequired'));
+                  return;
+                }
                 setShowLumaImport(!showLumaImport);
                 if (!showLumaImport && lumaEvents.length === 0) {
                   setLumaLoading(true);

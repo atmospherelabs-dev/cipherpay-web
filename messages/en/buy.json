@@ -15,6 +15,7 @@
   "attendeeEmail": "Your Email",
   "attendeeEmailPlaceholder": "jane@example.com",
   "attendeeRequired": "Required for Luma event registration",
+  "emailRequired": "Email is required for event registration",
   "openOnLuma": "Open on Luma",
   "soldOut": "SOLD OUT",
   "soldOutHint": "This ticket tier has reached its maximum capacity. No more tickets are available."

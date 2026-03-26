@@ -80,7 +80,7 @@ export default function BuyClient({ productId }: { productId: string }) {
     setFormError('');
 
     if (isLuma && !attendeeEmail.trim()) {
-      setFormError(t('attendeeRequired'));
+      setFormError(t('emailRequired'));
       return;
     }
 
@@ -175,15 +175,16 @@ export default function BuyClient({ productId }: { productId: string }) {
                 <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-dim)', marginBottom: 8 }}>
                   {t('selectTier')}
                 </div>
-                <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {activePrices.map((p) => (
                     <button
                       key={p.id}
                       onClick={() => setSelectedPrice(p)}
                       className={selectedPrice?.id === p.id ? 'btn-primary' : 'btn'}
-                      style={{ minWidth: 100, textAlign: 'center', fontSize: 11, padding: '8px 14px' }}
+                      style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, padding: '10px 16px' }}
                     >
-                      {p.label || p.currency} · {currencySymbol(p.currency)}{p.unit_amount.toFixed(2)}
+                      <span>{p.label || p.currency}</span>
+                      <span style={{ opacity: 0.7 }}>{currencySymbol(p.currency)}{p.unit_amount.toFixed(2)}</span>
                     </button>
                   ))}
                 </div>
@@ -199,19 +200,6 @@ export default function BuyClient({ productId }: { productId: string }) {
             {product.description && (
               <div style={{ fontSize: 11, color: 'var(--cp-text-muted)', marginTop: 10, marginBottom: 4, lineHeight: 1.5 }}>
                 {product.description}
-              </div>
-            )}
-
-            {isLuma && product?.luma_event_url && (
-              <div style={{ marginTop: 6, textAlign: 'center' }}>
-                <a
-                  href={product.luma_event_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ fontSize: 10, color: 'var(--cp-cyan)', textDecoration: 'none', opacity: 0.8 }}
-                >
-                  {t('openOnLuma')} ↗
-                </a>
               </div>
             )}
 
@@ -234,14 +222,14 @@ export default function BuyClient({ productId }: { productId: string }) {
                   />
                 </div>
                 <div className="form-group">
-                  <label style={{ fontSize: 10, letterSpacing: 0.5, color: 'var(--cp-text-muted)', marginBottom: 2, display: 'block' }}>{t('attendeeEmail')} *</label>
+                  <label style={{ fontSize: 10, letterSpacing: 0.5, color: formError && !attendeeEmail.trim() ? 'var(--cp-red)' : 'var(--cp-text-muted)', marginBottom: 2, display: 'block' }}>{t('attendeeEmail')} *</label>
                   <input
                     type="email"
                     value={attendeeEmail}
-                    onChange={(e) => setAttendeeEmail(e.target.value)}
+                    onChange={(e) => { setAttendeeEmail(e.target.value); setFormError(''); }}
                     placeholder={t('attendeeEmailPlaceholder')}
                     className="input"
-                    style={{ fontSize: 11 }}
+                    style={{ fontSize: 11, borderColor: formError && !attendeeEmail.trim() ? 'var(--cp-red)' : undefined }}
                     required
                   />
                 </div>

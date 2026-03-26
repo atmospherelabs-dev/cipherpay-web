@@ -51,6 +51,7 @@ export interface Invoice {
   overpaid?: boolean;
   is_event?: boolean;
   is_luma?: boolean;
+  price_label?: string | null;
 }
 
 export interface CreateInvoiceRequest {
@@ -588,7 +589,7 @@ export const api = {
     ),
 
   syncLumaEvent: (eventId: string) =>
-    request<{ synced: number; added: number; deactivated: number; title: string }>(
+    request<{ synced?: number; added?: number; deactivated?: number; title?: string; cancelled?: boolean; past?: boolean; reason?: string }>(
       `/api/luma/sync/${eventId}`,
       { method: 'POST' }
     ),

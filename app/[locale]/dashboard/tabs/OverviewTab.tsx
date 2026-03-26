@@ -19,10 +19,11 @@ interface OverviewTabProps {
   navigateWithAction: (t: Tab, action?: TabAction) => void;
   events: EventSummary[];
   hasLumaKey?: boolean;
+  isTestnet: boolean;
 }
 
 export const OverviewTab = memo(function OverviewTab({
-  merchant, products, invoices, loadingInvoices, billing, zecRates, displayCurrency, setTab, navigateWithAction, events, hasLumaKey,
+  merchant, products, invoices, loadingInvoices, billing, zecRates, displayCurrency, setTab, navigateWithAction, events, hasLumaKey, isTestnet,
 }: OverviewTabProps) {
   const t = useTranslations('dashboard.overview');
   const tc = useTranslations('common');
@@ -145,7 +146,7 @@ export const OverviewTab = memo(function OverviewTab({
           <button onClick={() => navigateWithAction('events', 'create-event')} className="btn" style={{ fontSize: 10 }}>
             {t('createEvent')}
           </button>
-          {hasLumaKey && (
+          {isTestnet && (
             <button onClick={() => navigateWithAction('events', 'import-luma')} className="btn" style={{ fontSize: 10, color: '#E8C48D', borderColor: 'rgba(232,196,141,0.3)' }}>
               {t('importFromLuma')}
             </button>
@@ -287,16 +288,18 @@ export const OverviewTab = memo(function OverviewTab({
               </span>
             </div>
           )}
-          <div className="stat-row">
-            <span style={{ color: 'var(--cp-text-muted)' }}>{t('lumaIntegration')}</span>
-            {hasLumaKey ? (
-              <span style={{ color: 'var(--cp-green)', fontSize: 10, fontWeight: 600 }}>✓ {tc('configured')}</span>
-            ) : (
-              <button onClick={() => setTab('settings')} style={{ background: 'none', border: 'none', color: 'var(--cp-text-dim)', fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: 1 }}>
-                {tc('optional')}
-              </button>
-            )}
-          </div>
+          {isTestnet && (
+            <div className="stat-row">
+              <span style={{ color: 'var(--cp-text-muted)' }}>{t('lumaIntegration')}</span>
+              {hasLumaKey ? (
+                <span style={{ color: 'var(--cp-green)', fontSize: 10, fontWeight: 600 }}>✓ {tc('configured')}</span>
+              ) : (
+                <button onClick={() => setTab('settings')} style={{ background: 'none', border: 'none', color: 'var(--cp-text-dim)', fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: 1 }}>
+                  {tc('optional')}
+                </button>
+              )}
+            </div>
+          )}
           <div className="stat-row" style={{ cursor: 'pointer' }} onClick={() => setTab('products')}>
             <span style={{ color: 'var(--cp-text-muted)' }}>{t('productsLabel')}</span>
             <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--cp-text)' }}>{products.length}</span>

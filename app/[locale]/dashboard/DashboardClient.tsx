@@ -196,6 +196,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                 navigateWithAction={navigateWithAction}
                 events={events}
                 hasLumaKey={merchant?.has_luma_key}
+                isTestnet={merchant.payment_address.startsWith('utest')}
               />
             )}
             {tab === 'products' && (
@@ -216,6 +217,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                 reloadEvents={loadEvents}
                 checkoutOrigin={checkoutOrigin}
                 hasLumaKey={merchant?.has_luma_key}
+                isTestnet={merchant.payment_address.startsWith('utest')}
                 initialAction={tabAction}
                 clearAction={() => setTabAction(null)}
               />

@@ -251,7 +251,7 @@ export const InvoicesTab = memo(function InvoicesTab({
                   </div>
                 </div>
                 <div className="invoice-meta" style={{ justifyContent: 'space-between' }}>
-                  <span>{inv.product_name || '—'} {inv.size || ''}</span>
+                  <span>{inv.product_name || '—'}{inv.price_label ? ` · ${inv.price_label}` : ''}{inv.size ? ` ${inv.size}` : ''}</span>
                   <span><strong>{priceStr}</strong> / {inv.price_zec.toFixed(4)} ZEC</span>
                 </div>
 
@@ -281,6 +281,13 @@ export const InvoicesTab = memo(function InvoicesTab({
                       <div className="stat-row">
                         <span style={{ color: 'var(--cp-text-muted)' }}>{t('product')}</span>
                         <span>{inv.product_name}{inv.size ? ` · ${inv.size}` : ''}</span>
+                      </div>
+                    )}
+
+                    {inv.price_label && (
+                      <div className="stat-row">
+                        <span style={{ color: 'var(--cp-text-muted)' }}>{t('ticketTier')}</span>
+                        <span>{inv.price_label}</span>
                       </div>
                     )}
 

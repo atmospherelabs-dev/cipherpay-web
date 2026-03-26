@@ -556,6 +556,7 @@ body {
 /* ── Spinner ── */
 
 .spinner {
+  display: inline-block;
   border: 2px solid var(--cp-cyan);
   border-top-color: transparent;
   border-radius: 50%;

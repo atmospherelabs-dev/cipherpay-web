@@ -405,6 +405,9 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
                     </div>
                     <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', opacity: 0.7, marginBottom: 8, lineHeight: 1.5 }}>
                       {t('refundPrivacyHint')}
+                      {invoice?.is_event && (
+                        <> {t('refundEventHint')}</>
+                      )}
                     </div>
                     <div style={{ display: 'flex', gap: 6 }}>
                       <input
@@ -733,7 +736,7 @@ function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending, ticke
           textAlign: 'center',
         }}>
           <Spinner size={20} />
-          <div style={{ fontSize: 11, color: invoice.is_luma ? '#E8C48D' : 'var(--cp-cyan)', letterSpacing: 1, marginTop: 12, fontWeight: 600 }}>
+          <div style={{ fontSize: 11, color: 'var(--cp-cyan)', letterSpacing: 1, marginTop: 12, fontWeight: 600 }}>
             {invoice.is_luma ? t('lumaRegistering') : t('ticketGenerating')}
           </div>
           <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: 6, lineHeight: 1.6 }}>
@@ -743,72 +746,87 @@ function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending, ticke
       )}
 
       {lumaPass?.status === 'registered' && (
-        <div style={{ marginTop: 18, border: '1px solid rgba(232,196,141,0.3)', borderRadius: 8, padding: '24px 20px', textAlign: 'center' }}>
-          <div style={{ fontSize: 18, fontWeight: 700, color: '#E8C48D', letterSpacing: 1, marginBottom: 16 }}>
-            {t('lumaYoureIn')}
-          </div>
-
-          {lumaPass.guest?.check_in_qr_code && (
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', letterSpacing: 1.5, marginBottom: 8 }}>
-                {t('lumaCheckInQr')}
+        <>
+          <div ref={receiptRef} style={{ marginTop: 18, padding: 16, borderRadius: 8, background: 'var(--cp-bg, #0a0e14)' }}>
+            <div style={{ border: '1px solid var(--cp-border)', borderRadius: 8, padding: '24px 20px', textAlign: 'center' }}>
+              <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--cp-cyan)', letterSpacing: 1, marginBottom: 16 }}>
+                {t('lumaYoureIn')}
               </div>
-              <img
-                src={lumaPass.guest.check_in_qr_code}
-                alt="Luma Check-in QR"
-                style={{ width: 180, height: 180, borderRadius: 8, background: '#fff', padding: 8, display: 'inline-block' }}
-              />
-            </div>
-          )}
 
-          {(lumaPass.event_date || lumaPass.event_location || lumaPass.ticket_type) && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center', marginBottom: 14 }}>
-              {lumaPass.event_title && (
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--cp-text)' }}>{lumaPass.event_title}</div>
-              )}
-              {lumaPass.event_date && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--cp-text-muted)' }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                  <span>{(() => { try { return new Date(lumaPass.event_date!).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch { return lumaPass.event_date; } })()}</span>
+              {lumaPass.guest?.check_in_qr_code && (
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', letterSpacing: 1.5, marginBottom: 8 }}>
+                    {t('lumaCheckInQr')}
+                  </div>
+                  <div className="qr-container">
+                    <QRCode data={lumaPass.guest.check_in_qr_code} size={180} />
+                  </div>
                 </div>
               )}
-              {lumaPass.event_location && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--cp-text-muted)' }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                  <span>{lumaPass.event_location}</span>
+
+              {(lumaPass.event_date || lumaPass.event_location || lumaPass.ticket_type) && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center', marginBottom: 14 }}>
+                  {lumaPass.event_title && (
+                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--cp-text)' }}>{lumaPass.event_title}</div>
+                  )}
+                  {lumaPass.event_date && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--cp-text-muted)' }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                      <span>{(() => { try { return new Date(lumaPass.event_date!).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch { return lumaPass.event_date; } })()}</span>
+                    </div>
+                  )}
+                  {lumaPass.event_location && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--cp-text-muted)' }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                      <span>{lumaPass.event_location}</span>
+                    </div>
+                  )}
+                  {lumaPass.ticket_type && (
+                    <div style={{ fontSize: 10, color: 'var(--cp-text-muted)', fontWeight: 600, letterSpacing: 0.5 }}>
+                      {t('lumaTicketTier')}: {lumaPass.ticket_type}
+                    </div>
+                  )}
                 </div>
               )}
-              {lumaPass.ticket_type && (
-                <div style={{ fontSize: 10, color: '#E8C48D', fontWeight: 600, letterSpacing: 0.5 }}>
-                  {lumaPass.ticket_type}
-                </div>
+
+              <div style={{ fontSize: 10, color: 'var(--cp-cyan)', fontWeight: 600, letterSpacing: 0.5, marginBottom: 8 }}>
+                {t('lumaPaidWithZcash')}
+              </div>
+
+              <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', lineHeight: 1.6, marginBottom: 16 }}>
+                {t('lumaEmailNote')}
+              </div>
+
+              {lumaPass.luma_event_url && (
+                <a
+                  href={lumaPass.luma_event_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn"
+                  style={{
+                    display: 'inline-block', color: '#E8C48D', borderColor: 'rgba(232,196,141,0.3)',
+                    fontSize: 10, letterSpacing: 1.5, padding: '10px 24px', textDecoration: 'none',
+                  }}
+                >
+                  {t('lumaOpenOnLuma')} ↗
+                </a>
               )}
             </div>
-          )}
-
-          <div style={{ fontSize: 10, color: 'var(--cp-cyan)', fontWeight: 600, letterSpacing: 0.5, marginBottom: 8 }}>
-            {t('lumaPaidWithZcash')}
           </div>
 
-          <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', lineHeight: 1.6, marginBottom: 16 }}>
-            {t('lumaEmailNote')}
-          </div>
-
-          {lumaPass.luma_event_url && (
-            <a
-              href={lumaPass.luma_event_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn"
-              style={{
-                display: 'inline-block', color: '#E8C48D', borderColor: 'rgba(232,196,141,0.3)',
-                fontSize: 10, letterSpacing: 1.5, padding: '10px 24px', textDecoration: 'none',
-              }}
-            >
-              {t('lumaOpenOnLuma')} ↗
-            </a>
-          )}
-        </div>
+          <button
+            onClick={() => receiptRef.current && saveReceiptImage(receiptRef.current, invoice.id)}
+            className="btn"
+            style={{
+              display: 'block', width: '100%', marginTop: 16,
+              fontSize: 10, letterSpacing: 1.5, textTransform: 'uppercase',
+              padding: '12px 0',
+              color: 'var(--cp-cyan)', borderColor: 'rgba(86,212,200,0.3)',
+            }}
+          >
+            {t('ticketSave')}
+          </button>
+        </>
       )}
 
       {lumaPass?.status === 'failed' && (

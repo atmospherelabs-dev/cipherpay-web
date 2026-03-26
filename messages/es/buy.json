@@ -15,6 +15,7 @@
   "attendeeEmail": "Tu Email",
   "attendeeEmailPlaceholder": "maria@ejemplo.com",
   "attendeeRequired": "Requerido para el registro en Luma",
+  "emailRequired": "El email es obligatorio para el registro del evento",
   "openOnLuma": "Abrir en Luma",
   "soldOut": "AGOTADO",
   "soldOutHint": "Este nivel de entradas ha alcanzado su capacidad máxima. No hay más entradas disponibles."

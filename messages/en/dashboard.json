@@ -160,6 +160,7 @@
     "received": "Received",
     "rateAtCreation": "Rate at Creation",
     "product": "Product",
+    "ticketTier": "Ticket Tier",
     "timeline": "TIMELINE",
     "created": "Created",
     "detected": "Detected",
@@ -328,6 +329,7 @@
     "created": "Created",
     "attendance": "ATTENDANCE",
     "sold": "TICKETS SOLD",
+    "registered": "REGISTERED",
     "checkedIn": "CHECKED IN",
     "details": "DETAILS",
     "eventId": "Event ID",
@@ -381,11 +383,15 @@
     "lumaImported": "Event imported from Luma",
     "lumaImportFailed": "Failed to import Luma event",
     "lumaTicketTypes": "Ticket types",
+    "viewOnLuma": "View on Luma ↗",
     "lumaSyncButton": "SYNC FROM LUMA",
     "lumaSyncing": "SYNCING...",
     "lumaSynced": "Synced from Luma: {details}",
     "lumaSyncUpToDate": "Already up to date with Luma",
-    "lumaSyncFailed": "Failed to sync from Luma"
+    "lumaSyncFailed": "Failed to sync from Luma",
+    "lumaSyncCancelled": "Event was cancelled on Luma. Tickets voided.",
+    "lumaSyncPast": "Event has ended. Marked as past.",
+    "lumaKeyRequired": "Add your Luma API key in Settings to import events."
   },
   "luma": {
     "title": "Luma Integration",
