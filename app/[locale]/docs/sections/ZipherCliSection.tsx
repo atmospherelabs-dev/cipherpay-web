@@ -5,6 +5,11 @@ import { Code, CodeBlock, Step, Callout, SectionDivider, Paragraph, SectionTitle
 export default function ZipherCliSection() {
   return (
     <>
+
+      <div style={{ display: 'inline-block', fontSize: 9, fontWeight: 700, letterSpacing: 1, padding: '3px 8px', borderRadius: 3, background: 'rgba(245,158,11,0.12)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.25)', marginBottom: 12 }}>
+        EARLY BETA
+      </div>
+
       <Paragraph>
         <Strong>@cipherpay/zipher-cli</Strong> is a headless Zcash light wallet built for AI agents.
         It runs locally, manages keys, syncs with the network, and can pay for APIs autonomously —

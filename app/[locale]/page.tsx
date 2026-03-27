@@ -36,7 +36,7 @@ app.get('/api/premium/data', (req, res) => {
 });`,
   },
   {
-    label: 'Agent',
+    label: 'Agent (beta)',
     tag: '@cipherpay/zipher-cli',
     code: `# Pay for a paywalled API — auto-detects x402 or MPP
 $ zipher-cli pay https://api.example.com/premium/data
