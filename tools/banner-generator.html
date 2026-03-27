@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CipherPay Banner Generator</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0a0a0f; color: #e4e4e7; font-family: 'Inter', system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; min-height: 100vh; }
+  h1 { font-size: 18px; letter-spacing: 2px; margin-bottom: 8px; }
+  .subtitle { font-size: 12px; color: #636370; margin-bottom: 32px; }
+  .preview { position: relative; width: 900px; height: 600px; border: 1px dashed #2a2a3a; border-radius: 8px; overflow: hidden; margin-bottom: 24px; background: repeating-conic-gradient(#18181b 0% 25%, #0f0f14 0% 50%) 0 0 / 20px 20px; }
+  .preview canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .controls { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-bottom: 16px; }
+  .control-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-bottom: 16px; align-items: center; }
+  label { font-size: 11px; letter-spacing: 1px; color: #636370; }
+  select, input[type=range] { background: #18181b; border: 1px solid #2a2a3a; color: #e4e4e7; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-family: inherit; }
+  button { padding: 10px 24px; border: 1px solid #2a2a3a; background: transparent; color: #e4e4e7; font-size: 11px; letter-spacing: 1px; cursor: pointer; border-radius: 6px; font-family: inherit; transition: all 0.2s; }
+  button:hover { border-color: #00D4FF; color: #00D4FF; }
+  button.primary { background: #00D4FF; color: #0a0a0f; border-color: #00D4FF; font-weight: 600; }
+  button.primary:hover { background: #00c1e8; }
+  .info { font-size: 10px; color: #636370; text-align: center; max-width: 500px; }
+  .hidden { position: absolute; left: -9999px; top: -9999px; }
+</style>
+</head>
+<body>
+
+<h1>BANNER GENERATOR</h1>
+<p class="subtitle">CipherPay mesh gradient — free-form with transparency</p>
+
+<div class="preview" id="previewContainer">
+  <canvas id="glCanvas"></canvas>
+  <canvas id="maskedCanvas"></canvas>
+</div>
+
+<div class="control-row">
+  <label>SHAPE</label>
+  <select id="shapeSelect" onchange="updateMask()">
+    <option value="blob1">Organic Blob</option>
+    <option value="blob2">Wide Cloud</option>
+    <option value="blob3">Diagonal Sweep</option>
+    <option value="radial">Radial Glow</option>
+  </select>
+  <label>SOFTNESS</label>
+  <input type="range" id="softnessRange" min="0" max="100" value="40" oninput="updateMask()">
+  <label>SCALE</label>
+  <input type="range" id="scaleRange" min="30" max="100" value="70" oninput="updateMask()">
+</div>
+
+<div class="controls">
+  <button class="primary" onclick="downloadPNG()">DOWNLOAD PNG</button>
+  <button onclick="randomize()">RANDOMIZE</button>
+</div>
+
+<p class="info">Transparent PNG — drop it on a dark frame in Figma. The checkerboard shows transparency. Twitter/X banner is 1500x500.</p>
+
+<canvas id="exportGl" class="hidden" width="2400" height="1600"></canvas>
+<canvas id="exportMasked" class="hidden" width="2400" height="1600"></canvas>
+
+<script>
+const COLORS = ['#00D4FF', '#F4B728', '#8FE1FF', '#FFE876'];
+
+function normalizeColor(hex) {
+  if (hex.length === 4) hex = '#' + hex.slice(1).split('').map(c => c + c).join('');
+  const n = parseInt(hex.slice(1), 16);
+  return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (255 & n) / 255];
+}
+
+const NOISE = `vec3 mod289(vec3 x){return x-floor(x*(1.0/289.0))*289.0;}vec4 mod289(vec4 x){return x-floor(x*(1.0/289.0))*289.0;}vec4 permute(vec4 x){return mod289(((x*34.0)+1.0)*x);}vec4 taylorInvSqrt(vec4 r){return 1.79284291400159-0.85373472095314*r;}float snoise(vec3 v){const vec2 C=vec2(1.0/6.0,1.0/3.0);const vec4 D=vec4(0.0,0.5,1.0,2.0);vec3 i=floor(v+dot(v,C.yyy));vec3 x0=v-i+dot(i,C.xxx);vec3 g=step(x0.yzx,x0.xyz);vec3 l=1.0-g;vec3 i1=min(g.xyz,l.zxy);vec3 i2=max(g.xyz,l.zxy);vec3 x1=x0-i1+C.xxx;vec3 x2=x0-i2+C.yyy;vec3 x3=x0-D.yyy;i=mod289(i);vec4 p=permute(permute(permute(i.z+vec4(0.0,i1.z,i2.z,1.0))+i.y+vec4(0.0,i1.y,i2.y,1.0))+i.x+vec4(0.0,i1.x,i2.x,1.0));float n_=0.142857142857;vec3 ns=n_*D.wyz-D.xzx;vec4 j=p-49.0*floor(p*ns.z*ns.z);vec4 x_=floor(j*ns.z);vec4 y_=floor(j-7.0*x_);vec4 x=x_*ns.x+ns.yyyy;vec4 y=y_*ns.x+ns.yyyy;vec4 h=1.0-abs(x)-abs(y);vec4 b0=vec4(x.xy,y.xy);vec4 b1=vec4(x.zw,y.zw);vec4 s0=floor(b0)*2.0+1.0;vec4 s1=floor(b1)*2.0+1.0;vec4 sh=-step(h,vec4(0.0));vec4 a0=b0.xzyw+s0.xzyw*sh.xxyy;vec4 a1=b1.xzyw+s1.xzyw*sh.zzww;vec3 p0=vec3(a0.xy,h.x);vec3 p1=vec3(a0.zw,h.y);vec3 p2=vec3(a1.xy,h.z);vec3 p3=vec3(a1.zw,h.w);vec4 norm=taylorInvSqrt(vec4(dot(p0,p0),dot(p1,p1),dot(p2,p2),dot(p3,p3)));p0*=norm.x;p1*=norm.y;p2*=norm.z;p3*=norm.w;vec4 m=max(0.6-vec4(dot(x0,x0),dot(x1,x1),dot(x2,x2),dot(x3,x3)),0.0);m=m*m;return 42.0*dot(m*m,vec4(dot(p0,x0),dot(p1,x1),dot(p2,x2),dot(p3,x3)));}`;
+const BLEND = `vec3 blendNormal(vec3 base,vec3 blend){return blend;}vec3 blendNormal(vec3 base,vec3 blend,float opacity){return(blendNormal(base,blend)*opacity+base*(1.0-opacity));}`;
+const VERTEX = `varying vec3 v_color;\nvoid main(){float time=u_time*u_global.noiseSpeed;vec2 noiseCoord=resolution*uvNorm*u_global.noiseFreq;vec2 st=1.-uvNorm.xy;float tilt=resolution.y/2.0*uvNorm.y;float incline=resolution.x*uvNorm.x/2.0*u_vertDeform.incline;float offset=resolution.x/2.0*u_vertDeform.incline*mix(u_vertDeform.offsetBottom,u_vertDeform.offsetTop,uv.y);float noise=snoise(vec3(noiseCoord.x*u_vertDeform.noiseFreq.x+time*u_vertDeform.noiseFlow,noiseCoord.y*u_vertDeform.noiseFreq.y,time*u_vertDeform.noiseSpeed+u_vertDeform.noiseSeed))*u_vertDeform.noiseAmp;noise*=1.0-pow(abs(uvNorm.y),2.0);noise=max(0.0,noise);vec3 pos=vec3(position.x,position.y+tilt+incline+noise-offset,position.z);if(u_active_colors[0]==1.){v_color=u_baseColor;}for(int i=0;i<u_waveLayers_length;i++){if(u_active_colors[i+1]==1.){WaveLayers layer=u_waveLayers[i];float noise=smoothstep(layer.noiseFloor,layer.noiseCeil,snoise(vec3(noiseCoord.x*layer.noiseFreq.x+time*layer.noiseFlow,noiseCoord.y*layer.noiseFreq.y,time*layer.noiseSpeed+layer.noiseSeed))/2.0+0.5);v_color=blendNormal(v_color,layer.color,pow(noise,4.));}}gl_Position=projectionMatrix*modelViewMatrix*vec4(pos,1.0);}`;
+const FRAGMENT = `varying vec3 v_color;\nvoid main(){vec3 color=v_color;gl_FragColor=vec4(color,1.0);}`;
+
+let currentTime = 1253106 + Math.random() * 2000000;
+
+function initGradient(canvas, w, h) {
+  canvas.width = w;
+  canvas.height = h;
+  const gl = canvas.getContext('webgl', { antialias: true, preserveDrawingBuffer: true, premultipliedAlpha: false });
+  if (!gl) return null;
+
+  const sectionColors = COLORS.map(normalizeColor);
+  const seed = 5;
+  const meshes = [];
+  const commonUniforms = {};
+
+  function mkUniform(opts) {
+    const u = { type: 'float', ...opts };
+    u.typeFn = ({ float: '1f', int: '1i', vec2: '2fv', vec3: '3fv', vec4: '4fv', mat4: 'Matrix4fv' })[u.type] || '1f';
+    u.update = function(loc) {
+      if (u.value !== undefined) {
+        gl[`uniform${u.typeFn}`](loc, u.typeFn.indexOf('Matrix') === 0 ? u.transpose : u.value, u.typeFn.indexOf('Matrix') === 0 ? u.value : null);
+      }
+    };
+    u.getDeclaration = function(name, type, length) {
+      if (u.excludeFrom === type) return '';
+      if (u.type === 'array')
+        return u.value[0].getDeclaration(name, type, u.value.length) + `\nconst int ${name}_length = ${u.value.length};`;
+      if (u.type === 'struct') {
+        let n = name.replace('u_', '');
+        n = n.charAt(0).toUpperCase() + n.slice(1);
+        return `uniform struct ${n} {\n` +
+          Object.entries(u.value).map(([k, v]) => v.getDeclaration(k, type).replace(/^uniform/, '')).join('') +
+          `\n} ${name}${(length ?? 0) > 0 ? `[${length}]` : ''};`;
+      }
+      return `uniform ${u.type} ${name}${(length ?? 0) > 0 ? `[${length}]` : ''};`;
+    };
+    return u;
+  }
+
+  function decl(uniforms, type) {
+    return Object.entries(uniforms).map(([n, v]) => v.getDeclaration(n, type)).join('\n');
+  }
+
+  function mkShader(type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    return s;
+  }
+
+  function createMaterial(vs, fs, uniforms) {
+    const mat = { uniforms, uniformInstances: [] };
+    const pfx = '\n precision highp float;\n ';
+    mat.vertexSource = `\n ${pfx}\n attribute vec4 position;\n attribute vec2 uv;\n attribute vec2 uvNorm;\n ${decl(commonUniforms, 'vertex')}\n ${decl(uniforms, 'vertex')}\n ${vs}\n `;
+    mat.fragSource = `\n ${pfx}\n ${decl(commonUniforms, 'fragment')}\n ${decl(uniforms, 'fragment')}\n ${fs}\n `;
+    mat.vertexShader = mkShader(gl.VERTEX_SHADER, mat.vertexSource);
+    mat.fragmentShader = mkShader(gl.FRAGMENT_SHADER, mat.fragSource);
+    mat.program = gl.createProgram();
+    gl.attachShader(mat.program, mat.vertexShader);
+    gl.attachShader(mat.program, mat.fragmentShader);
+    gl.linkProgram(mat.program);
+    gl.useProgram(mat.program);
+    function attachUniforms(name, u) {
+      if (name === undefined) { Object.entries(u).forEach(([n, v]) => attachUniforms(n, v)); }
+      else if (u.type === 'array') { u.value.forEach((v, i) => attachUniforms(`${name}[${i}]`, v)); }
+      else if (u.type === 'struct') { Object.entries(u.value).forEach(([n, v]) => attachUniforms(`${name}.${n}`, v)); }
+      else { mat.uniformInstances.push({ uniform: u, location: gl.getUniformLocation(mat.program, name) }); }
+    }
+    attachUniforms(undefined, commonUniforms);
+    attachUniforms(undefined, uniforms);
+    return mat;
+  }
+
+  function createAttribute(opts) {
+    const a = { type: gl.FLOAT, normalized: false, buffer: gl.createBuffer(), ...opts };
+    a.update = () => { if (a.values !== undefined) { gl.bindBuffer(a.target, a.buffer); gl.bufferData(a.target, a.values, gl.STATIC_DRAW); } };
+    a.attach = (name, program) => { const loc = gl.getAttribLocation(program, name); if (a.target === gl.ARRAY_BUFFER) { gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, a.size, a.type, a.normalized, 0, 0); } return loc; };
+    a.use = (loc) => { gl.bindBuffer(a.target, a.buffer); if (a.target === gl.ARRAY_BUFFER) { gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, a.size, a.type, a.normalized, 0, 0); } };
+    a.update();
+    return a;
+  }
+
+  function createGeometry() {
+    gl.createBuffer();
+    const geo = { attributes: {
+      position: createAttribute({ target: gl.ARRAY_BUFFER, size: 3 }),
+      uv: createAttribute({ target: gl.ARRAY_BUFFER, size: 2 }),
+      uvNorm: createAttribute({ target: gl.ARRAY_BUFFER, size: 2 }),
+      index: createAttribute({ target: gl.ELEMENT_ARRAY_BUFFER, size: 3, type: gl.UNSIGNED_SHORT }),
+    }};
+    geo.setTopology = (xSeg = 1, ySeg = 1) => {
+      geo.xSegCount = xSeg; geo.ySegCount = ySeg;
+      geo.vertexCount = (xSeg + 1) * (ySeg + 1);
+      geo.quadCount = xSeg * ySeg * 2;
+      geo.attributes.uv.values = new Float32Array(2 * geo.vertexCount);
+      geo.attributes.uvNorm.values = new Float32Array(2 * geo.vertexCount);
+      geo.attributes.index.values = new Uint16Array(3 * geo.quadCount);
+      for (let y = 0; y <= ySeg; y++) for (let x = 0; x <= xSeg; x++) {
+        const i = y * (xSeg + 1) + x;
+        geo.attributes.uv.values[2 * i] = x / xSeg;
+        geo.attributes.uv.values[2 * i + 1] = 1 - y / ySeg;
+        geo.attributes.uvNorm.values[2 * i] = (x / xSeg) * 2 - 1;
+        geo.attributes.uvNorm.values[2 * i + 1] = 1 - (y / ySeg) * 2;
+        if (x < xSeg && y < ySeg) {
+          const s = y * xSeg + x;
+          geo.attributes.index.values[6 * s] = i;
+          geo.attributes.index.values[6 * s + 1] = i + 1 + xSeg;
+          geo.attributes.index.values[6 * s + 2] = i + 1;
+          geo.attributes.index.values[6 * s + 3] = i + 1;
+          geo.attributes.index.values[6 * s + 4] = i + 1 + xSeg;
+          geo.attributes.index.values[6 * s + 5] = i + 2 + xSeg;
+        }
+      }
+      geo.attributes.uv.update(); geo.attributes.uvNorm.update(); geo.attributes.index.update();
+    };
+    geo.setSize = (w, h) => {
+      geo.width = w; geo.height = h;
+      if (!geo.attributes.position.values || geo.attributes.position.values.length !== 3 * geo.vertexCount)
+        geo.attributes.position.values = new Float32Array(3 * geo.vertexCount);
+      const ox = w / -2, oy = h / -2, sw = w / geo.xSegCount, sh = h / geo.ySegCount;
+      for (let yi = 0; yi <= geo.ySegCount; yi++) {
+        const ty = oy + yi * sh;
+        for (let xi = 0; xi <= geo.xSegCount; xi++) {
+          const rx = ox + xi * sw, l = yi * (geo.xSegCount + 1) + xi;
+          geo.attributes.position.values[3 * l] = rx;
+          geo.attributes.position.values[3 * l + 1] = -ty;
+        }
+      }
+      geo.attributes.position.update();
+    };
+    return geo;
+  }
+
+  function createMesh(geometry, material) {
+    const mesh = { geometry, material, attributeInstances: [] };
+    Object.entries(geometry.attributes).forEach(([name, attr]) => {
+      mesh.attributeInstances.push({ attribute: attr, location: attr.attach(name, material.program) });
+    });
+    meshes.push(mesh);
+    mesh.draw = () => {
+      gl.useProgram(material.program);
+      material.uniformInstances.forEach(({ uniform: u, location: loc }) => u.update(loc));
+      mesh.attributeInstances.forEach(({ attribute: a, location: loc }) => a.use(loc));
+      gl.drawElements(gl.TRIANGLES, geometry.attributes.index.values.length, gl.UNSIGNED_SHORT, 0);
+    };
+    return mesh;
+  }
+
+  const identity = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+  commonUniforms.projectionMatrix = mkUniform({ type: 'mat4', value: identity });
+  commonUniforms.modelViewMatrix = mkUniform({ type: 'mat4', value: identity });
+  commonUniforms.resolution = mkUniform({ type: 'vec2', value: [w, h] });
+  commonUniforms.aspectRatio = mkUniform({ type: 'float', value: w / h });
+
+  const uniforms = {
+    u_time: mkUniform({ value: 0 }),
+    u_shadow_power: mkUniform({ value: 5 }),
+    u_darken_top: mkUniform({ value: 0 }),
+    u_active_colors: mkUniform({ value: [1, 1, 1, 1], type: 'vec4' }),
+    u_global: mkUniform({ value: {
+      noiseFreq: mkUniform({ value: [14e-5, 29e-5], type: 'vec2' }),
+      noiseSpeed: mkUniform({ value: 5e-6 }),
+    }, type: 'struct' }),
+    u_vertDeform: mkUniform({ value: {
+      incline: mkUniform({ value: 0 }),
+      offsetTop: mkUniform({ value: -0.5 }),
+      offsetBottom: mkUniform({ value: -0.5 }),
+      noiseFreq: mkUniform({ value: [3, 4], type: 'vec2' }),
+      noiseAmp: mkUniform({ value: 320 }),
+      noiseSpeed: mkUniform({ value: 10 }),
+      noiseFlow: mkUniform({ value: 3 }),
+      noiseSeed: mkUniform({ value: seed }),
+    }, type: 'struct', excludeFrom: 'fragment' }),
+    u_baseColor: mkUniform({ value: sectionColors[0], type: 'vec3', excludeFrom: 'fragment' }),
+    u_waveLayers: mkUniform({ value: [], excludeFrom: 'fragment', type: 'array' }),
+  };
+
+  for (let i = 1; i < sectionColors.length; i++) {
+    uniforms.u_waveLayers.value.push(mkUniform({ value: {
+      color: mkUniform({ value: sectionColors[i], type: 'vec3' }),
+      noiseFreq: mkUniform({ value: [2 + i / sectionColors.length, 3 + i / sectionColors.length], type: 'vec2' }),
+      noiseSpeed: mkUniform({ value: 11 + 0.3 * i }),
+      noiseFlow: mkUniform({ value: 6.5 + 0.3 * i }),
+      noiseSeed: mkUniform({ value: seed + 10 * i }),
+      noiseFloor: mkUniform({ value: 0.1 }),
+      noiseCeil: mkUniform({ value: 0.63 + 0.07 * i }),
+    }, type: 'struct' }));
+  }
+
+  const vertexShader = [NOISE, BLEND, VERTEX].join('\n\n');
+  const material = createMaterial(vertexShader, FRAGMENT, uniforms);
+  const geometry = createGeometry();
+  const mesh = createMesh(geometry, material);
+
+  commonUniforms.projectionMatrix.value = [2 / w, 0, 0, 0, 0, 2 / h, 0, 0, 0, 0, 2 / (-2e3 - 2e3), 0, 0, 0, 0, 1];
+  gl.viewport(0, 0, w, h);
+  mesh.geometry.setTopology(Math.ceil(w * 0.06), Math.ceil(h * 0.16));
+  mesh.geometry.setSize(w, h);
+
+  return { uniforms, render() { gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); meshes.forEach(m => m.draw()); }, canvas, gl };
+}
+
+// Organic blob path generator using superellipse + noise
+function blobPath(ctx, cx, cy, rx, ry, points, wobble) {
+  ctx.beginPath();
+  for (let i = 0; i <= points; i++) {
+    const a = (i / points) * Math.PI * 2;
+    const n1 = Math.sin(a * 3) * wobble * 0.3;
+    const n2 = Math.cos(a * 5) * wobble * 0.2;
+    const n3 = Math.sin(a * 7 + 1.3) * wobble * 0.15;
+    const r_x = rx * (1 + n1 + n2 + n3);
+    const r_y = ry * (1 + n1 * 0.8 + n2 * 1.2 + n3);
+    const x = cx + Math.cos(a) * r_x;
+    const y = cy + Math.sin(a) * r_y;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+}
+
+const SHAPES = {
+  blob1: (ctx, w, h, scale, softness) => {
+    const cx = w * 0.5, cy = h * 0.48;
+    const rx = w * 0.35 * scale, ry = h * 0.38 * scale;
+    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(rx, ry) * 1.3);
+    grad.addColorStop(0, 'rgba(255,255,255,1)');
+    grad.addColorStop(1 - softness * 0.5, 'rgba(255,255,255,0.8)');
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = grad;
+    blobPath(ctx, cx, cy, rx * 1.3, ry * 1.3, 200, 0.25);
+    ctx.fill();
+  },
+  blob2: (ctx, w, h, scale, softness) => {
+    const cx = w * 0.5, cy = h * 0.5;
+    const rx = w * 0.45 * scale, ry = h * 0.28 * scale;
+    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(rx, ry) * 1.4);
+    grad.addColorStop(0, 'rgba(255,255,255,1)');
+    grad.addColorStop(0.5, 'rgba(255,255,255,0.9)');
+    grad.addColorStop(1 - softness * 0.4, 'rgba(255,255,255,0.5)');
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = grad;
+    blobPath(ctx, cx, cy, rx * 1.4, ry * 1.4, 200, 0.18);
+    ctx.fill();
+  },
+  blob3: (ctx, w, h, scale, softness) => {
+    ctx.save();
+    ctx.translate(w * 0.5, h * 0.5);
+    ctx.rotate(-0.3);
+    const rx = w * 0.42 * scale, ry = h * 0.22 * scale;
+    const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, Math.max(rx, ry) * 1.5);
+    grad.addColorStop(0, 'rgba(255,255,255,1)');
+    grad.addColorStop(0.6, 'rgba(255,255,255,0.7)');
+    grad.addColorStop(1 - softness * 0.35, 'rgba(255,255,255,0.3)');
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = grad;
+    blobPath(ctx, 0, 0, rx * 1.5, ry * 1.5, 200, 0.2);
+    ctx.fill();
+    ctx.restore();
+  },
+  radial: (ctx, w, h, scale, softness) => {
+    const cx = w * 0.5, cy = h * 0.5;
+    const r = Math.min(w, h) * 0.4 * scale;
+    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    grad.addColorStop(0, 'rgba(255,255,255,1)');
+    grad.addColorStop(0.4, 'rgba(255,255,255,0.9)');
+    grad.addColorStop(1 - softness * 0.5, 'rgba(255,255,255,0.4)');
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+  },
+};
+
+let previewGl, exportGl;
+let last = 0;
+
+function applyMask(glCanvas, maskedCanvas) {
+  const w = maskedCanvas.width, h = maskedCanvas.height;
+  const ctx = maskedCanvas.getContext('2d');
+  ctx.clearRect(0, 0, w, h);
+  ctx.drawImage(glCanvas, 0, 0, w, h);
+
+  const shape = document.getElementById('shapeSelect').value;
+  const softness = parseInt(document.getElementById('softnessRange').value) / 100;
+  const scale = parseInt(document.getElementById('scaleRange').value) / 100;
+
+  ctx.globalCompositeOperation = 'destination-in';
+  SHAPES[shape](ctx, w, h, scale, softness);
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+function updateMask() {
+  if (!previewGl) return;
+  const mc = document.getElementById('maskedCanvas');
+  mc.width = previewGl.canvas.width;
+  mc.height = previewGl.canvas.height;
+  applyMask(previewGl.canvas, mc);
+}
+
+function setup() {
+  const glC = document.getElementById('glCanvas');
+  previewGl = initGradient(glC, 900, 600);
+  if (!previewGl) return;
+
+  const expGl = document.getElementById('exportGl');
+  exportGl = initGradient(expGl, 2400, 1600);
+
+  glC.style.opacity = '0';
+
+  const mc = document.getElementById('maskedCanvas');
+  mc.width = 900;
+  mc.height = 600;
+
+  animate(0);
+}
+
+function animate(e) {
+  if (!previewGl) return;
+  currentTime += Math.min(e - last, 1000 / 15);
+  last = e;
+  previewGl.uniforms.u_time.value = currentTime;
+  previewGl.render();
+  updateMask();
+  requestAnimationFrame(animate);
+}
+
+function downloadPNG() {
+  if (!exportGl) return;
+  exportGl.uniforms.u_time.value = currentTime;
+  exportGl.render();
+
+  const ec = document.getElementById('exportMasked');
+  ec.width = 2400;
+  ec.height = 1600;
+  applyMask(exportGl.canvas, ec);
+
+  const link = document.createElement('a');
+  link.download = 'cipherpay-gradient.png';
+  link.href = ec.toDataURL('image/png');
+  link.click();
+}
+
+function randomize() {
+  currentTime = Math.random() * 5000000;
+}
+
+window.addEventListener('load', setup);
+</script>
+</body>
+</html>
