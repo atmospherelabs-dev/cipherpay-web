@@ -7,8 +7,8 @@ export default function MCPSection() {
     <>
       <Paragraph>
         The <Strong>@cipherpay/mcp</Strong> package is an MCP (Model Context Protocol) server that lets AI agents
-        create Zcash invoices, check payment statuses, verify shielded payments, and look up exchange rates —
-        all as native tool calls. Works with Claude Desktop, Cursor, and any MCP-compatible client.
+        create Zcash invoices, check payment statuses, verify shielded payments, manage prepaid sessions, and
+        look up exchange rates — all as native tool calls. Works with Claude Desktop, Cursor, and any MCP-compatible client.
       </Paragraph>
 
       <div style={{ margin: '24px 0', borderRadius: 8, overflow: 'hidden', border: '1px solid var(--cp-border)' }}>
@@ -111,7 +111,7 @@ export default function MCPSection() {
           </thead>
           <tbody>
             {[
-              { var: 'CIPHERPAY_API_KEY', required: 'For invoices + x402', desc: 'Your CipherPay API key (cpay_sk_...)' },
+              { var: 'CIPHERPAY_API_KEY', required: 'For invoices + payments', desc: 'Your CipherPay API key (cpay_sk_...)' },
               { var: 'CIPHERPAY_API_URL', required: 'No', desc: 'API URL (default: https://api.cipherpay.app)' },
             ].map(row => (
               <tr key={row.var} style={{ borderBottom: '1px solid var(--cp-border)' }}>
@@ -132,7 +132,7 @@ export default function MCPSection() {
 
       <SectionTitle>Tools</SectionTitle>
       <Paragraph>
-        Five tools are available to the AI agent:
+        Eight tools are available to the AI agent:
       </Paragraph>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
@@ -158,7 +158,7 @@ export default function MCPSection() {
           {
             name: 'verify_x402_payment',
             auth: true,
-            desc: 'Verify a shielded Zcash payment by transaction ID. For x402 resource servers that need to confirm a payment.',
+            desc: 'Verify a shielded Zcash payment by transaction ID. Supports x402 and MPP protocols with replay protection.',
             example: '"Verify that tx abc123... paid 0.001 ZEC"',
           },
           {
@@ -166,6 +166,24 @@ export default function MCPSection() {
             auth: false,
             desc: 'Get details about a CipherPay product including name, description, and available prices.',
             example: '"Show me the details for product premium-api"',
+          },
+          {
+            name: 'open_session',
+            auth: true,
+            desc: 'Open a prepaid session with a ZEC deposit. Returns a bearer token for subsequent requests. Min deposit: 0.0001 ZEC.',
+            example: '"Open a session for merchant abc123 with 0.01 ZEC deposit"',
+          },
+          {
+            name: 'get_session_status',
+            auth: true,
+            desc: 'Check a session\'s remaining balance, requests made, and expiry time.',
+            example: '"What\'s the balance on session ses_abc123?"',
+          },
+          {
+            name: 'close_session',
+            auth: true,
+            desc: 'Close an active session early. Remaining balance is tracked for refund to the agent\'s address.',
+            example: '"Close session ses_abc123"',
           },
         ].map(tool => (
           <div key={tool.name} style={{ padding: '12px 14px', background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4 }}>
@@ -235,6 +253,27 @@ Use get_invoice_status with invoice_id "8f3a2b1c-..." to check payment progress.
 Payment confirmed on the Zcash blockchain.
 Transaction: 7f3a9b...
 Received: 0.00234 ZEC (expected: 0.00234 ZEC)`} />
+      </Expandable>
+
+      <Expandable title="Open and use a prepaid session">
+        <Paragraph>Ask your AI assistant:</Paragraph>
+        <CodeBlock lang="text" code={`"Open a session for merchant abc123 with a 0.01 ZEC deposit, costing 1000 zatoshis per request"`} />
+        <Paragraph>The agent calls <Code>open_session</Code> and returns:</Paragraph>
+        <CodeBlock lang="text" code={`Session opened: ses_7f3a2b1c-...
+
+Status: pending_deposit
+Deposit: 0.01 ZEC (1,000,000 zatoshis)
+Cost per request: 1,000 zatoshis
+Payment address: u1abc...
+Memo: zipher:session:abc123
+
+Send the deposit to activate. Once confirmed, you'll receive a bearer token.`} />
+        <Paragraph>After the deposit is confirmed, check status:</Paragraph>
+        <CodeBlock lang="text" code={`"Check the status of session ses_7f3a2b1c"`} />
+        <CodeBlock lang="text" code={`Session: ACTIVE
+Balance: 1,000,000 zatoshis (1000 requests remaining)
+Requests made: 0
+Expires: 2026-03-14T15:30:00Z`} />
       </Expandable>
 
       <Expandable title="Check ZEC exchange rates">

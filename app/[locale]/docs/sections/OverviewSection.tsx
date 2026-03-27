@@ -8,6 +8,8 @@ const USE_CASES = [
   { title: 'Custom website or app', bestFor: 'Developers integrating via REST API', time: '~30 min', link: 'custom' },
   { title: 'Product pages (no-code)', bestFor: 'Sell a few items — create a product, share a link', time: '~5 min', link: 'products' },
   { title: 'In-person POS', bestFor: 'Events, pop-ups, physical stores — phone or tablet', time: '~5 min', link: 'pos' },
+  { title: 'Agentic payments', bestFor: 'AI agents paying for API access — x402, MPP, sessions', time: '~15 min', link: 'x402' },
+  { title: 'MCP server', bestFor: 'AI assistants managing payments via tool calls', time: '~5 min', link: 'mcp' },
 ];
 
 export default function OverviewSection({ onNavigate }: { onNavigate: (id: string) => void }) {

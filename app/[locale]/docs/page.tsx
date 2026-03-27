@@ -36,7 +36,7 @@ const SECTIONS = [
   { id: 'subscriptions', title: 'Subscriptions' },
   { id: 'billing', title: 'Billing & Fees' },
   { id: 'api-ref', title: 'API Reference' },
-  { id: 'x402', title: 'x402 Facilitator' },
+  { id: 'x402', title: 'Agentic Payments' },
   { id: 'mcp', title: 'MCP Server' },
 ] as const;
 
