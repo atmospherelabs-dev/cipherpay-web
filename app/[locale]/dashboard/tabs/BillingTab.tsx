@@ -65,7 +65,7 @@ export const BillingTab = memo(function BillingTab({
         ) : (
           <>
             {/* Overview */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 16 }}>
+            <div className="dash-billing-metrics" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 16 }}>
               <div style={{ background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4, padding: 12, textAlign: 'center' }}>
                 <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>{t('feeRate')}</div>
                 <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--cp-text)' }}>{(billing.fee_rate * 100).toFixed(1)}%</div>
@@ -182,8 +182,8 @@ export const BillingTab = memo(function BillingTab({
                     };
                     return (
                       <div key={cycle.id} style={{
-                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                        padding: '8px 10px', background: 'var(--cp-surface)', borderRadius: 4, fontSize: 11,
+                        display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap',
+                        padding: '8px 10px', background: 'var(--cp-surface)', borderRadius: 4, fontSize: 11, gap: 6,
                       }}>
                         <div>
                           <span style={{ color: 'var(--cp-text-muted)' }}>

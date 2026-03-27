@@ -31,14 +31,14 @@ export const DashboardNavbar = memo(function DashboardNavbar({
     <header className="site-header">
       <Link href="/"><Logo size="sm" /></Link>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span className="tag" style={{ color: 'var(--cp-text)', padding: '0 10px', height: 36, display: 'inline-flex', alignItems: 'center', lineHeight: 1 }}>
+        <span className="tag dash-nav-rate" style={{ color: 'var(--cp-text)', padding: '0 10px', height: 36, display: 'inline-flex', alignItems: 'center', lineHeight: 1 }}>
           ZEC {zecRates ? `${sym}${rateValue}` : '--'}
         </span>
-        <div style={{ width: 1, height: 20, background: 'var(--cp-border)', margin: '0 4px' }} />
-        <span className="tag" style={{ padding: '0 10px', height: 36, display: 'inline-flex', alignItems: 'center', lineHeight: 1 }}>
+        <div className="dash-nav-divider" style={{ width: 1, height: 20, background: 'var(--cp-border)' }} />
+        <span className="tag dash-nav-network" style={{ padding: '0 10px', height: 36, display: 'inline-flex', alignItems: 'center', lineHeight: 1 }}>
           {t('dashboardPrefix')} // {merchant.payment_address.startsWith('utest') ? t('testnet') : t('mainnet')}
         </span>
-        <div style={{ width: 1, height: 20, background: 'var(--cp-border)', margin: '0 4px' }} />
+        <div className="dash-nav-divider" style={{ width: 1, height: 20, background: 'var(--cp-border)' }} />
         <LanguageSwitcher />
         <ThemeToggle />
         <button onClick={onLogout} className="btn btn-small">

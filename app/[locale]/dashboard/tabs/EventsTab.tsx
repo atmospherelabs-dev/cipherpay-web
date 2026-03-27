@@ -397,7 +397,7 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
           >
             {t('backToEvents')}
           </button>
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             {event.luma_event_id && !editing && (
               <button
                 onClick={async () => {
@@ -473,7 +473,7 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
                 </div>
                 <div className="form-group">
                   <label className="form-label">{t('dateAndLocation')}</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'end' }}>
+                  <div className="dash-date-location" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'end' }}>
                     <DateTimePicker value={editDate} onChange={setEditDate} label={t('date')} />
                     <div>
                       <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', letterSpacing: 0.5, marginBottom: 4, textTransform: 'uppercase' }}>{t('location')}</div>
@@ -703,7 +703,7 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
     <div className="panel">
       <div className="panel-header">
         <span className="panel-title">{t('title')}</span>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {isTestnet && (
             <button
               onClick={() => {
@@ -748,7 +748,7 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
           </div>
           <div className="form-group">
             <label className="form-label">{t('dateAndLocation')}</label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'end' }}>
+            <div className="dash-date-location" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'end' }}>
               <DateTimePicker value={eventDate} onChange={setEventDate} label={t('date')} />
               <div>
                 <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', letterSpacing: 0.5, marginBottom: 4, textTransform: 'uppercase' }}>{t('location')}</div>
@@ -761,7 +761,7 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
             <label className="form-label">{t('ticketTier')}</label>
             {createTiers.map((tier, i) => (
               <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: i < createTiers.length - 1 ? 8 : 0 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px 120px 100px', gap: 8, flex: 1 }}>
+                <div className="dash-tier-row" style={{ display: 'grid', gridTemplateColumns: '1fr 100px 120px 100px', gap: 8, flex: 1 }}>
                   <input className="input" placeholder={t('tierLabelPlaceholder')} value={tier.label} onChange={(e) => updateCreateTier(i, 'label', e.target.value)} />
                   <select className="input" value={tier.currency} onChange={(e) => updateCreateTier(i, 'currency', e.target.value)}>
                     {SUPPORTED_CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}

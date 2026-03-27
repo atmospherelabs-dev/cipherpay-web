@@ -343,7 +343,7 @@ function MerchantsTab({ merchants, system }: { merchants: Merchant[]; system: Sy
                         m.billing_status === 'past_due' ? 'status-detected' :
                         m.billing_status === 'suspended' ? 'status-expired' :
                         'status-pending'
-                      }`} style={{ fontSize: 8 }}>
+                      }`} style={{ fontSize: 9 }}>
                         {m.billing_status.toUpperCase()}
                       </span>
                     </td>
@@ -428,7 +428,7 @@ function BillingTab({ billing, system }: { billing: BillingData; system: SystemD
                         c.status === 'open' ? 'status-pending' :
                         c.status === 'invoiced' ? 'status-detected' :
                         'status-expired'
-                      }`} style={{ fontSize: 8 }}>
+                      }`} style={{ fontSize: 9 }}>
                         {c.status.toUpperCase()}
                       </span>
                     </td>
@@ -540,7 +540,7 @@ function WebhooksTab({ data, adminKey }: { data: WebhookData; adminKey: string }
                         d.status === 'delivered' ? 'status-confirmed' :
                         d.status === 'pending' ? 'status-pending' :
                         'status-expired'
-                      }`} style={{ fontSize: 8 }}>
+                      }`} style={{ fontSize: 9 }}>
                         {d.status.toUpperCase()}
                       </span>
                     </td>
@@ -609,7 +609,7 @@ function SystemTab({ system }: { system: SystemData }) {
       <div className="panel">
         <div className="panel-header">
           <span className="panel-title">System Status</span>
-          <span className="status-badge status-confirmed" style={{ fontSize: 8 }}>OPERATIONAL</span>
+          <span className="status-badge status-confirmed" style={{ fontSize: 9 }}>OPERATIONAL</span>
         </div>
         <div className="panel-body">
           <div className="stat-row">

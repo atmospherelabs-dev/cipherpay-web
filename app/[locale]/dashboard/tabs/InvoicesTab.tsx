@@ -131,7 +131,7 @@ export const InvoicesTab = memo(function InvoicesTab({
       <div className="panel">
         <div className="panel-header">
           <span className="panel-title">{t('title')}</span>
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             <button onClick={() => { setShowPayLinkForm(!showPayLinkForm); setPayLinkResult(null); }} className="btn btn-small">
               {showPayLinkForm ? tc('cancel') : t('paymentLink')}
             </button>
@@ -228,7 +228,7 @@ export const InvoicesTab = memo(function InvoicesTab({
             return (
               <div key={inv.id} className="invoice-card" style={{ cursor: 'pointer' }} onClick={() => setExpandedInvoice(isExpanded ? null : inv.id)}>
                 <div className="invoice-header">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', minWidth: 0 }}>
                     <span style={{ fontSize: 10, color: 'var(--cp-text-dim)', transition: 'transform 0.15s', transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)', display: 'inline-block' }}>▸</span>
                     <span className="invoice-id">{inv.memo_code}</span>
                     <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: 0.5, color: typeBadge.color, background: typeBadge.bg, padding: '1px 6px', borderRadius: 3 }}>

@@ -143,23 +143,23 @@ export const POSTab = memo(function POSTab({ products, loadingProducts }: POSTab
                       <button
                         onClick={() => cartRemove(product.id)}
                         style={{
-                          width: 28, height: 28, border: '1px solid var(--cp-border)',
+                          width: 36, height: 36, border: '1px solid var(--cp-border)',
                           borderRadius: 4, background: 'transparent', color: 'var(--cp-text)',
-                          fontSize: 16, cursor: 'pointer', fontFamily: 'inherit',
+                          fontSize: 18, cursor: 'pointer', fontFamily: 'inherit',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                         }}
                       >
                         −
                       </button>
-                      <span style={{ fontSize: 14, fontWeight: 700, minWidth: 20, textAlign: 'center', color: 'var(--cp-cyan)' }}>
+                      <span style={{ fontSize: 14, fontWeight: 700, minWidth: 24, textAlign: 'center', color: 'var(--cp-cyan)' }}>
                         {qty}
                       </span>
                       <button
                         onClick={() => cartAdd(product.id)}
                         style={{
-                          width: 28, height: 28, border: '1px solid var(--cp-cyan)',
+                          width: 36, height: 36, border: '1px solid var(--cp-cyan)',
                           borderRadius: 4, background: 'transparent', color: 'var(--cp-cyan)',
-                          fontSize: 16, cursor: 'pointer', fontFamily: 'inherit',
+                          fontSize: 18, cursor: 'pointer', fontFamily: 'inherit',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                         }}
                       >

@@ -46,7 +46,7 @@ export function WebhooksTab({ initialDeliveries, initialTotal }: WebhooksTabProp
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 8 }}>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {['all', 'delivered', 'pending', 'failed'].map(s => (
           <button
             key={s}
@@ -98,7 +98,7 @@ export function WebhooksTab({ initialDeliveries, initialTotal }: WebhooksTabProp
                         d.status === 'delivered' ? 'status-confirmed' :
                         d.status === 'pending' ? 'status-pending' :
                         'status-expired'
-                      }`} style={{ fontSize: 8 }}>
+                      }`} style={{ fontSize: 9 }}>
                         {d.status.toUpperCase()}
                       </span>
                     </td>

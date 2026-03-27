@@ -54,13 +54,13 @@ export const OverviewTab = memo(function OverviewTab({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Stat cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10 }}>
+      <div className="dash-stat-grid">
         <div className="panel" style={{ textAlign: 'center' }}>
           <div className="panel-body" style={{ padding: '16px 10px' }}>
             <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--cp-cyan)', lineHeight: 1.2 }}>
               {merchant.stats.total_zec.toFixed(4)}
             </div>
-            <div style={{ fontSize: 8, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
+            <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
               {t('totalZec')}
             </div>
             {totalFiat !== null && (
@@ -75,7 +75,7 @@ export const OverviewTab = memo(function OverviewTab({
             <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--cp-green)', lineHeight: 1.2 }}>
               {merchant.stats.confirmed}
             </div>
-            <div style={{ fontSize: 8, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
+            <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
               {t('confirmed')}
             </div>
             <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 2 }}>
@@ -88,7 +88,7 @@ export const OverviewTab = memo(function OverviewTab({
             <div style={{ fontSize: 22, fontWeight: 700, color: pending > 0 ? 'var(--cp-yellow)' : 'var(--cp-text-dim)', lineHeight: 1.2 }}>
               {pending + detected}
             </div>
-            <div style={{ fontSize: 8, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
+            <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
               {t('pending')}
             </div>
             {detected > 0 && (
@@ -103,7 +103,7 @@ export const OverviewTab = memo(function OverviewTab({
             <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--cp-text)', lineHeight: 1.2 }}>
               {rate}%
             </div>
-            <div style={{ fontSize: 8, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
+            <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
               {t('conversion')}
             </div>
             <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 2 }}>
@@ -116,7 +116,7 @@ export const OverviewTab = memo(function OverviewTab({
             <div style={{ fontSize: 22, fontWeight: 700, color: '#E8C48D', lineHeight: 1.2 }}>
               {activeEvents.length}
             </div>
-            <div style={{ fontSize: 8, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
+            <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
               {t('activeEvents')}
             </div>
             {totalTicketsSold > 0 && (
@@ -214,7 +214,7 @@ export const OverviewTab = memo(function OverviewTab({
                       {ev.title}
                     </span>
                     {ev.luma_event_id && (
-                      <span style={{ fontSize: 8, fontWeight: 600, letterSpacing: 0.5, color: '#E8C48D', background: 'rgba(232,196,141,0.1)', padding: '1px 5px', borderRadius: 3, border: '1px solid rgba(232,196,141,0.3)' }}>
+                      <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: 0.5, color: '#E8C48D', background: 'rgba(232,196,141,0.1)', padding: '1px 5px', borderRadius: 3, border: '1px solid rgba(232,196,141,0.3)' }}>
                         LUMA
                       </span>
                     )}

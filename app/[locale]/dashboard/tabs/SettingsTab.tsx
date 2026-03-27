@@ -116,8 +116,8 @@ export const SettingsTab = memo(function SettingsTab({
         {/* 1. Store Name */}
         <div className="section-title">{t('storeName')}</div>
         {editingName ? (
-          <div className="form-group" style={{ display: 'flex', gap: 8 }}>
-            <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} placeholder={t('storeNamePlaceholder')} className="input" style={{ flex: 1 }} />
+          <div className="form-group dash-settings-row" style={{ display: 'flex', gap: 8 }}>
+            <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} placeholder={t('storeNamePlaceholder')} className="input" style={{ flex: 1, minWidth: 0 }} />
             <button onClick={saveName} className="btn btn-small">{tc('save')}</button>
             {editName && <button onClick={() => { setEditName(merchant.name || ''); setEditingName(false); }} className="btn btn-small btn-cancel">{tc('cancel')}</button>}
           </div>
@@ -161,8 +161,8 @@ export const SettingsTab = memo(function SettingsTab({
           </>
         ) : (
           <>
-            <div className="form-group" style={{ display: 'flex', gap: 8 }}>
-              <input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} placeholder={t('emailPlaceholder')} className="input" style={{ flex: 1 }} />
+            <div className="form-group dash-settings-row" style={{ display: 'flex', gap: 8 }}>
+              <input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} placeholder={t('emailPlaceholder')} className="input" style={{ flex: 1, minWidth: 0 }} />
               <button onClick={saveEmail} className="btn btn-small">{tc('save')}</button>
               {editingEmail && (
                 <button onClick={() => { setEditingEmail(false); setEditEmail(''); }} className="btn btn-small" style={{ background: 'transparent', border: '1px solid var(--cp-text-dim)', color: 'var(--cp-text-dim)' }}>{tc('cancel')}</button>
@@ -193,8 +193,8 @@ export const SettingsTab = memo(function SettingsTab({
         {/* 5. Webhook URL */}
         <div className="section-title">{t('webhookUrl')}</div>
         {editingWebhook ? (
-          <div className="form-group" style={{ display: 'flex', gap: 8 }}>
-            <input type="url" value={editWebhookUrl} onChange={(e) => setEditWebhookUrl(e.target.value)} placeholder={t('webhookPlaceholder')} className="input" style={{ flex: 1, fontSize: 10 }} />
+          <div className="form-group dash-settings-row" style={{ display: 'flex', gap: 8 }}>
+            <input type="url" value={editWebhookUrl} onChange={(e) => setEditWebhookUrl(e.target.value)} placeholder={t('webhookPlaceholder')} className="input" style={{ flex: 1, minWidth: 0, fontSize: 10 }} />
             <button onClick={saveWebhookUrl} className="btn btn-small">{tc('save')}</button>
             {merchant.webhook_url && <button onClick={() => { setEditWebhookUrl(merchant.webhook_url || ''); setEditingWebhook(false); }} className="btn btn-small btn-cancel">{tc('cancel')}</button>}
           </div>
@@ -301,14 +301,14 @@ function LumaSettings({ merchant, reloadMerchant }: { merchant: MerchantInfo; re
       </div>
       <div className="form-group" style={{ marginBottom: 8 }}>
         <label style={{ fontSize: 10, color: 'var(--cp-text-muted)', marginBottom: 4, display: 'block' }}>{tl('apiKeyLabel')}</label>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div className="dash-settings-row" style={{ display: 'flex', gap: 8 }}>
           <input
             type="password"
             value={lumaKey}
             onChange={(e) => setLumaKey(e.target.value)}
             placeholder={merchant.has_luma_key ? '••••••••••••••••' : tl('apiKeyPlaceholder')}
             className="input"
-            style={{ fontSize: 10, flex: 1 }}
+            style={{ fontSize: 10, flex: 1, minWidth: 0 }}
           />
           <button
             className="btn btn-small"
