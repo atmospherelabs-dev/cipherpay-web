@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "framer-motion": "^12.38.0",
     "html2canvas": "^1.4.1",
     "html5-qrcode": "^2.3.8",
     "next": "^15.5.7",

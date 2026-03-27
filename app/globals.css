@@ -52,44 +52,17 @@
   --cp-red: #dc2626;
 }
 
-.hero-gradient {
-  opacity: 0.2;
-  position: absolute;
-  pointer-events: none;
-  background-image: url(/hero-gradient.png);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+.light .mesh-gradient {
+  opacity: 0.6 !important;
 }
 
-.light .hero-gradient { opacity: 0.7; }
-
-.hero-gradient-top {
-  top: -40%;
-  right: -10%;
-  width: 80%;
-  height: 120%;
-  transform: rotate(35deg);
+.section-agents {
+  background: rgba(0, 0, 0, 0.25);
 }
 
-.hero-gradient-bottom {
-  bottom: -36%;
-  left: -10%;
-  width: 80%;
-  height: 110%;
-  transform: rotate(199deg) scaleX(-1);
+.light .section-agents {
+  background: rgba(0, 0, 0, 0.02);
 }
-
-.hero-gradient-steps {
-  bottom: 0;
-  left: -5%;
-  width: 110%;
-  height: 55%;
-  transform: rotate(1deg);
-  opacity: 0.1;
-}
-
-.light .hero-gradient-steps { opacity: 0.4; }
 
 body {
   background: var(--cp-bg);
@@ -106,10 +79,28 @@ body {
 /* ── Exact POC component classes ── */
 
 .panel {
-  background: var(--cp-surface);
+  background: rgba(17, 17, 24, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--cp-border);
   border-radius: 8px;
   overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  flex: 1;
+}
+
+.panel:hover {
+  border-color: rgba(0, 212, 255, 0.2);
+  box-shadow: inset 0 1px 0 rgba(91, 156, 246, 0.08), 0 0 20px rgba(0, 212, 255, 0.04);
+}
+
+.light .panel {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.light .panel:hover {
+  border-color: rgba(6, 178, 212, 0.3);
+  box-shadow: inset 0 1px 0 rgba(59, 130, 246, 0.1), 0 0 20px rgba(6, 178, 212, 0.06);
 }
 
 .panel-header {
@@ -614,7 +605,11 @@ body {
 /* ── Landing page layout ── */
 
 .hero-title {
-  font-size: 42px;
+  font-size: 52px;
+}
+
+.hero-accent {
+  color: var(--cp-cyan);
 }
 
 .hero-cta {
@@ -622,6 +617,10 @@ body {
   align-items: center;
   justify-content: center;
   gap: 12px;
+}
+
+.hero-cta > * {
+  min-width: 180px;
 }
 
 .steps-grid {
@@ -861,7 +860,7 @@ body {
   }
 
   .hero-title {
-    font-size: 28px;
+    font-size: 34px;
   }
 
   .hero-cta {
@@ -877,24 +876,8 @@ body {
     grid-template-columns: 1fr;
   }
 
-  .hero-gradient-top {
-    width: 70%;
-    height: 150%;
-    top: -25%;
-    right: -28%;
-    transform: rotate(-30deg);
-  }
-
-  .hero-gradient-bottom {
-    width: 60%;
-    height: 140%;
-    bottom: -40%;
-    left: -10%;
-    transform: rotate(-35deg);
-  }
-
-  .hero-gradient-steps {
-    display: none;
+  .mesh-gradient-steps {
+    opacity: 0.25 !important;
   }
 
   .steps-grid {

@@ -3,6 +3,10 @@ import { SmartCTA } from '@/components/SmartCTA';
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
 import { DemoQR } from '@/components/DemoQR';
+import { MeshGradient } from '@/components/MeshGradient';
+import { AnimatedSection, StaggerChildren, StaggerItem } from '@/components/AnimatedSection';
+import { CodeTabs } from '@/components/CodeTabs';
+import { PrivacyTable } from '@/components/PrivacyTable';
 import { getTranslations } from 'next-intl/server';
 
 const x402Snippet = `import { zcashPaywall } from '@cipherpay/x402/express';
@@ -13,7 +17,11 @@ app.use('/api/premium', zcashPaywall({
   apiKey: process.env.CIPHERPAY_API_KEY,
 }));`;
 
-const codeSnippet = `curl -X POST https://api.cipherpay.app/api/invoices \\
+const codeTabs = [
+  {
+    label: 'cURL',
+    tag: 'REST API',
+    code: `curl -X POST https://api.cipherpay.app/api/invoices \\
   -H "Authorization: Bearer cpay_sk_..." \\
   -H "Content-Type: application/json" \\
   -d '{"amount": 29.99, "currency": "USD", "product_name": "T-Shirt"}'
@@ -26,7 +34,41 @@ const codeSnippet = `curl -X POST https://api.cipherpay.app/api/invoices \\
 #   "zcash_uri": "zcash:u1...?amount=0.12345678&memo=...",
 #   "payment_address": "u1...",
 #   "expires_at": "2026-02-21T13:30:00Z"
-# }`;
+# }`,
+  },
+  {
+    label: 'TypeScript',
+    tag: 'SDK',
+    code: `import CipherPay from '@cipherpay/sdk';
+
+const cp = new CipherPay('cpay_sk_...');
+
+const invoice = await cp.invoices.create({
+  amount: 29.99,
+  currency: 'USD',
+  product_name: 'T-Shirt',
+});
+
+console.log(invoice.zcash_uri);
+// → "zcash:u1...?amount=0.12345678&memo=..."`,
+  },
+  {
+    label: 'Python',
+    tag: 'SDK',
+    code: `import cipherpay
+
+cp = cipherpay.Client("cpay_sk_...")
+
+invoice = cp.invoices.create(
+    amount=29.99,
+    currency="USD",
+    product_name="T-Shirt",
+)
+
+print(invoice.zcash_uri)
+# → "zcash:u1...?amount=0.12345678&memo=..."`,
+  },
+];
 
 export default async function LandingPage() {
   const t = await getTranslations('landing');
@@ -36,83 +78,93 @@ export default async function LandingPage() {
       <SiteHeader />
 
       {/* Hero */}
-      <section style={{ padding: '80px 24px 60px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
-        <div aria-hidden="true" className="hero-gradient hero-gradient-top" />
-        <div style={{ maxWidth: 700, margin: '0 auto', position: 'relative' }}>
-          <h1 className="hero-title" style={{ fontWeight: 700, letterSpacing: -1, marginBottom: 16, lineHeight: 1.1 }}>
+      <section style={{ padding: '100px 24px 80px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+        <MeshGradient />
+        <AnimatedSection style={{ maxWidth: 700, margin: '0 auto', position: 'relative' }}>
+          <h1 className="hero-title" style={{ fontWeight: 700, letterSpacing: -1.5, marginBottom: 20, lineHeight: 1.08 }}>
             {t.rich('heroTitle', {
-              purple: (chunks) => <span style={{ color: 'var(--cp-purple)' }}>{chunks}</span>,
+              purple: (chunks) => <span className="hero-accent">{chunks}</span>,
             })}
           </h1>
 
-          <p style={{ fontSize: 14, color: 'var(--cp-text-muted)', maxWidth: 520, margin: '0 auto 32px', lineHeight: 1.8 }}>
+          <p style={{ fontSize: 15, color: 'var(--cp-text-muted)', maxWidth: 520, margin: '0 auto 36px', lineHeight: 1.8, fontWeight: 400 }}>
             {t('heroSubtitle')}
           </p>
 
           <div className="hero-cta">
-            <SmartCTA className="btn-primary" style={{ padding: '12px 28px', fontSize: 12 }}>
+            <SmartCTA className="btn-primary" style={{ padding: '14px 32px', fontSize: 12 }}>
               {t('ctaStart')}
             </SmartCTA>
-            <a href="#how-it-works" className="btn" style={{ padding: '12px 28px', fontSize: 12 }}>
+            <a href="#how-it-works" className="btn" style={{ padding: '14px 32px', fontSize: 12 }}>
               {t('ctaHowItWorks')}
             </a>
           </div>
-        </div>
+        </AnimatedSection>
       </section>
 
       {/* Features */}
-      <section style={{ borderTop: '1px solid var(--cp-border)', padding: '60px 24px' }}>
+      <section style={{ borderTop: '1px solid var(--cp-border)', padding: '80px 24px' }}>
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
-          <div className="section-title" style={{ textAlign: 'center', marginBottom: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><LogoMark size={8} /> {t('whyCipherpay')}</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
-            <div className="panel">
-              <div className="panel-header">
-                <span className="panel-title">{t('feature1Title')}</span>
+          <AnimatedSection>
+            <div className="section-title" style={{ textAlign: 'center', marginBottom: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><LogoMark size={8} /> {t('whyCipherpay')}</div>
+          </AnimatedSection>
+          <StaggerChildren style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
+            <StaggerItem>
+              <div className="panel">
+                <div className="panel-header">
+                  <span className="panel-title">{t('feature1Title')}</span>
+                </div>
+                <div className="panel-body">
+                  <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>
+                    {t('feature1Desc')}
+                  </p>
+                </div>
               </div>
-              <div className="panel-body">
-                <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>
-                  {t('feature1Desc')}
-                </p>
-              </div>
-            </div>
+            </StaggerItem>
 
-            <div className="panel">
-              <div className="panel-header">
-                <span className="panel-title">{t('feature2Title')}</span>
+            <StaggerItem>
+              <div className="panel">
+                <div className="panel-header">
+                  <span className="panel-title">{t('feature2Title')}</span>
+                </div>
+                <div className="panel-body">
+                  <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>
+                    {t('feature2Desc')}
+                  </p>
+                </div>
               </div>
-              <div className="panel-body">
-                <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>
-                  {t('feature2Desc')}
-                </p>
-              </div>
-            </div>
+            </StaggerItem>
 
-            <div className="panel">
-              <div className="panel-header">
-                <span className="panel-title">{t('feature3Title')}</span>
+            <StaggerItem>
+              <div className="panel">
+                <div className="panel-header">
+                  <span className="panel-title">{t('feature3Title')}</span>
+                </div>
+                <div className="panel-body">
+                  <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>
+                    {t('feature3Desc', { link: t('x402Link') })}
+                  </p>
+                </div>
               </div>
-              <div className="panel-body">
-                <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>
-                  {t('feature3Desc', { link: t('x402Link') })}
-                </p>
-              </div>
-            </div>
-          </div>
+            </StaggerItem>
+          </StaggerChildren>
         </div>
       </section>
 
       {/* How it works */}
-      <section style={{ borderTop: '1px solid var(--cp-border)', padding: '60px 24px', position: 'relative', overflow: 'hidden' }}>
-        <div aria-hidden="true" className="hero-gradient hero-gradient-steps" />
+      <section style={{ borderTop: '1px solid var(--cp-border)', padding: '80px 24px', position: 'relative', overflow: 'hidden' }}>
+        <MeshGradient variant="steps" className="mesh-gradient-steps" colors={['#00D4FF', '#8FE1FF', '#F4B728', '#FFE876']} />
         <div style={{ maxWidth: 900, margin: '0 auto', position: 'relative' }}>
-          <div className="section-title" style={{ textAlign: 'center', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><LogoMark size={8} /> {t('ctaHowItWorks')}</div>
-          <h2 style={{ fontSize: 24, fontWeight: 700, textAlign: 'center', marginBottom: 56 }}>
-            {t('howItWorksTitle')}
-          </h2>
+          <AnimatedSection>
+            <div className="section-title" style={{ textAlign: 'center', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><LogoMark size={8} /> {t('ctaHowItWorks')}</div>
+            <h2 style={{ fontSize: 24, fontWeight: 700, textAlign: 'center', marginBottom: 56 }}>
+              {t('howItWorksTitle')}
+            </h2>
+          </AnimatedSection>
 
-          <div className="steps-grid">
+          <StaggerChildren className="steps-grid">
             {/* Step 1: Register */}
-            <div className="step-col">
+            <StaggerItem className="step-col">
               <div className="step-header">
                 <div className="step-title">{t('step1')}</div>
                 <div className="step-desc">{t('step1Desc')}</div>
@@ -134,10 +186,10 @@ export default async function LandingPage() {
                   <div className="step-preview-btn">CREATE ACCOUNT</div>
                 </div>
               </div>
-            </div>
+            </StaggerItem>
 
             {/* Step 2: Add Products */}
-            <div className="step-col">
+            <StaggerItem className="step-col">
               <div className="step-header">
                 <div className="step-title">{t('step2')}</div>
                 <div className="step-desc">{t('step2Desc')}</div>
@@ -200,10 +252,10 @@ export default async function LandingPage() {
                   </div>
                 </div>
               </div>
-            </div>
+            </StaggerItem>
 
             {/* Step 3: Get Paid */}
-            <div className="step-col">
+            <StaggerItem className="step-col">
               <div className="step-header">
                 <div className="step-title">{t('step3')}</div>
                 <div className="step-desc">{t('step3Desc')}</div>
@@ -225,140 +277,109 @@ export default async function LandingPage() {
                   <div className="step-preview-btn" style={{ marginTop: 8 }}>OPEN IN WALLET</div>
                 </div>
               </div>
-            </div>
-          </div>
+            </StaggerItem>
+          </StaggerChildren>
         </div>
       </section>
 
       {/* Code Example */}
-      <section id="how-it-works" style={{ borderTop: '1px solid var(--cp-border)', padding: '60px 24px' }}>
-        <div style={{ maxWidth: 700, margin: '0 auto' }}>
+      <section id="how-it-works" style={{ borderTop: '1px solid var(--cp-border)', padding: '80px 24px' }}>
+        <AnimatedSection style={{ maxWidth: 700, margin: '0 auto' }}>
           <div className="section-title" style={{ textAlign: 'center', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><LogoMark size={8} /> {t('forDevelopers')}</div>
           <h2 style={{ fontSize: 24, fontWeight: 700, textAlign: 'center', marginBottom: 32 }}>
             {t('oneApiCall')}
           </h2>
 
-          <div className="panel">
-            <div className="panel-header">
-              <span className="panel-title">terminal</span>
-              <span className="tag">REST API</span>
-            </div>
-            <div style={{ padding: 18, overflow: 'auto' }}>
-              <pre style={{ margin: 0, fontSize: 11, lineHeight: 1.8, color: 'var(--cp-text)' }}>
-                <code>{codeSnippet}</code>
-              </pre>
-            </div>
-          </div>
-        </div>
+          <CodeTabs tabs={codeTabs} />
+        </AnimatedSection>
       </section>
 
       {/* Integrations */}
-      <section style={{ borderTop: '1px solid var(--cp-border)', padding: '60px 24px' }}>
+      <section style={{ borderTop: '1px solid var(--cp-border)', padding: '80px 24px' }}>
         <div style={{ maxWidth: 700, margin: '0 auto' }}>
-          <div className="section-title" style={{ textAlign: 'center', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><LogoMark size={8} /> {t('integrationsTitle')}</div>
-          <h2 style={{ fontSize: 24, fontWeight: 700, textAlign: 'center', marginBottom: 32 }}>
-            {t('integrationsSubtitle')}
-          </h2>
+          <AnimatedSection>
+            <div className="section-title" style={{ textAlign: 'center', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><LogoMark size={8} /> {t('integrationsTitle')}</div>
+            <h2 style={{ fontSize: 24, fontWeight: 700, textAlign: 'center', marginBottom: 32 }}>
+              {t('integrationsSubtitle')}
+            </h2>
+          </AnimatedSection>
 
-          <div className="integrations-grid">
-            <div className="panel">
+          <StaggerChildren className="integrations-grid">
+            <StaggerItem><div className="panel">
               <div className="panel-body">
                 <div style={{ fontSize: 11, color: 'var(--cp-cyan)', letterSpacing: 1, marginBottom: 8 }}>{t('intHosted')}</div>
-                <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>
-                  {t('intHostedDesc')}
-                </p>
+                <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>{t('intHostedDesc')}</p>
               </div>
-            </div>
-            <div className="panel">
+            </div></StaggerItem>
+            <StaggerItem><div className="panel">
               <div className="panel-body">
                 <div style={{ fontSize: 11, color: 'var(--cp-cyan)', letterSpacing: 1, marginBottom: 8 }}>{t('intApi')}</div>
-                <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>
-                  {t('intApiDesc')}
-                </p>
+                <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>{t('intApiDesc')}</p>
               </div>
-            </div>
-            <div className="panel">
+            </div></StaggerItem>
+            <StaggerItem><div className="panel">
               <div className="panel-body">
                 <div style={{ fontSize: 11, color: 'var(--cp-cyan)', letterSpacing: 1, marginBottom: 8 }}>{t('intWidget')}</div>
-                <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>
-                  {t('intWidgetDesc')}
-                </p>
+                <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>{t('intWidgetDesc')}</p>
               </div>
-            </div>
-            <div className="panel">
+            </div></StaggerItem>
+            <StaggerItem><div className="panel">
               <div className="panel-body">
                 <div style={{ fontSize: 11, color: 'var(--cp-cyan)', letterSpacing: 1, marginBottom: 8 }}>{t('intShopify')}</div>
-                <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>
-                  {t('intShopifyDesc')}
-                </p>
+                <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>{t('intShopifyDesc')}</p>
               </div>
-            </div>
-            <div className="panel">
+            </div></StaggerItem>
+            <StaggerItem><div className="panel">
               <div className="panel-body">
                 <div style={{ fontSize: 11, color: 'var(--cp-cyan)', letterSpacing: 1, marginBottom: 8 }}>{t('intWoo')}</div>
-                <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>
-                  {t('intWooDesc')}
-                </p>
+                <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>{t('intWooDesc')}</p>
               </div>
-            </div>
-            <div className="panel">
+            </div></StaggerItem>
+            <StaggerItem><div className="panel">
               <div className="panel-body">
                 <div style={{ fontSize: 11, color: 'var(--cp-cyan)', letterSpacing: 1, marginBottom: 8 }}>{t('intMcp')}</div>
-                <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>
-                  {t('intMcpDesc')}
-                </p>
+                <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>{t('intMcpDesc')}</p>
               </div>
-            </div>
-          </div>
+            </div></StaggerItem>
+          </StaggerChildren>
         </div>
       </section>
 
       {/* AI Agents */}
-      <section style={{ borderTop: '1px solid var(--cp-border)', padding: '60px 24px' }}>
-        <div style={{ maxWidth: 900, margin: '0 auto' }}>
-          <div className="section-title" style={{ textAlign: 'center', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><LogoMark size={8} /> {t('agentsTitle')}</div>
-          <h2 style={{ fontSize: 24, fontWeight: 700, textAlign: 'center', marginBottom: 16 }}>
-            {t('agentsSubtitle')}
-          </h2>
-          <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', textAlign: 'center', maxWidth: 560, margin: '0 auto 12px', lineHeight: 1.8 }}>
-            {t('agentsDesc')}
-          </p>
-          <p style={{ fontSize: 13, color: 'var(--cp-cyan)', textAlign: 'center', fontWeight: 600, marginBottom: 40 }}>
-            {t('agentsDescHighlight')}
-          </p>
+      <section className="section-agents" style={{ borderTop: '1px solid var(--cp-border)', padding: '80px 24px', position: 'relative', overflow: 'hidden' }}>
+        <MeshGradient variant="agents" colors={['#8FE1FF', '#00D4FF', '#56D4C8', '#FFE876']} />
+        <div style={{ maxWidth: 900, margin: '0 auto', position: 'relative' }}>
+          <AnimatedSection>
+            <div className="section-title" style={{ textAlign: 'center', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><LogoMark size={8} /> {t('agentsTitle')}</div>
+            <h2 style={{ fontSize: 24, fontWeight: 700, textAlign: 'center', marginBottom: 16 }}>
+              {t('agentsSubtitle')}
+            </h2>
+            <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', textAlign: 'center', maxWidth: 560, margin: '0 auto 12px', lineHeight: 1.8 }}>
+              {t('agentsDesc')}
+            </p>
+            <p style={{ fontSize: 13, color: 'var(--cp-cyan)', textAlign: 'center', fontWeight: 600, marginBottom: 40 }}>
+              {t('agentsDescHighlight')}
+            </p>
+          </AnimatedSection>
 
           {/* Privacy Comparison — full width */}
-          <div className="panel" style={{ marginBottom: 16 }}>
-            <div className="panel-body" style={{ padding: 0 }}>
-              <div style={{
-                display: 'grid', gridTemplateColumns: '1fr 120px 120px', alignItems: 'center',
-                padding: '12px 18px',
-                borderBottom: '1px solid var(--cp-border)',
-                fontSize: 10, letterSpacing: 1.5, fontWeight: 600,
-              }}>
-                <span style={{ color: 'var(--cp-text-dim)' }}>&nbsp;</span>
-                <span style={{ color: 'var(--cp-text-muted)', textAlign: 'center' }}>{t('agentsPrivacyTitle')}</span>
-                <span style={{ color: 'var(--cp-cyan)', textAlign: 'center' }}>{t('agentsPrivacyZcash')}</span>
-              </div>
-              {(['Row1', 'Row2', 'Row3', 'Row4', 'Row5'] as const).map((row, i) => (
-                <div key={row} style={{
-                  display: 'grid', gridTemplateColumns: '1fr 120px 120px', alignItems: 'center',
-                  padding: '10px 18px',
-                  borderBottom: i < 4 ? '1px solid var(--cp-border)' : 'none',
-                  fontSize: 11,
-                }}>
-                  <span style={{ color: 'var(--cp-text-muted)' }}>{t(`agentsPrivacy${row}`)}</span>
-                  <span style={{ color: '#ef4444', fontWeight: 600, textAlign: 'center' }}>{t('agentsPrivacyVisible')}</span>
-                  <span style={{ color: 'var(--cp-cyan)', fontWeight: 600, textAlign: 'center' }}>{t('agentsPrivacyHidden')}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          <PrivacyTable
+            header={{
+              label: <>&nbsp;</>,
+              publicLabel: t('agentsPrivacyTitle'),
+              zcashLabel: t('agentsPrivacyZcash'),
+            }}
+            rows={(['Row1', 'Row2', 'Row3', 'Row4', 'Row5'] as const).map((row) => ({
+              label: t(`agentsPrivacy${row}`),
+              publicText: t('agentsPrivacyVisible'),
+              privateText: t('agentsPrivacyHidden'),
+            }))}
+          />
 
           {/* x402 Flow + SDK snippet — side by side */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
+          <StaggerChildren style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
             {/* x402 Flow */}
-            <div className="panel">
+            <StaggerItem><div className="panel">
               <div className="panel-header">
                 <span className="panel-title">{t('agentsHow')}</span>
                 <span className="tag">x402</span>
@@ -382,10 +403,10 @@ export default async function LandingPage() {
                   </div>
                 ))}
               </div>
-            </div>
+            </div></StaggerItem>
 
             {/* SDK snippet */}
-            <div className="panel">
+            <StaggerItem><div className="panel">
               <div className="panel-header">
                 <span className="panel-title">{t('agentsSdkTitle')}</span>
                 <span className="tag">TypeScript</span>
@@ -404,15 +425,18 @@ export default async function LandingPage() {
                   <code>{x402Snippet}</code>
                 </pre>
               </div>
-            </div>
-          </div>
+            </div></StaggerItem>
+          </StaggerChildren>
         </div>
       </section>
 
       {/* CTA */}
-      <section style={{ borderTop: '1px solid var(--cp-border)', padding: '60px 24px', position: 'relative', overflow: 'hidden' }}>
-        <div aria-hidden="true" className="hero-gradient hero-gradient-bottom" />
-        <div style={{ maxWidth: 500, margin: '0 auto', textAlign: 'center', position: 'relative' }}>
+      <section style={{ borderTop: '1px solid var(--cp-border)', padding: '80px 24px', position: 'relative', overflow: 'hidden' }}>
+        <MeshGradient
+          variant="cta"
+          colors={['#8FE1FF', '#00D4FF', '#F4B728', '#FFE876']}
+        />
+        <AnimatedSection style={{ maxWidth: 500, margin: '0 auto', textAlign: 'center', position: 'relative' }}>
           <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 12 }}>
             {t('readyTitle')}
           </h2>
@@ -422,7 +446,7 @@ export default async function LandingPage() {
           <SmartCTA className="btn-primary" style={{ padding: '12px 32px', fontSize: 12 }}>
             {t('ctaRegister')}
           </SmartCTA>
-        </div>
+        </AnimatedSection>
       </section>
 
       <SiteFooter />
