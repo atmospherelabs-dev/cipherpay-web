@@ -9,6 +9,8 @@ import { currencySymbol } from '@/lib/currency';
 import { QRCode } from '@/components/QRCode';
 import { Logo } from '@/components/Logo';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { Link } from '@/i18n/navigation';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Spinner } from '@/components/Spinner';
 
@@ -256,10 +258,11 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
   return (
     <div className="min-h-screen flex flex-col" style={{ fontFamily: 'var(--font-geist-mono), monospace', fontSize: 13, lineHeight: 1.6 }}>
       <header className="site-header">
-        <Logo size="sm" />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <Link href="/"><Logo size="sm" /></Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {(invoice.status === 'pending' || isUnderpaid) && <span className="tag">{countdown.text}</span>}
           {showReceipt && <span className="tag">{t('paid')}</span>}
+          <LanguageSwitcher />
           <ThemeToggle />
         </div>
       </header>
@@ -606,12 +609,14 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
 }
 
 async function saveReceiptImage(el: HTMLElement, ticketCode: string) {
+  el.style.padding = '16px';
   const html2canvas = (await import('html2canvas')).default;
   const canvas = await html2canvas(el, {
     backgroundColor: '#0a0e14',
     scale: 2,
     useCORS: true,
   });
+  el.style.padding = '0';
   const link = document.createElement('a');
   link.download = `ticket-${ticketCode.slice(4, 12)}.png`;
   link.href = canvas.toDataURL('image/png');
@@ -625,7 +630,7 @@ function ReceiptDetails({ invoice, row, label, primaryPrice, secondaryPrice, t }
 }) {
   return (
     <>
-      <div style={{ border: '1px solid var(--cp-border)', borderRadius: 6, padding: '0 24px' }}>
+      <div style={{ border: '1px solid var(--cp-border)', borderRadius: 6, padding: '0 20px' }}>
         {invoice.merchant_name && (
           <div style={row}>
             <span style={label}>{t('merchant')}</span>
@@ -726,7 +731,7 @@ function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending, ticke
 
   return (
     <div>
-      <div className="checkout-status confirmed" style={{ marginBottom: 24, padding: 20 }}>
+      <div className="checkout-status confirmed" style={{ marginTop: 0, marginBottom: 20, padding: 20 }}>
         <div style={{ fontSize: 15, fontWeight: 700 }}>{t('paymentAccepted')}</div>
       </div>
 
@@ -747,8 +752,8 @@ function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending, ticke
 
       {lumaPass?.status === 'registered' && (
         <>
-          <div ref={receiptRef} style={{ marginTop: 18, padding: 16, borderRadius: 8, background: 'var(--cp-bg, #0a0e14)' }}>
-            <div style={{ border: '1px solid var(--cp-border)', borderRadius: 8, padding: '24px 20px', textAlign: 'center' }}>
+          <div ref={receiptRef} style={{ borderRadius: 6, background: 'var(--cp-bg, #0a0e14)' }}>
+            <div style={{ border: '1px solid var(--cp-border)', borderRadius: 6, padding: '24px 20px', textAlign: 'center' }}>
               <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--cp-cyan)', letterSpacing: 1, marginBottom: 16 }}>
                 {t('lumaYoureIn')}
               </div>
@@ -842,7 +847,7 @@ function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending, ticke
 
       {ticketCode && (
         <>
-          <div ref={receiptRef} style={{ marginTop: 18, padding: 16, borderRadius: 8, background: 'var(--cp-bg, #0a0e14)' }}>
+          <div ref={receiptRef} style={{ borderRadius: 6, background: 'var(--cp-bg, #0a0e14)' }}>
             <div style={{ border: '1px solid var(--cp-border)', borderRadius: 6, padding: '20px 20px 16px', marginBottom: 16 }}>
               <div style={{ textAlign: 'center', marginBottom: 14 }}>
                 <div style={{ fontSize: 10, color: 'var(--cp-text-muted)', letterSpacing: 1.5, marginBottom: 12 }}>

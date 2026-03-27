@@ -8,6 +8,8 @@ import { validateZcashAddress } from '@/lib/validation';
 import { currencySymbol } from '@/lib/currency';
 import { Logo } from '@/components/Logo';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { Link } from '@/i18n/navigation';
 import { Spinner } from '@/components/Spinner';
 
 const LOCALE_CURRENCY: Record<string, string> = {
@@ -134,9 +136,10 @@ export default function BuyClient({ productId }: { productId: string }) {
     <div className="min-h-screen flex flex-col" style={{ fontFamily: 'var(--font-geist-mono), monospace', fontSize: 13, lineHeight: 1.6 }}>
       {/* Header */}
       <header className="site-header">
-        <Logo size="sm" />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <Link href="/"><Logo size="sm" /></Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span className="tag">{t('tag')}</span>
+          <LanguageSwitcher />
           <ThemeToggle />
         </div>
       </header>
