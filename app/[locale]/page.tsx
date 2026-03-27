@@ -7,6 +7,7 @@ import { MeshGradient } from '@/components/MeshGradient';
 import { AnimatedSection, StaggerChildren, StaggerItem } from '@/components/AnimatedSection';
 import { CodeTabs } from '@/components/CodeTabs';
 import { PrivacyTable } from '@/components/PrivacyTable';
+import { AgentFlow } from '@/components/AgentFlow';
 import { getTranslations } from 'next-intl/server';
 
 const x402Snippet = `import { zcashPaywall } from '@cipherpay/x402/express';
@@ -417,7 +418,7 @@ export default async function LandingPage() {
             </p>
           </AnimatedSection>
 
-          {/* Privacy Comparison — full width */}
+          {/* Privacy Comparison */}
           <PrivacyTable
             header={{
               label: <>&nbsp;</>,
@@ -431,39 +432,27 @@ export default async function LandingPage() {
             }))}
           />
 
-          {/* x402 Flow */}
-          <AnimatedSection>
-            <div className="panel" style={{ marginBottom: 16 }}>
-              <div className="panel-header">
-                <span className="panel-title">{t('agentsHow')}</span>
-                <span className="tag">x402 / MPP</span>
-              </div>
-              <div className="panel-body" style={{ padding: 0 }}>
-                {[
-                  { step: '1', text: t('agentsStep1'), color: 'var(--cp-text-muted)' },
-                  { step: '2', text: t('agentsStep2'), color: 'var(--cp-text-muted)' },
-                  { step: '3', text: t('agentsStep3'), color: 'var(--cp-cyan)' },
-                  { step: '4', text: t('agentsStep4'), color: 'var(--cp-text-muted)' },
-                  { step: '5', text: t('agentsStep5'), color: 'var(--cp-text-muted)' },
-                ].map((item, i) => (
-                  <div key={i} style={{
-                    display: 'flex', alignItems: 'center', gap: 12,
-                    padding: '10px 18px',
-                    borderBottom: i < 4 ? '1px solid var(--cp-border)' : 'none',
-                    fontSize: 11,
-                  }}>
-                    <span style={{ color: 'var(--cp-text-dim)', fontWeight: 700, fontSize: 10, width: 16 }}>{item.step}</span>
-                    <span style={{ color: item.color }}>{item.text}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </AnimatedSection>
+          {/* x402 / MPP Protocol Flow */}
+          <div style={{ marginTop: 24 }}>
+            <AgentFlow
+              title={t('agentsHow')}
+              tag="x402 / MPP"
+              steps={[
+                { actor: 'agent', title: t('agentsStep1'), detail: 'GET /api/premium — no credentials' },
+                { actor: 'server', title: t('agentsStep2'), detail: '402 Payment Required — amount, address, memo' },
+                { actor: 'agent', title: t('agentsStep3'), detail: 'Orchard shielded tx — sender, receiver, amount encrypted' },
+                { actor: 'cipherpay', title: t('agentsStep4'), detail: 'IVK trial decryption — stateless, no custody' },
+                { actor: 'server', title: t('agentsStep5'), detail: '200 OK — resource delivered' },
+              ]}
+            />
+          </div>
 
           {/* Tabbed code: Merchant / Agent / MCP */}
-          <AnimatedSection>
-            <CodeTabs tabs={agentTabs} />
-          </AnimatedSection>
+          <div style={{ marginTop: 24 }}>
+            <AnimatedSection>
+              <CodeTabs tabs={agentTabs} />
+            </AnimatedSection>
+          </div>
         </div>
       </section>
 

@@ -20,7 +20,7 @@ const stagger = {
 
 export function PrivacyTable({ header, rows }: PrivacyTableProps) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+    <div className="privacy-grid">
       {/* Exposed card */}
       <div className="panel" style={{ borderColor: 'rgba(239, 68, 68, 0.2)' }}>
         <div style={{

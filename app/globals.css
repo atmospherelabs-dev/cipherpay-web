@@ -883,6 +883,116 @@ body {
   gap: 16px;
 }
 
+/* ── Privacy comparison grid ── */
+
+.privacy-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+/* ── Agent flow — protocol sequence panel ── */
+
+.af-panel {
+  overflow: hidden;
+}
+
+.af-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.af-row {
+  display: grid;
+  grid-template-columns: 28px 80px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 12px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--cp-border);
+  align-items: baseline;
+}
+
+.af-row:first-child {
+  border-top: none;
+}
+
+.af-row--highlight {
+  background: rgba(86, 212, 200, 0.04);
+}
+
+.light .af-row--highlight {
+  background: rgba(6, 178, 212, 0.04);
+}
+
+.af-num {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--cp-text-dim);
+  font-family: var(--font-geist-mono), monospace;
+  grid-row: 1 / 3;
+  align-self: center;
+}
+
+.af-actor {
+  font-size: 9px;
+  letter-spacing: 1px;
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.af-actor--agent {
+  color: var(--cp-cyan);
+}
+
+.af-actor--server {
+  color: var(--cp-text-muted);
+}
+
+.af-actor--cipherpay {
+  color: var(--cp-cyan);
+}
+
+.af-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cp-text);
+  line-height: 1.4;
+}
+
+.af-row--highlight .af-title {
+  color: var(--cp-cyan);
+}
+
+.af-detail {
+  font-size: 10px;
+  color: var(--cp-text-dim);
+  font-family: var(--font-geist-mono), monospace;
+  letter-spacing: 0.2px;
+  line-height: 1.5;
+  grid-column: 2 / -1;
+  margin-top: 2px;
+}
+
+@media (max-width: 640px) {
+  .af-row {
+    grid-template-columns: 24px 1fr;
+    padding: 10px 14px;
+  }
+  .af-actor {
+    grid-column: 2;
+  }
+  .af-title {
+    grid-column: 2;
+    font-size: 12px;
+  }
+  .af-detail {
+    grid-column: 2;
+  }
+}
+
 .site-footer {
   border-top: 1px solid var(--cp-border);
   padding: 20px 24px;
@@ -1048,6 +1158,10 @@ body {
 
   .stat-row {
     gap: 8px;
+  }
+
+  .privacy-grid {
+    grid-template-columns: 1fr;
   }
 
   .mesh-gradient-steps {
