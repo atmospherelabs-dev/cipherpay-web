@@ -183,8 +183,8 @@ export const InvoicesTab = memo(function InvoicesTab({
         )}
 
         {!loadingInvoices && invoices.length > 0 && (() => {
-          const hasEvents = invoices.some(i => i.is_event);
-          const hasLuma = invoices.some(i => i.is_luma);
+          const hasEvents = invoices.some(i => !!i.is_event);
+          const hasLuma = invoices.some(i => !!i.is_luma);
           const hasRecurring = invoices.some(i => getInvoiceType(i, recurringPriceIds) === 'recurring');
           const hasBilling = invoices.some(i => getInvoiceType(i, recurringPriceIds) === 'billing');
           const typeFilters: { key: string; label: string; match: (i: Invoice) => boolean }[] = [
@@ -192,7 +192,7 @@ export const InvoicesTab = memo(function InvoicesTab({
             { key: 'payments', label: t('typeOneTime'), match: (i) => !i.is_event && getInvoiceType(i, recurringPriceIds) === 'payment' },
           ];
           if (hasRecurring) typeFilters.push({ key: 'recurring', label: t('typeRecurring'), match: (i) => getInvoiceType(i, recurringPriceIds) === 'recurring' });
-          if (hasEvents) typeFilters.push({ key: 'tickets', label: t('typeTickets'), match: (i) => i.is_event && !i.is_luma });
+          if (hasEvents) typeFilters.push({ key: 'tickets', label: t('typeTickets'), match: (i) => !!i.is_event && !i.is_luma });
           if (hasLuma) typeFilters.push({ key: 'luma', label: t('typeLuma'), match: (i) => !!i.is_luma });
           if (hasBilling) typeFilters.push({ key: 'billing', label: t('typeBilling'), match: (i) => getInvoiceType(i, recurringPriceIds) === 'billing' });
 
