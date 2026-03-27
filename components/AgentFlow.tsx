@@ -38,11 +38,14 @@ export function AgentFlow({ title, tag, steps }: AgentFlowProps) {
         {steps.map((step, i) => {
           const isCp = step.actor === 'cipherpay';
           const num = String(i + 1).padStart(2, '0');
+          const rowClass = isCp
+            ? 'af-row af-row--highlight'
+            : `af-row af-row--${step.actor}`;
 
           return (
             <motion.div
               key={i}
-              className={`af-row${isCp ? ' af-row--highlight' : ''}`}
+              className={rowClass}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, margin: '-20px' }}
@@ -57,8 +60,11 @@ export function AgentFlow({ title, tag, steps }: AgentFlowProps) {
               <span className={`af-actor af-actor--${step.actor}`}>
                 {actorLabel[step.actor]}
               </span>
-              <span className="af-title">{step.title}</span>
-              <span className="af-detail">{step.detail}</span>
+              <span className="af-title">
+                <span className="af-arrow">→</span>
+                {step.title}
+              </span>
+              <code className="af-detail">{step.detail}</code>
             </motion.div>
           );
         })}

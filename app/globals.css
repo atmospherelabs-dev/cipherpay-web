@@ -895,7 +895,7 @@ body {
 /* ── Agent flow — protocol sequence panel ── */
 
 .af-panel {
-  overflow: hidden;
+  overflow: visible;
 }
 
 .af-rows {
@@ -910,15 +910,38 @@ body {
   column-gap: 12px;
   padding: 12px 18px;
   border-top: 1px solid var(--cp-border);
+  border-left: 2px solid transparent;
   align-items: baseline;
+  transition: background 0.2s;
 }
 
 .af-row:first-child {
   border-top: none;
 }
 
+.af-row:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.light .af-row:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.af-row--agent {
+  border-left-color: rgba(86, 212, 200, 0.4);
+}
+
+.af-row--server {
+  border-left-color: rgba(255, 255, 255, 0.12);
+}
+
+.light .af-row--server {
+  border-left-color: rgba(0, 0, 0, 0.1);
+}
+
 .af-row--highlight {
-  background: rgba(86, 212, 200, 0.04);
+  border-left-color: var(--cp-cyan);
+  background: rgba(86, 212, 200, 0.05);
 }
 
 .light .af-row--highlight {
@@ -955,6 +978,12 @@ body {
   color: var(--cp-cyan);
 }
 
+.af-arrow {
+  color: var(--cp-text-dim);
+  margin-right: 6px;
+  font-size: 11px;
+}
+
 .af-title {
   font-size: 13px;
   font-weight: 600;
@@ -966,6 +995,10 @@ body {
   color: var(--cp-cyan);
 }
 
+.af-row--highlight .af-arrow {
+  color: var(--cp-cyan);
+}
+
 .af-detail {
   font-size: 10px;
   color: var(--cp-text-dim);
@@ -973,7 +1006,15 @@ body {
   letter-spacing: 0.2px;
   line-height: 1.5;
   grid-column: 2 / -1;
-  margin-top: 2px;
+  margin-top: 4px;
+  padding: 3px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+  width: fit-content;
+}
+
+.light .af-detail {
+  background: rgba(0, 0, 0, 0.03);
 }
 
 @media (max-width: 640px) {
