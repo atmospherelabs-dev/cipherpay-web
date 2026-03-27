@@ -58,9 +58,16 @@ export const X402Tab = memo(function X402Tab({
                       </span>
                     )}
                   </div>
-                  <span className={`status-badge ${v.status === 'verified' ? 'status-confirmed' : 'status-expired'}`}>
-                    {v.status.toUpperCase()}
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {v.protocol && v.protocol !== 'x402' && (
+                      <span className="tag" style={{ fontSize: 8, padding: '2px 6px' }}>
+                        {v.protocol.toUpperCase()}
+                      </span>
+                    )}
+                    <span className={`status-badge ${v.status === 'verified' ? 'status-confirmed' : 'status-expired'}`}>
+                      {v.status.toUpperCase()}
+                    </span>
+                  </div>
                 </div>
               <div className="invoice-meta" style={{ justifyContent: 'space-between' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

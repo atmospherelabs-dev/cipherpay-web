@@ -16,7 +16,7 @@
     "pos": "POS",
     "invoices": "INVOICES",
     "webhooks": "WEBHOOKS",
-    "x402": "X402",
+    "x402": "AGENTIC PAYMENTS",
     "account": "ACCOUNT",
     "billing": "BILLING",
     "settings": "SETTINGS",
@@ -281,9 +281,9 @@
     "next": "NEXT"
   },
   "x402": {
-    "title": "x402 Verifications",
-    "subtitle": "HTTP 402 payment verifications from your API integrations.",
-    "noVerifications": "No x402 verifications yet",
+    "title": "Agentic Payments",
+    "subtitle": "Payment verifications from your API integrations via x402 and MPP protocols.",
+    "noVerifications": "No payment verifications yet",
     "txid": "TX"
   },
   "pos": {

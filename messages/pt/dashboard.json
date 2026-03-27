@@ -16,7 +16,7 @@
     "pos": "PDV",
     "invoices": "FATURAS",
     "webhooks": "WEBHOOKS",
-    "x402": "X402",
+    "x402": "PAGAMENTOS AGÊNTICOS",
     "account": "CONTA",
     "billing": "FATURAMENTO",
     "settings": "CONFIGURAÇÕES",
@@ -281,9 +281,9 @@
     "next": "PRÓX"
   },
   "x402": {
-    "title": "Verificações x402",
-    "subtitle": "Verificações HTTP 402 de pagamento das suas integrações de API.",
-    "noVerifications": "Nenhuma verificação x402 ainda",
+    "title": "Pagamentos Agênticos",
+    "subtitle": "Verificações de pagamento das suas integrações de API via x402 e MPP.",
+    "noVerifications": "Nenhuma verificação de pagamento ainda",
     "txid": "TX"
   },
   "pos": {

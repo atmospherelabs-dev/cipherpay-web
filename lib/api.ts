@@ -230,6 +230,7 @@ export interface X402Verification {
   amount_zec: number | null;
   status: 'verified' | 'rejected';
   reason: string | null;
+  protocol?: string;
   created_at: string;
 }
 

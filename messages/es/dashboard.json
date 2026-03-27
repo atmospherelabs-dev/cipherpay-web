@@ -16,7 +16,7 @@
     "pos": "TPV",
     "invoices": "FACTURAS",
     "webhooks": "WEBHOOKS",
-    "x402": "X402",
+    "x402": "PAGOS AGÉNTICOS",
     "account": "CUENTA",
     "billing": "FACTURACIÓN",
     "settings": "AJUSTES",
@@ -281,9 +281,9 @@
     "next": "SIG"
   },
   "x402": {
-    "title": "Verificaciones x402",
-    "subtitle": "Verificaciones HTTP 402 de pago de tus integraciones de API.",
-    "noVerifications": "No hay verificaciones x402 aún",
+    "title": "Pagos Agénticos",
+    "subtitle": "Verificaciones de pago de tus integraciones de API via x402 y MPP.",
+    "noVerifications": "No hay verificaciones de pago aún",
     "txid": "TX"
   },
   "pos": {
