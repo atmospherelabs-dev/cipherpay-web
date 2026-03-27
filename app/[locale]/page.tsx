@@ -17,6 +17,61 @@ app.use('/api/premium', zcashPaywall({
   apiKey: process.env.CIPHERPAY_API_KEY,
 }));`;
 
+const agentTabs = [
+  {
+    label: 'Merchant',
+    tag: '@cipherpay/x402',
+    code: `import { zcashPaywall } from '@cipherpay/x402/express';
+
+// One line — handles x402, MPP, and session tokens
+app.use('/api/premium', zcashPaywall({
+  amount: 0.001,
+  address: 'u1abc...',
+  apiKey: process.env.CIPHERPAY_API_KEY,
+}));
+
+// Agents pay with ZEC, you get the data
+app.get('/api/premium/data', (req, res) => {
+  res.json({ temperature: 18 });
+});`,
+  },
+  {
+    label: 'Agent',
+    tag: '@cipherpay/zipher-cli',
+    code: `# Pay for a paywalled API — auto-detects x402 or MPP
+$ zipher-cli pay https://api.example.com/premium/data
+
+# Or open a prepaid session for bulk access
+$ zipher-cli session open \\
+    --merchant abc123 \\
+    --deposit 0.01 \\
+    --cost-per-request 1000
+
+# Then use the session token
+$ zipher-cli session request \\
+    --url https://api.example.com/premium/data`,
+  },
+  {
+    label: 'MCP',
+    tag: '@cipherpay/mcp',
+    code: `// Add to claude_desktop_config.json or mcp.json
+{
+  "mcpServers": {
+    "cipherpay": {
+      "command": "npx",
+      "args": ["@cipherpay/mcp"],
+      "env": {
+        "CIPHERPAY_API_KEY": "cpay_sk_..."
+      }
+    }
+  }
+}
+
+// Then ask your AI: "Verify tx abc123 paid 0.001 ZEC"
+// Or: "Open a session for merchant xyz"`,
+  },
+];
+
 const codeTabs = [
   {
     label: 'cURL',
@@ -142,7 +197,7 @@ export default async function LandingPage() {
                 </div>
                 <div className="panel-body">
                   <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>
-                    {t('feature3Desc', { link: t('x402Link') })}
+                    {t('feature3Desc')}
                   </p>
                 </div>
               </div>
@@ -376,13 +431,12 @@ export default async function LandingPage() {
             }))}
           />
 
-          {/* x402 Flow + SDK snippet — side by side */}
-          <StaggerChildren style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
-            {/* x402 Flow */}
-            <StaggerItem><div className="panel">
+          {/* x402 Flow */}
+          <AnimatedSection>
+            <div className="panel" style={{ marginBottom: 16 }}>
               <div className="panel-header">
                 <span className="panel-title">{t('agentsHow')}</span>
-                <span className="tag">x402</span>
+                <span className="tag">x402 / MPP</span>
               </div>
               <div className="panel-body" style={{ padding: 0 }}>
                 {[
@@ -403,30 +457,13 @@ export default async function LandingPage() {
                   </div>
                 ))}
               </div>
-            </div></StaggerItem>
+            </div>
+          </AnimatedSection>
 
-            {/* SDK snippet */}
-            <StaggerItem><div className="panel">
-              <div className="panel-header">
-                <span className="panel-title">{t('agentsSdkTitle')}</span>
-                <span className="tag">TypeScript</span>
-              </div>
-              <div style={{ padding: '4px 18px 6px' }}>
-                <div style={{
-                  fontSize: 10, color: 'var(--cp-cyan)', fontFamily: 'var(--font-geist-mono), monospace',
-                  background: 'var(--cp-surface)', border: '1px solid var(--cp-border)', borderRadius: 4,
-                  padding: '8px 12px', marginBottom: 8, letterSpacing: 0.5,
-                }}>
-                  $ {t('agentsNpmInstall')}
-                </div>
-              </div>
-              <div style={{ padding: '0 18px 18px', overflow: 'auto' }}>
-                <pre style={{ margin: 0, fontSize: 10, lineHeight: 1.8, color: 'var(--cp-text)' }}>
-                  <code>{x402Snippet}</code>
-                </pre>
-              </div>
-            </div></StaggerItem>
-          </StaggerChildren>
+          {/* Tabbed code: Merchant / Agent / MCP */}
+          <AnimatedSection>
+            <CodeTabs tabs={agentTabs} />
+          </AnimatedSection>
         </div>
       </section>
 

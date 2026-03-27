@@ -21,6 +21,7 @@ import ApiRefSection from './sections/ApiRefSection';
 import X402Section from './sections/X402Section';
 import EventsSection from './sections/EventsSection';
 import MCPSection from './sections/MCPSection';
+import ZipherCliSection from './sections/ZipherCliSection';
 
 const SECTIONS = [
   { id: 'overview', title: 'Overview' },
@@ -37,6 +38,7 @@ const SECTIONS = [
   { id: 'billing', title: 'Billing & Fees' },
   { id: 'api-ref', title: 'API Reference' },
   { id: 'x402', title: 'Agentic Payments' },
+  { id: 'zipher-cli', title: 'Zipher CLI' },
   { id: 'mcp', title: 'MCP Server' },
 ] as const;
 
@@ -44,7 +46,7 @@ const SIDEBAR_GROUPS = [
   { label: 'Getting Started', ids: ['overview', 'quickstart', 'sandbox'] },
   { label: 'Guides', ids: ['shopify', 'woocommerce', 'custom', 'products', 'pos', 'events'] },
   { label: 'Reference', ids: ['webhooks', 'subscriptions', 'billing', 'api-ref'] },
-  { label: 'AI & Agents', ids: ['x402', 'mcp'] },
+  { label: 'AI & Agents', ids: ['x402', 'zipher-cli', 'mcp'] },
 ];
 
 function SectionContent({ id, onNavigate }: { id: string; onNavigate: (id: string) => void }) {
@@ -63,6 +65,7 @@ function SectionContent({ id, onNavigate }: { id: string; onNavigate: (id: strin
     case 'billing': return <BillingSection />;
     case 'api-ref': return <ApiRefSection />;
     case 'x402': return <X402Section />;
+    case 'zipher-cli': return <ZipherCliSection />;
     case 'mcp': return <MCPSection />;
     default: return null;
   }
