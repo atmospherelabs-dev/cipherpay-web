@@ -1,5 +1,6 @@
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
+import { FaqSection, FaqJumpLinks } from '@/components/FaqAccordion';
 import { getTranslations } from 'next-intl/server';
 import type { Metadata } from 'next';
 
@@ -9,16 +10,30 @@ export const metadata: Metadata = {
 };
 
 const sectionDefs = [
-  { id: '01', key: 's1', questionCount: 4 },
-  { id: '02', key: 's2', questionCount: 4 },
-  { id: '03', key: 's3', questionCount: 4 },
-  { id: '04', key: 's4', questionCount: 3 },
-  { id: '05', key: 's5', questionCount: 4 },
-  { id: '06', key: 's6', questionCount: 5 },
+  { id: 'privacy', key: 's1', count: 4 },
+  { id: 'wallet', key: 's2', count: 4 },
+  { id: 'how', key: 's3', count: 4 },
+  { id: 'security', key: 's4', count: 3 },
+  { id: 'hosting', key: 's5', count: 4 },
+  { id: 'x402', key: 's6', count: 5 },
+  { id: 'integrations', key: 's7', count: 4 },
+  { id: 'billing', key: 's8', count: 3 },
+  { id: 'wallets', key: 's9', count: 3 },
+  { id: 'general', key: 's10', count: 4 },
 ];
 
 export default async function FAQPage() {
   const t = await getTranslations('faq');
+
+  const sections = sectionDefs.map((s, i) => ({
+    id: s.id,
+    title: `${String(i + 1).padStart(2, '0')} // ${t(`${s.key}Title`)}`,
+    label: t(`${s.key}Title`),
+    items: Array.from({ length: s.count }, (_, j) => ({
+      question: t(`${s.key}q${j + 1}`),
+      answer: t(`${s.key}a${j + 1}`),
+    })),
+  }));
 
   return (
     <div style={{ minHeight: '100vh', fontFamily: 'var(--font-geist-mono), monospace', fontSize: 13, lineHeight: 1.6 }}>
@@ -26,29 +41,14 @@ export default async function FAQPage() {
 
       <main style={{ maxWidth: 700, margin: '0 auto', padding: '48px 24px' }}>
         <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8 }}>{t('title')}</h1>
-        <p style={{ color: 'var(--cp-text-muted)', fontSize: 12, marginBottom: 40 }}>
+        <p style={{ color: 'var(--cp-text-muted)', fontSize: 12, marginBottom: 32 }}>
           {t('subtitle')}
         </p>
 
-        {sectionDefs.map((section) => (
-          <div key={section.id} style={{ marginBottom: 40 }}>
-            <div className="panel">
-              <div className="panel-header">
-                <span className="panel-title">{section.id} // {t(`${section.key}Title`)}</span>
-              </div>
+        <FaqJumpLinks sections={sections.map((s) => ({ id: s.id, label: s.label }))} />
 
-              {Array.from({ length: section.questionCount }, (_, i) => (
-                <div key={i} style={{ padding: '16px 18px', borderBottom: i < section.questionCount - 1 ? '1px solid var(--cp-border)' : 'none' }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--cp-text)', marginBottom: 8 }}>
-                    {t(`${section.key}q${i + 1}`)}
-                  </div>
-                  <p style={{ fontSize: 11, color: 'var(--cp-text-muted)', lineHeight: 1.8, whiteSpace: 'pre-line' }}>
-                    {t(`${section.key}a${i + 1}`)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
+        {sections.map((section) => (
+          <FaqSection key={section.id} {...section} />
         ))}
       </main>
 

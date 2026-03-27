@@ -55,6 +55,43 @@
   "s6a4": "O CipherPay é o facilitador especificamente para pagamentos Zcash-to-Zcash. Para outras chains (USDC na Base, ETH, SOL), o servidor de recursos usaria um facilitador diferente. O protocolo x402 suporta múltiplas chains no array \"accepts\", então um servidor pode oferecer várias opções de pagamento. Agentes de IA com carteiras multichain (ex.: via NEAR Intents) podem trocar tokens e pagar em qualquer chain que o servidor aceite.",
   "s6q5": "Há taxa para verificação x402?",
   "s6a5": "Não. A verificação x402 é gratuita. O CipherPay oferece para impulsionar a adoção do Zcash em pagamentos de IA e programáticos. A receita vem do processamento de pagamentos baseado em faturas. O facilitador x402 e o sistema de checkout por fatura atendem casos de uso diferentes — x402 é para acesso programático à API, enquanto faturas são para e-commerce voltado a humanos.",
+
+  "s7Title": "Integrações",
+  "s7q1": "Preciso de um desenvolvedor para integrar o CipherPay?",
+  "s7a1": "Não necessariamente. Se você usa Shopify ou WooCommerce, instale o plugin, insira sua chave de API e pronto — sem código. Para integrações customizadas, a API REST e os SDKs (TypeScript, Python) são diretos. Uma única chamada de API cria uma fatura e retorna um link de pagamento.",
+  "s7q2": "O CipherPay funciona com Shopify?",
+  "s7a2": "Sim. Instale o app CipherPay Shopify, adicione sua chave de API nas configurações e o ZEC aparece como opção de pagamento no checkout. Os pedidos são automaticamente marcados como pagos quando o pagamento blindado é confirmado. Veja a documentação para instruções de configuração.",
+  "s7q3": "O CipherPay funciona com WooCommerce?",
+  "s7a3": "Sim. Instale o plugin CipherPay WooCommerce, configure sua chave de API em WooCommerce > Configurações > Pagamentos, e sua loja WordPress aceita ZEC. O plugin cuida da criação de faturas, detecção de pagamentos e atualização de status do pedido automaticamente.",
+  "s7q4": "O que é MCP e como funciona?",
+  "s7a4": "MCP (Model Context Protocol) permite que assistentes de IA como o Claude interajam diretamente com sua loja CipherPay. Adicione @cipherpay/mcp na configuração do seu agente e ele pode criar faturas, verificar status de pagamento, verificar transações e gerenciar sua loja — tudo via linguagem natural. O agente usa sua chave de API, então tem as mesmas permissões que sua integração server-side.",
+
+  "s8Title": "Produtos e Cobranças",
+  "s8q1": "Como funcionam pagamentos recorrentes?",
+  "s8a1": "Você cria um produto com preço recorrente (ex.: $9,99/mês). O CipherPay gera uma nova fatura a cada ciclo de cobrança e notifica seu servidor via webhook. O comprador paga cada fatura individualmente — não há débito automático, porque o Zcash não suporta pull payments. Isso é por design: o comprador sempre controla quando e quanto envia.",
+  "s8q2": "O que acontece se um assinante perder um pagamento?",
+  "s8a2": "A fatura expira após a janela configurada (padrão 30 minutos). Seu webhook recebe uma notificação de expiração. Como lidar é com você — pode enviar um lembrete, pausar o acesso ou gerar uma nova fatura. O CipherPay não impõe lógica de assinatura; fornece os trilhos de pagamento.",
+  "s8q3": "Quais moedas fiduciárias são suportadas?",
+  "s8a3": "USD, EUR, GBP, BRL, CAD, JPY, MXN, ARS, NGN, CHF e INR. Os preços são definidos em fiat, e o CipherPay converte para ZEC na taxa de câmbio atual quando a fatura é criada. A taxa é travada durante a duração da fatura.",
+
+  "s9Title": "Carteiras e Testes",
+  "s9q1": "Quais carteiras Zcash funcionam com o CipherPay?",
+  "s9a1": "Qualquer carteira que suporte Endereços Unificados Zcash e transações blindadas Orchard. Recomendadas: Zodl (iOS), Zashi (iOS/Android), Ywallet (iOS/Android/desktop) ou Zipher (em breve). A carteira precisa suportar leitura de QR codes ou abertura de URIs zcash:.",
+  "s9q2": "Posso testar antes de ir ao ar?",
+  "s9a2": "Sim. O CipherPay suporta testnet Zcash. Registre-se com uma chave de visualização testnet e todas as faturas são criadas na testnet. Você pode testar o fluxo completo — criação de fatura, pagamento, confirmação, webhooks — sem gastar ZEC real. Mude para mainnet quando estiver pronto atualizando sua chave de visualização e configuração de rede.",
+  "s9q3": "Posso aceitar ZEC pessoalmente (ponto de venda)?",
+  "s9a3": "Sim. O dashboard inclui um modo POS que gera QR codes para pagamentos presenciais. O comprador escaneia, paga, e você vê a confirmação em tempo real. Sem maquininha, sem terminal — apenas uma tela mostrando um QR code.",
+
+  "s10Title": "Geral",
+  "s10q1": "E sobre reembolsos?",
+  "s10a1": "O CipherPay não processa reembolsos automaticamente — transações Zcash são irreversíveis por design. Para reembolsar um comprador, você envia ZEC da sua carteira diretamente para o endereço dele. Como o CipherPay é não-custodial, políticas de reembolso são entre você e seu comprador. Recomendamos declarar claramente sua política de reembolso na sua loja.",
+  "s10q2": "E se eu perder meu acesso ao dashboard?",
+  "s10a2": "Se você configurou um email de recuperação nas configurações do dashboard, pode redefinir seu token de acesso pelo fluxo de recuperação. Se não configurou, não há como recuperar o acesso — o CipherPay não armazena suas credenciais de forma recuperável (são hasheadas). Seus fundos estão seguros independentemente, já que o CipherPay nunca retém seu ZEC.",
+  "s10q3": "O CipherPay é open-source?",
+  "s10a3": "Sim. Cada componente — o backend Rust, o dashboard web, o app Shopify, o plugin WooCommerce, o middleware x402, o servidor MCP — é open-source no GitHub. Você pode auditar o código, fazer self-host ou contribuir.",
+  "s10q4": "O que é MPP (Micropayment Protocol)?",
+  "s10a4": "MPP permite sessões pré-pagas para acesso à API de alta frequência. Em vez de pagar por requisição, um agente deposita ZEC antecipadamente e recebe um token de sessão. Cada requisição desconta do saldo. É mais eficiente para agentes fazendo muitas requisições pequenas — uma transação on-chain cobre centenas de chamadas de API.",
+
   "footerPoweredBy": "Powered by CipherScan",
   "footerHome": "Início"
 }

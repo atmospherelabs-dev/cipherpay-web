@@ -55,6 +55,43 @@
   "s6a4": "CipherPay es el facilitador para pagos Zcash-a-Zcash específicamente. Para otras chains (USDC en Base, ETH, SOL), el servidor de recursos usaría un facilitador diferente. El protocolo x402 soporta múltiples chains en el array \"accepts\", así que un servidor puede ofrecer varias opciones de pago. Los agentes de IA con billeteras multichain (ej. vía NEAR Intents) pueden intercambiar tokens y pagar en la chain que el servidor acepte.",
   "s6q5": "¿Hay comisión por la verificación x402?",
   "s6a5": "No. La verificación x402 es gratuita. CipherPay la ofrece para impulsar la adopción de Zcash en pagos de IA y programáticos. Los ingresos provienen del procesamiento de pagos basado en facturas existente. El facilitador x402 y el sistema de checkout de facturas sirven casos de uso diferentes — x402 es para acceso API programático, mientras que las facturas son para e-commerce orientado a humanos.",
+
+  "s7Title": "Integraciones",
+  "s7q1": "¿Necesito un desarrollador para integrar CipherPay?",
+  "s7a1": "No necesariamente. Si usas Shopify o WooCommerce, instala el plugin, ingresa tu clave API y listo — sin código. Para integraciones personalizadas, la API REST y los SDKs (TypeScript, Python) son sencillos. Una sola llamada API crea una factura y devuelve un enlace de pago.",
+  "s7q2": "¿CipherPay funciona con Shopify?",
+  "s7a2": "Sí. Instala la app CipherPay Shopify, agrega tu clave API en la configuración y ZEC aparece como opción de pago en el checkout. Los pedidos se marcan automáticamente como pagados cuando el pago blindado se confirma. Consulta la documentación para instrucciones de configuración.",
+  "s7q3": "¿CipherPay funciona con WooCommerce?",
+  "s7a3": "Sí. Instala el plugin CipherPay WooCommerce, configura tu clave API en WooCommerce > Ajustes > Pagos, y tu tienda WordPress acepta ZEC. El plugin maneja la creación de facturas, detección de pagos y actualización de estado de pedidos automáticamente.",
+  "s7q4": "¿Qué es MCP y cómo funciona?",
+  "s7a4": "MCP (Model Context Protocol) permite que asistentes de IA como Claude interactúen directamente con tu tienda CipherPay. Agrega @cipherpay/mcp a la configuración de tu agente y puede crear facturas, verificar estado de pagos, verificar transacciones y gestionar tu tienda — todo mediante lenguaje natural. El agente usa tu clave API, así que tiene los mismos permisos que tu integración del lado del servidor.",
+
+  "s8Title": "Productos y facturación",
+  "s8q1": "¿Cómo funcionan los pagos recurrentes?",
+  "s8a1": "Creas un producto con precio recurrente (ej. $9.99/mes). CipherPay genera una nueva factura cada ciclo de facturación y notifica a tu servidor vía webhook. El comprador paga cada factura individualmente — no hay débito automático, porque Zcash no soporta pull payments. Esto es por diseño: el comprador siempre controla cuándo y cuánto envía.",
+  "s8q2": "¿Qué pasa si un suscriptor pierde un pago?",
+  "s8a2": "La factura expira después de la ventana configurada (30 minutos por defecto). Tu webhook recibe una notificación de expiración. Cómo manejarlo depende de ti — puedes enviar un recordatorio, pausar el acceso o generar una nueva factura. CipherPay no impone lógica de suscripción; proporciona los rieles de pago.",
+  "s8q3": "¿Qué monedas fiat se soportan?",
+  "s8a3": "USD, EUR, GBP, BRL, CAD, JPY, MXN, ARS, NGN, CHF e INR. Los precios se establecen en fiat, y CipherPay convierte a ZEC al tipo de cambio actual cuando se crea la factura. El tipo se fija durante la duración de la factura.",
+
+  "s9Title": "Billeteras y pruebas",
+  "s9q1": "¿Qué billeteras Zcash funcionan con CipherPay?",
+  "s9a1": "Cualquier billetera que soporte Direcciones Unificadas de Zcash y transacciones blindadas Orchard. Recomendadas: Zodl (iOS), Zashi (iOS/Android), Ywallet (iOS/Android/escritorio) o Zipher (próximamente). La billetera necesita soportar escaneo de códigos QR o apertura de URIs zcash:.",
+  "s9q2": "¿Puedo probar antes de ir en vivo?",
+  "s9a2": "Sí. CipherPay soporta testnet de Zcash. Regístrate con una clave de visualización de testnet y todas las facturas se crean en testnet. Puedes probar el flujo completo — creación de facturas, pago, confirmación, webhooks — sin gastar ZEC real. Cambia a mainnet cuando estés listo actualizando tu clave de visualización y configuración de red.",
+  "s9q3": "¿Puedo aceptar ZEC en persona (punto de venta)?",
+  "s9a3": "Sí. El panel incluye un modo POS que genera códigos QR para pagos presenciales. El comprador escanea, paga y ves la confirmación en tiempo real. Sin lector de tarjetas, sin terminal — solo una pantalla mostrando un código QR.",
+
+  "s10Title": "General",
+  "s10q1": "¿Qué hay sobre reembolsos?",
+  "s10a1": "CipherPay no procesa reembolsos automáticamente — las transacciones de Zcash son irreversibles por diseño. Para reembolsar a un comprador, enviarías ZEC desde tu billetera directamente a su dirección. Como CipherPay es no-custodial, las políticas de reembolso son entre tú y tu comprador. Recomendamos declarar claramente tu política de reembolso en tu tienda.",
+  "s10q2": "¿Qué pasa si pierdo mi acceso al panel?",
+  "s10a2": "Si configuraste un email de recuperación en los ajustes del panel, puedes restablecer tu token de acceso mediante el flujo de recuperación. Si no lo configuraste, no hay forma de recuperar el acceso — CipherPay no almacena tus credenciales de forma recuperable (están hasheadas). Tus fondos están seguros de todos modos, ya que CipherPay nunca retiene tu ZEC.",
+  "s10q3": "¿CipherPay es open-source?",
+  "s10a3": "Sí. Cada componente — el backend Rust, el panel web, la app Shopify, el plugin WooCommerce, el middleware x402, el servidor MCP — es open-source en GitHub. Puedes auditar el código, auto-hospedar o contribuir.",
+  "s10q4": "¿Qué es MPP (Micropayment Protocol)?",
+  "s10a4": "MPP permite sesiones prepagadas para acceso API de alta frecuencia. En lugar de pagar por solicitud, un agente deposita ZEC por adelantado y recibe un token de sesión. Cada solicitud descuenta del saldo. Es más eficiente para agentes que hacen muchas solicitudes pequeñas — una transacción on-chain cubre cientos de llamadas API.",
+
   "footerPoweredBy": "Powered by CipherScan",
   "footerHome": "Inicio"
 }

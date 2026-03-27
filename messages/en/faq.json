@@ -55,6 +55,43 @@
   "s6a4": "CipherPay is the facilitator for Zcash-to-Zcash payments specifically. For other chains (USDC on Base, ETH, SOL), the resource server would use a different facilitator. The x402 protocol supports multiple chains in the \"accepts\" array, so a server can offer several payment options. AI agents with multichain wallets (e.g. via NEAR Intents) can swap tokens and pay on whichever chain the server accepts.",
   "s6q5": "Is there a fee for x402 verification?",
   "s6a5": "No. x402 verification is free. CipherPay provides it to drive Zcash adoption for AI and programmatic payments. Revenue comes from the existing invoice-based payment processing. The x402 facilitator and the invoice checkout system serve different use cases — x402 is for programmatic API access, while invoices are for human-facing e-commerce.",
+
+  "s7Title": "Integrations",
+  "s7q1": "Do I need a developer to integrate CipherPay?",
+  "s7a1": "Not necessarily. If you use Shopify or WooCommerce, install the plugin, enter your API key, and you're live — no code required. For custom integrations, the REST API and SDKs (TypeScript, Python) are straightforward. A single API call creates an invoice and returns a payment link.",
+  "s7q2": "Does CipherPay work with Shopify?",
+  "s7a2": "Yes. Install the CipherPay Shopify app, add your API key in the app settings, and ZEC appears as a payment option at checkout. Orders are automatically marked as paid when the shielded payment confirms. See the docs for setup instructions.",
+  "s7q3": "Does CipherPay work with WooCommerce?",
+  "s7a3": "Yes. Install the CipherPay WooCommerce plugin, configure your API key under WooCommerce > Settings > Payments, and your WordPress store accepts ZEC. The plugin handles invoice creation, payment detection, and order status updates automatically.",
+  "s7q4": "What is MCP and how does it work?",
+  "s7a4": "MCP (Model Context Protocol) lets AI assistants like Claude interact with your CipherPay store directly. Add @cipherpay/mcp to your agent's config, and it can create invoices, check payment status, verify transactions, and manage your store — all through natural language. The agent uses your API key, so it has the same permissions as your server-side integration.",
+
+  "s8Title": "Products & Billing",
+  "s8q1": "How do recurring payments work?",
+  "s8a1": "You create a product with a recurring price (e.g. $9.99/month). CipherPay generates a new invoice each billing cycle and notifies your server via webhook. The buyer pays each invoice individually — there's no automatic wallet debit, because Zcash doesn't support pull payments. This is by design: the buyer always controls when and how much they send.",
+  "s8q2": "What happens if a subscriber misses a payment?",
+  "s8a2": "The invoice expires after the configured window (default 30 minutes). Your webhook receives an expiry notification. How you handle it is up to you — you might send a reminder, pause access, or generate a new invoice. CipherPay doesn't enforce subscription logic; it provides the payment rails.",
+  "s8q3": "Which fiat currencies are supported?",
+  "s8a3": "USD, EUR, GBP, BRL, CAD, JPY, MXN, ARS, NGN, CHF, and INR. Prices are set in fiat, and CipherPay converts to ZEC at the current exchange rate when the invoice is created. The rate is locked for the invoice duration.",
+
+  "s9Title": "Wallets & Testing",
+  "s9q1": "Which Zcash wallets work with CipherPay?",
+  "s9a1": "Any wallet that supports Zcash Unified Addresses and Orchard shielded transactions. Recommended: Zodl (iOS), Zashi (iOS/Android), Ywallet (iOS/Android/desktop), or Zipher (coming soon). The wallet needs to support scanning QR codes or opening zcash: URIs.",
+  "s9q2": "Can I test before going live?",
+  "s9a2": "Yes. CipherPay supports Zcash testnet. Register with a testnet viewing key, and all invoices are created on testnet. You can test the full flow — invoice creation, payment, confirmation, webhooks — without spending real ZEC. Switch to mainnet when ready by updating your viewing key and network setting.",
+  "s9q3": "Can I accept ZEC in person (point of sale)?",
+  "s9a3": "Yes. The dashboard includes a POS mode that generates QR codes for in-person payments. The buyer scans, pays, and you see the confirmation in real-time. No card reader, no terminal — just a screen showing a QR code.",
+
+  "s10Title": "General",
+  "s10q1": "What about refunds?",
+  "s10a1": "CipherPay doesn't process refunds automatically — Zcash transactions are irreversible by design. To refund a buyer, you would send ZEC from your wallet to their address directly. Since CipherPay is non-custodial, refund policies are between you and your buyer. We recommend clearly stating your refund policy on your store.",
+  "s10q2": "What if I lose my dashboard access?",
+  "s10a2": "If you set a recovery email in your dashboard settings, you can reset your access token via the recovery flow. If you didn't set one, there's no way to recover access — CipherPay doesn't store your credentials in a recoverable form (they're hashed). Your funds are safe regardless, since CipherPay never holds your ZEC.",
+  "s10q3": "Is CipherPay open-source?",
+  "s10a3": "Yes. Every component — the Rust backend, the web dashboard, the Shopify app, the WooCommerce plugin, the x402 middleware, the MCP server — is open-source on GitHub. You can audit the code, self-host, or contribute.",
+  "s10q4": "What is MPP (Micropayment Protocol)?",
+  "s10a4": "MPP enables prepaid sessions for high-frequency API access. Instead of paying per-request, an agent deposits ZEC upfront and gets a session token. Each request deducts from the balance. This is more efficient for agents making many small requests — one on-chain transaction covers hundreds of API calls.",
+
   "footerPoweredBy": "Powered by CipherScan",
   "footerHome": "Home"
 }
