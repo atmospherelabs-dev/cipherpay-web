@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
-import { api, type MerchantInfo, type Product, type Invoice, type BillingSummary, type BillingCycle, type X402Verification, type ZecRates, type WebhookDelivery, type EventSummary } from '@/lib/api';
+import { api, type MerchantInfo, type Product, type Invoice, type BillingSummary, type BillingCycle, type X402Verification, type ZecRates, type WebhookDelivery, type EventSummary, type AgentSession } from '@/lib/api';
 import { isTestnet } from '@/lib/config';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -49,6 +49,9 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
   const [x402Verifications, setX402Verifications] = useState<X402Verification[]>([]);
   const [loadingX402, setLoadingX402] = useState(true);
 
+  const [sessions, setSessions] = useState<AgentSession[]>([]);
+  const [loadingSessions, setLoadingSessions] = useState(true);
+
   const [webhookDeliveries, setWebhookDeliveries] = useState<WebhookDelivery[]>([]);
   const [webhookTotal, setWebhookTotal] = useState(0);
 
@@ -90,6 +93,14 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
     setLoadingX402(false);
   }, []);
 
+  const loadSessions = useCallback(async () => {
+    try {
+      const data = await api.sessionHistory();
+      setSessions(data.sessions || []);
+    } catch (err) { console.error('Failed to load sessions', err); }
+    setLoadingSessions(false);
+  }, []);
+
   const loadWebhooks = useCallback(async () => {
     try {
       const data = await api.webhookHistory({ limit: 50 });
@@ -100,8 +111,8 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
 
 
   useEffect(() => {
-    loadProducts(); loadInvoices(); loadBilling(); loadX402(); loadWebhooks(); loadEvents();
-  }, [loadProducts, loadEvents, loadInvoices, loadBilling, loadX402, loadWebhooks]);
+    loadProducts(); loadInvoices(); loadBilling(); loadX402(); loadSessions(); loadWebhooks(); loadEvents();
+  }, [loadProducts, loadEvents, loadInvoices, loadBilling, loadX402, loadSessions, loadWebhooks]);
 
   useEffect(() => {
     const fetchRates = () => {
@@ -270,6 +281,9 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                 x402Verifications={x402Verifications}
                 loadingX402={loadingX402}
                 loadX402={loadX402}
+                sessions={sessions}
+                loadingSessions={loadingSessions}
+                loadSessions={loadSessions}
                 zecRates={zecRates}
                 displayCurrency={displayCurrency}
                 isTestnet={merchant.payment_address.startsWith('utest')}

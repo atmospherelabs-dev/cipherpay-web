@@ -234,6 +234,25 @@ export interface X402Verification {
   created_at: string;
 }
 
+export interface AgentSession {
+  id: string;
+  deposit_txid: string;
+  balance_zatoshis: number;
+  balance_remaining: number;
+  cost_per_request: number;
+  requests_made: number;
+  balance_used: number;
+  status: 'active' | 'closed' | 'expired' | 'depleted';
+  expires_at: string;
+  created_at: string;
+  closed_at: string | null;
+  refund?: {
+    address: string;
+    amount_zatoshis: number;
+    amount_zec: number;
+  };
+}
+
 export interface WebhookDelivery {
   id: string;
   invoice_id: string;
@@ -571,6 +590,10 @@ export const api = {
   // x402
   x402History: (limit = 50, offset = 0) =>
     request<{ verifications: X402Verification[] }>(`/api/merchants/me/x402/history?limit=${limit}&offset=${offset}`),
+
+  // Sessions (agentic prepaid credit)
+  sessionHistory: () =>
+    request<{ sessions: AgentSession[] }>('/api/merchants/me/sessions'),
 
   webhookHistory: (params?: { status?: string; limit?: number; offset?: number }) => {
     const p = new URLSearchParams();
