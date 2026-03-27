@@ -109,9 +109,41 @@ export const X402Tab = memo(function X402Tab({
           {loadingX402 ? (
             <div className="empty-state"><Spinner /></div>
           ) : x402Verifications.length === 0 ? (
-            <div className="empty-state">
-              <div className="icon">&#9632;</div>
-              <div>{t('noVerifications')}</div>
+            <div style={{ padding: '32px 24px' }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--cp-text)', marginBottom: 8 }}>
+                {t('emptyTitle')}
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--cp-text-muted)', lineHeight: 1.7, maxWidth: 520, marginBottom: 20 }}>
+                {t('emptyDesc')}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
+                {(['emptyUseCase1', 'emptyUseCase2', 'emptyUseCase3'] as const).map((key) => (
+                  <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ color: 'var(--cp-cyan)', fontSize: 10 }}>→</span>
+                    <span style={{ fontSize: 11, color: 'var(--cp-text)' }}>{t(key)}</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <a
+                  href="/docs/x402"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-primary"
+                  style={{ fontSize: 10, textDecoration: 'none', display: 'inline-block' }}
+                >
+                  {t('emptyGetStarted')}
+                </a>
+                <a
+                  href="/docs"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn"
+                  style={{ fontSize: 10, textDecoration: 'none', display: 'inline-block' }}
+                >
+                  {t('emptyDocs')}
+                </a>
+              </div>
             </div>
           ) : (
             x402Verifications.map((v) => {

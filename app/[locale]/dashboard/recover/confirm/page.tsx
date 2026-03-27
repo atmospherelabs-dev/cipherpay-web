@@ -1,11 +1,14 @@
 'use client';
 
 import { Suspense, useEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { api } from '@/lib/api';
 import { Logo } from '@/components/Logo';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { MeshGradient } from '@/components/MeshGradient';
 import { CopyButton } from '@/components/CopyButton';
 import { Link } from '@/i18n/navigation';
 
@@ -42,14 +45,22 @@ function RecoverConfirmInner() {
   }, [token, t]);
 
   return (
-    <div style={{ minHeight: '100vh', fontFamily: 'var(--font-geist-mono), monospace', fontSize: 13, lineHeight: 1.6, display: 'flex', flexDirection: 'column' }}>
-      <header className="site-header">
+    <div style={{ minHeight: '100vh', fontFamily: 'var(--font-geist-mono), monospace', fontSize: 13, lineHeight: 1.6, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
+      <MeshGradient />
+      <header className="site-header" style={{ position: 'relative', background: 'var(--cp-bg)' }}>
         <Link href="/"><Logo size="sm" /></Link>
-        <ThemeToggle />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <LanguageSwitcher />
+          <ThemeToggle />
+        </div>
       </header>
 
-      <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 24px' }}>
-        <div style={{ maxWidth: 480, width: '100%' }}>
+      <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 24px', position: 'relative' }}>
+        <motion.div style={{ maxWidth: 480, width: '100%' }}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.21, 0.47, 0.32, 0.98] }}
+        >
           {loading ? (
             <div className="panel">
               <div className="panel-body" style={{ textAlign: 'center', padding: 40 }}>
@@ -112,7 +123,7 @@ function RecoverConfirmInner() {
               </div>
             </div>
           )}
-        </div>
+        </motion.div>
       </main>
     </div>
   );

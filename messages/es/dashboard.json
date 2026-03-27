@@ -10,7 +10,8 @@
     "id": "ID",
     "address": "Dirección",
     "overview": "RESUMEN",
-    "store": "TIENDA",
+    "commerce": "COMERCIO",
+    "developer": "DESARROLLADOR",
     "products": "PRODUCTOS",
     "events": "EVENTOS",
     "pos": "TPV",
@@ -59,8 +60,9 @@
     "network": "Red",
     "activeEvents": "EVENTOS ACTIVOS",
     "ticketsSold": "{count} entradas vendidas",
-    "createEvent": "+ CREAR EVENTO",
-    "importFromLuma": "IMPORTAR DE LUMA",
+    "createEvent": "+ EVENTO",
+    "newCipherEvent": "Nuevo CipherEvent",
+    "importFromLuma": "Importar de Luma",
     "upcomingEvents": "Próximos Eventos",
     "soldLabel": "vendidos",
     "lumaIntegration": "Integración Luma"
@@ -144,6 +146,12 @@
   },
   "invoices": {
     "title": "Facturas",
+    "typeAll": "TODOS",
+    "typeOneTime": "ÚNICO",
+    "typeRecurring": "RECURRENTE",
+    "typeTickets": "ENTRADAS",
+    "typeLuma": "LUMA",
+    "typeBilling": "PLATAFORMA",
     "paymentLink": "+ ENLACE DE PAGO",
     "exportCsv": "EXPORTAR CSV",
     "createPaymentLink": "CREAR ENLACE DE PAGO",
@@ -278,13 +286,23 @@
     "colError": "ERROR",
     "empty": "No hay entregas de webhooks aún. Configura una URL de webhook en Configuración para recibir eventos.",
     "prev": "ANT",
-    "next": "SIG"
+    "next": "SIG",
+    "setupTitle": "No hay URL de webhook configurada",
+    "setupDesc": "Agrega una URL de webhook en Ajustes para recibir notificaciones en tiempo real cuando las facturas se paguen, expiren o reembolsen.",
+    "setupCta": "Configurar →"
   },
   "x402": {
     "title": "Pagos Agénticos",
     "subtitle": "Verificaciones de pago de tus integraciones de API via x402 y MPP.",
     "noVerifications": "No hay verificaciones de pago aún",
-    "txid": "TX"
+    "txid": "TX",
+    "emptyTitle": "Deja que agentes IA paguen por tu API",
+    "emptyDesc": "Los pagos agénticos permiten que agentes IA y bots paguen por el acceso a API usando Zcash — sin cuentas, sin tarjetas, sin KYC. Agrega un solo middleware a tu servidor y empieza a monetizar cualquier endpoint.",
+    "emptyUseCase1": "APIs pay-per-request",
+    "emptyUseCase2": "Contenido y datos protegidos",
+    "emptyUseCase3": "Micropagos máquina-a-máquina",
+    "emptyDocs": "Leer la documentación",
+    "emptyGetStarted": "Empezar →"
   },
   "pos": {
     "title": "TPV // Terminal Punto de Venta",

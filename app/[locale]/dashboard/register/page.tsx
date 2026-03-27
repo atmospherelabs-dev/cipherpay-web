@@ -1,10 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { api, type RegisterResponse } from '@/lib/api';
 import { validateEmail, validateWebhookUrl, validateLength } from '@/lib/validation';
 import { Logo } from '@/components/Logo';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { MeshGradient } from '@/components/MeshGradient';
 import { CopyButton } from '@/components/CopyButton';
 import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
@@ -60,14 +63,23 @@ export default function RegisterPage() {
 
   if (result) {
     return (
-      <div style={{ minHeight: '100vh', fontFamily: 'var(--font-geist-mono), monospace', fontSize: 13, lineHeight: 1.6, display: 'flex', flexDirection: 'column' }}>
-        <header className="site-header">
+      <div style={{ minHeight: '100vh', fontFamily: 'var(--font-geist-mono), monospace', fontSize: 13, lineHeight: 1.6, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
+        <MeshGradient />
+        <header className="site-header" style={{ position: 'relative', background: 'var(--cp-bg)' }}>
           <Link href="/"><Logo size="sm" /></Link>
-          <ThemeToggle />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <LanguageSwitcher />
+            <ThemeToggle />
+          </div>
         </header>
 
-        <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 24px' }}>
-          <div style={{ maxWidth: 500, width: '100%' }}>
+        <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 24px', position: 'relative' }}>
+          <motion.div
+            style={{ maxWidth: 500, width: '100%' }}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.21, 0.47, 0.32, 0.98] }}
+          >
             <div className="panel">
               <div className="panel-header">
                 <span className="panel-title">{t('successTitle')}</span>
@@ -104,21 +116,30 @@ export default function RegisterPage() {
                 </Link>
               </div>
             </div>
-          </div>
+          </motion.div>
         </main>
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: '100vh', fontFamily: 'var(--font-geist-mono), monospace', fontSize: 13, lineHeight: 1.6, display: 'flex', flexDirection: 'column' }}>
-      <header className="site-header">
+    <div style={{ minHeight: '100vh', fontFamily: 'var(--font-geist-mono), monospace', fontSize: 13, lineHeight: 1.6, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
+      <MeshGradient />
+      <header className="site-header" style={{ position: 'relative', background: 'var(--cp-bg)' }}>
         <Link href="/"><Logo size="sm" /></Link>
-        <ThemeToggle />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <LanguageSwitcher />
+          <ThemeToggle />
+        </div>
       </header>
 
-      <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 24px' }}>
-        <div style={{ maxWidth: 500, width: '100%' }}>
+      <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 24px', position: 'relative' }}>
+        <motion.div
+          style={{ maxWidth: 500, width: '100%' }}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.21, 0.47, 0.32, 0.98] }}
+        >
           <div className="panel">
             <div className="panel-header">
               <span className="panel-title">{t('title')}</span>
@@ -177,7 +198,7 @@ export default function RegisterPage() {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </main>
     </div>
   );

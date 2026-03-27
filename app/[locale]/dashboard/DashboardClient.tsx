@@ -182,15 +182,13 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
         />
       )}
 
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: 24 }}>
+      <div className="dash-container">
         <div className="grid-layout">
           <DashboardSidebar
             merchant={merchant}
             tab={tab}
             setTab={setTab}
             billing={billing}
-            hasWebhooks={!!merchant.webhook_url}
-            hasX402={x402Verifications.length > 0}
           />
 
           <div>
@@ -274,6 +272,8 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
               <WebhooksTab
                 initialDeliveries={webhookDeliveries}
                 initialTotal={webhookTotal}
+                hasWebhookUrl={!!merchant.webhook_url}
+                onGoToSettings={() => setTab('settings')}
               />
             )}
             {tab === 'x402' && (

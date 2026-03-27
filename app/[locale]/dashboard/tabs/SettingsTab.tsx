@@ -154,7 +154,7 @@ export const SettingsTab = memo(function SettingsTab({
               <span style={{ fontSize: 11, color: 'var(--cp-green)' }}>{merchant.recovery_email_preview}</span>
               <span className="status-badge status-confirmed" style={{ fontSize: 9 }}>{tc('set')}</span>
             </div>
-            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+            <div className="dash-settings-buttons" style={{ display: 'flex', gap: 8, marginTop: 8 }}>
               <button onClick={() => setEditingEmail(true)} className="btn btn-small">{t('emailChange')}</button>
               <button onClick={removeEmail} className="btn btn-small" style={{ background: 'transparent', border: '1px solid var(--cp-red)', color: 'var(--cp-red)' }}>{t('emailRemove')}</button>
             </div>
@@ -178,8 +178,8 @@ export const SettingsTab = memo(function SettingsTab({
 
         {/* 4. Derived Payment Address */}
         <div className="section-title">{t('derivedAddress')}</div>
-        <div className="stat-row">
-          <span style={{ fontSize: 9, color: 'var(--cp-text-muted)', wordBreak: 'break-all', maxWidth: '80%', fontFamily: 'monospace' }}>
+        <div className="stat-row" style={{ flexWrap: 'wrap', gap: 8 }}>
+          <span style={{ fontSize: 9, color: 'var(--cp-text-muted)', wordBreak: 'break-all', fontFamily: 'monospace', flex: '1 1 0', minWidth: 0 }}>
             {merchant.payment_address}
           </span>
           <CopyButton text={merchant.payment_address} label="" />
@@ -199,8 +199,8 @@ export const SettingsTab = memo(function SettingsTab({
             {merchant.webhook_url && <button onClick={() => { setEditWebhookUrl(merchant.webhook_url || ''); setEditingWebhook(false); }} className="btn btn-small btn-cancel">{tc('cancel')}</button>}
           </div>
         ) : (
-          <div className="stat-row">
-            <span style={{ fontSize: 10, color: 'var(--cp-text-muted)', wordBreak: 'break-all', maxWidth: '80%', fontFamily: 'monospace' }}>
+          <div className="stat-row" style={{ flexWrap: 'wrap', gap: 8 }}>
+            <span style={{ fontSize: 10, color: 'var(--cp-text-muted)', wordBreak: 'break-all', fontFamily: 'monospace', flex: '1 1 0', minWidth: 0 }}>
               {editWebhookUrl}
             </span>
             <button onClick={() => setEditingWebhook(true)} className="btn btn-small">{tc('edit')}</button>
@@ -228,7 +228,7 @@ export const SettingsTab = memo(function SettingsTab({
 
         {/* 7. API Keys */}
         <div className="section-title">{t('apiKeys')}</div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div className="dash-settings-buttons" style={{ display: 'flex', gap: 8 }}>
           <button onClick={regenApiKey} className="btn" style={{ flex: 1 }}>{t('regenApiKey')}</button>
           <button onClick={regenDashToken} className="btn" style={{ flex: 1 }}>{t('regenDashToken')}</button>
         </div>
@@ -289,7 +289,7 @@ function LumaSettings({ merchant, reloadMerchant }: { merchant: MerchantInfo; re
   return (
     <div style={{ marginTop: 32, paddingTop: 20, borderTop: '1px solid var(--cp-border)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-        <span style={{ fontSize: 10, letterSpacing: 2, color: '#E8C48D', fontWeight: 600 }}>{tl('title')}</span>
+        <span style={{ fontSize: 10, letterSpacing: 2, color: 'var(--cp-warm)', fontWeight: 600 }}>{tl('title')}</span>
         <span style={{
           fontSize: 9, fontWeight: 600, letterSpacing: 0.5,
           color: merchant.has_luma_key ? 'var(--cp-green)' : 'var(--cp-text-dim)',

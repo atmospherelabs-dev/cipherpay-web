@@ -57,6 +57,7 @@ export const InvoicesTab = memo(function InvoicesTab({
   const [expandedInvoice, setExpandedInvoice] = useState<string | null>(null);
   const [refundingInvoiceId, setRefundingInvoiceId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
 
   const [showPayLinkForm, setShowPayLinkForm] = useState(false);
 
@@ -182,29 +183,68 @@ export const InvoicesTab = memo(function InvoicesTab({
         )}
 
         {!loadingInvoices && invoices.length > 0 && (() => {
+          const hasEvents = invoices.some(i => i.is_event);
+          const hasLuma = invoices.some(i => i.is_luma);
+          const hasRecurring = invoices.some(i => getInvoiceType(i, recurringPriceIds) === 'recurring');
+          const hasBilling = invoices.some(i => getInvoiceType(i, recurringPriceIds) === 'billing');
+          const typeFilters: { key: string; label: string; match: (i: Invoice) => boolean }[] = [
+            { key: 'all', label: t('typeAll'), match: () => true },
+            { key: 'payments', label: t('typeOneTime'), match: (i) => !i.is_event && getInvoiceType(i, recurringPriceIds) === 'payment' },
+          ];
+          if (hasRecurring) typeFilters.push({ key: 'recurring', label: t('typeRecurring'), match: (i) => getInvoiceType(i, recurringPriceIds) === 'recurring' });
+          if (hasEvents) typeFilters.push({ key: 'tickets', label: t('typeTickets'), match: (i) => i.is_event && !i.is_luma });
+          if (hasLuma) typeFilters.push({ key: 'luma', label: t('typeLuma'), match: (i) => !!i.is_luma });
+          if (hasBilling) typeFilters.push({ key: 'billing', label: t('typeBilling'), match: (i) => getInvoiceType(i, recurringPriceIds) === 'billing' });
+
           const statuses = ['all', ...Array.from(new Set(invoices.map(i => i.status)))];
           return (
-            <div style={{ display: 'flex', gap: 6, padding: '0 18px 12px', flexWrap: 'wrap' }}>
-              {statuses.map(s => {
-                const isActive = statusFilter === s;
-                const count = s === 'all' ? invoices.length : invoices.filter(i => i.status === s).length;
-                return (
-                  <button
-                    key={s}
-                    onClick={() => setStatusFilter(s)}
-                    style={{
-                      background: isActive ? 'rgba(255,255,255,0.06)' : 'transparent',
-                      border: `1px solid ${isActive ? 'var(--cp-text-dim)' : 'var(--cp-border)'}`,
-                      borderRadius: 4, padding: '3px 8px', cursor: 'pointer',
-                      fontSize: 9, fontFamily: 'inherit', letterSpacing: 0.5,
-                      color: isActive ? 'var(--cp-text)' : 'var(--cp-text-dim)',
-                      transition: 'all 0.15s',
-                    }}
-                  >
-                    {s.toUpperCase()} <span style={{ opacity: 0.5, marginLeft: 2 }}>{count}</span>
-                  </button>
-                );
-              })}
+            <div style={{ padding: '0 18px 12px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {typeFilters.length > 2 && (
+                <div className="dash-filter-pills" style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {typeFilters.map(tf => {
+                    const isActive = typeFilter === tf.key;
+                    const count = invoices.filter(tf.match).length;
+                    return (
+                      <button
+                        key={tf.key}
+                        onClick={() => setTypeFilter(tf.key)}
+                        style={{
+                          background: isActive ? 'rgba(255,255,255,0.06)' : 'transparent',
+                          border: `1px solid ${isActive ? 'var(--cp-text-dim)' : 'var(--cp-border)'}`,
+                          borderRadius: 4, padding: '3px 8px', cursor: 'pointer',
+                          fontSize: 9, fontFamily: 'inherit', letterSpacing: 0.5,
+                          color: isActive ? 'var(--cp-text)' : 'var(--cp-text-dim)',
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        {tf.label} <span style={{ opacity: 0.5, marginLeft: 2 }}>{count}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              <div className="dash-filter-pills" style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {statuses.map(s => {
+                  const isActive = statusFilter === s;
+                  const count = s === 'all' ? invoices.length : invoices.filter(i => i.status === s).length;
+                  return (
+                    <button
+                      key={s}
+                      onClick={() => setStatusFilter(s)}
+                      style={{
+                        background: isActive ? 'rgba(255,255,255,0.06)' : 'transparent',
+                        border: `1px solid ${isActive ? 'var(--cp-text-dim)' : 'var(--cp-border)'}`,
+                        borderRadius: 4, padding: '3px 8px', cursor: 'pointer',
+                        fontSize: 9, fontFamily: 'inherit', letterSpacing: 0.5,
+                        color: isActive ? 'var(--cp-text)' : 'var(--cp-text-dim)',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      {s.toUpperCase()} <span style={{ opacity: 0.5, marginLeft: 2 }}>{count}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           );
         })()}
@@ -219,7 +259,15 @@ export const InvoicesTab = memo(function InvoicesTab({
             <div>{t('noInvoices')}</div>
           </div>
         ) : (
-          invoices.filter(inv => statusFilter === 'all' || inv.status === statusFilter).map((inv) => {
+          invoices.filter(inv => {
+            if (statusFilter !== 'all' && inv.status !== statusFilter) return false;
+            if (typeFilter === 'payments') return !inv.is_event && getInvoiceType(inv, recurringPriceIds) === 'payment';
+            if (typeFilter === 'recurring') return getInvoiceType(inv, recurringPriceIds) === 'recurring';
+            if (typeFilter === 'tickets') return inv.is_event && !inv.is_luma;
+            if (typeFilter === 'luma') return !!inv.is_luma;
+            if (typeFilter === 'billing') return getInvoiceType(inv, recurringPriceIds) === 'billing';
+            return true;
+          }).map((inv) => {
             const priceStr = fiatStr(inv, displayCurrency);
             const isExpanded = expandedInvoice === inv.id;
             const isOverpaid = inv.received_zatoshis > inv.price_zatoshis + 1000 && inv.price_zatoshis > 0;
@@ -235,7 +283,7 @@ export const InvoicesTab = memo(function InvoicesTab({
                       {t(invType === 'billing' ? 'platform' : invType === 'recurring' ? 'recurring' : 'oneTime')}
                     </span>
                     {inv.is_event && (
-                      <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: 0.5, color: inv.is_luma ? '#E8C48D' : 'var(--cp-cyan)', background: inv.is_luma ? 'rgba(232,196,141,0.1)' : 'rgba(86,212,200,0.1)', padding: '1px 6px', borderRadius: 3 }}>
+                      <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: 0.5, color: inv.is_luma ? 'var(--cp-warm)' : 'var(--cp-cyan)', background: inv.is_luma ? 'var(--cp-warm-bg)' : 'rgba(86,212,200,0.1)', padding: '1px 6px', borderRadius: 3 }}>
                         {inv.is_luma ? te('lumaBadge') : te('ticketBadge')}
                       </span>
                     )}

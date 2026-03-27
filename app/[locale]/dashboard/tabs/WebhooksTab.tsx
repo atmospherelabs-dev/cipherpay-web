@@ -7,9 +7,11 @@ import { api, type WebhookDelivery } from '@/lib/api';
 interface WebhooksTabProps {
   initialDeliveries: WebhookDelivery[];
   initialTotal: number;
+  hasWebhookUrl: boolean;
+  onGoToSettings: () => void;
 }
 
-export function WebhooksTab({ initialDeliveries, initialTotal }: WebhooksTabProps) {
+export function WebhooksTab({ initialDeliveries, initialTotal, hasWebhookUrl, onGoToSettings }: WebhooksTabProps) {
   const t = useTranslations('dashboard.webhooks');
   const [filter, setFilter] = useState<string>('all');
   const [page, setPage] = useState(0);
@@ -45,6 +47,22 @@ export function WebhooksTab({ initialDeliveries, initialTotal }: WebhooksTabProp
           <span style={{ fontSize: 10, color: 'var(--cp-text-dim)' }}>{total} {t('total')}</span>
         </div>
       </div>
+
+      {!hasWebhookUrl && (
+        <div className="panel" style={{ overflow: 'visible' }}>
+          <div className="panel-body" style={{ padding: '20px 24px' }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--cp-text)', marginBottom: 6 }}>
+              {t('setupTitle')}
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--cp-text-muted)', lineHeight: 1.6, marginBottom: 16, maxWidth: 480 }}>
+              {t('setupDesc')}
+            </div>
+            <button onClick={onGoToSettings} className="btn-primary" style={{ fontSize: 10 }}>
+              {t('setupCta')}
+            </button>
+          </div>
+        </div>
+      )}
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {['all', 'delivered', 'pending', 'failed'].map(s => (

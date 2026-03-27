@@ -10,7 +10,8 @@
     "id": "ID",
     "address": "Endereço",
     "overview": "VISÃO GERAL",
-    "store": "LOJA",
+    "commerce": "COMÉRCIO",
+    "developer": "DESENVOLVEDOR",
     "products": "PRODUTOS",
     "events": "EVENTOS",
     "pos": "PDV",
@@ -59,8 +60,9 @@
     "network": "Rede",
     "activeEvents": "EVENTOS ATIVOS",
     "ticketsSold": "{count} ingressos vendidos",
-    "createEvent": "+ CRIAR EVENTO",
-    "importFromLuma": "IMPORTAR DO LUMA",
+    "createEvent": "+ EVENTO",
+    "newCipherEvent": "Novo CipherEvent",
+    "importFromLuma": "Importar do Luma",
     "upcomingEvents": "Próximos Eventos",
     "soldLabel": "vendidos",
     "lumaIntegration": "Integração Luma"
@@ -145,6 +147,12 @@
   "invoices": {
     "title": "Faturas",
     "subtitle": "Acompanhe pagamentos, crie links de pagamento únicos e gerencie reembolsos.",
+    "typeAll": "TODOS",
+    "typeOneTime": "AVULSO",
+    "typeRecurring": "RECORRENTE",
+    "typeTickets": "INGRESSOS",
+    "typeLuma": "LUMA",
+    "typeBilling": "PLATAFORMA",
     "paymentLink": "+ LINK DE PAGAMENTO",
     "exportCsv": "EXPORTAR CSV",
     "createPaymentLink": "CRIAR LINK DE PAGAMENTO",
@@ -278,13 +286,23 @@
     "colError": "ERRO",
     "empty": "Nenhuma entrega de webhook ainda. Configure uma URL de webhook em Configurações para receber eventos.",
     "prev": "ANT",
-    "next": "PRÓX"
+    "next": "PRÓX",
+    "setupTitle": "Nenhuma URL de webhook configurada",
+    "setupDesc": "Adicione uma URL de webhook nas Configurações para receber notificações em tempo real quando faturas forem pagas, expiradas ou reembolsadas.",
+    "setupCta": "Configurar →"
   },
   "x402": {
     "title": "Pagamentos Agênticos",
     "subtitle": "Verificações de pagamento das suas integrações de API via x402 e MPP.",
     "noVerifications": "Nenhuma verificação de pagamento ainda",
-    "txid": "TX"
+    "txid": "TX",
+    "emptyTitle": "Deixe agentes IA pagarem pela sua API",
+    "emptyDesc": "Pagamentos agênticos permitem que agentes IA e bots paguem pelo acesso à API usando Zcash — sem contas, sem cartões de crédito, sem KYC. Adicione um único middleware ao seu servidor e comece a monetizar qualquer endpoint.",
+    "emptyUseCase1": "APIs pay-per-request",
+    "emptyUseCase2": "Conteúdo e dados protegidos",
+    "emptyUseCase3": "Micropagamentos máquina-a-máquina",
+    "emptyDocs": "Ler a documentação",
+    "emptyGetStarted": "Começar →"
   },
   "pos": {
     "title": "PDV // Ponto de Venda",

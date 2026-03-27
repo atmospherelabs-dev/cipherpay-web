@@ -429,7 +429,7 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
                 }}
                 className="btn btn-small"
                 disabled={lumaSyncing}
-                style={{ fontSize: 9, color: '#E8C48D', borderColor: 'rgba(232,196,141,0.3)', opacity: lumaSyncing ? 0.5 : 1 }}
+                style={{ fontSize: 9, color: 'var(--cp-warm)', borderColor: 'var(--cp-warm-border)', opacity: lumaSyncing ? 0.5 : 1 }}
               >
                 {lumaSyncing ? t('lumaSyncing') : t('lumaSyncButton')}
               </button>
@@ -510,7 +510,7 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
                       href={event.luma_event_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{ color: '#E8C48D', textDecoration: 'none', fontWeight: 600, letterSpacing: 0.5 }}
+                      style={{ color: 'var(--cp-warm)', textDecoration: 'none', fontWeight: 600, letterSpacing: 0.5 }}
                     >
                       {t('viewOnLuma')}
                     </a>
@@ -556,7 +556,7 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
           {/* Attendance stats */}
           <div style={{ padding: 24, borderBottom: '1px solid var(--cp-border)' }}>
             <div className="section-label">{t('attendance')}</div>
-            <div style={{ display: 'grid', gridTemplateColumns: event.luma_event_id ? '1fr' : '1fr 1fr', gap: 12 }}>
+            <div className="dash-date-location" style={{ display: 'grid', gridTemplateColumns: event.luma_event_id ? '1fr' : '1fr 1fr', gap: 12 }}>
               <div style={{ border: '1px solid var(--cp-border)', borderRadius: 6, padding: '12px 16px' }}>
                 <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--cp-cyan)' }}>
                   <SoldDisplay sold={event.sold_count} capacity={event.total_capacity} t={t} />
@@ -721,7 +721,7 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
                 }
               }}
               className="btn btn-small"
-              style={{ color: '#E8C48D', borderColor: 'rgba(232,196,141,0.3)' }}
+              style={{ color: 'var(--cp-warm)', borderColor: 'var(--cp-warm-border)' }}
             >
               {showLumaImport ? tc('cancel') : t('importFromLuma')}
             </button>
@@ -836,7 +836,7 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
                     <button
                       className="btn btn-small"
                       disabled={lumaImporting === ev.api_id}
-                      style={{ color: '#E8C48D', borderColor: 'rgba(232,196,141,0.3)', opacity: lumaImporting === ev.api_id ? 0.5 : 1 }}
+                      style={{ color: 'var(--cp-warm)', borderColor: 'var(--cp-warm-border)', opacity: lumaImporting === ev.api_id ? 0.5 : 1 }}
                       onClick={async () => {
                         setLumaImporting(ev.api_id);
                         try {
@@ -882,7 +882,7 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
                 <span className="invoice-id">{event.title}</span>
                 <StatusBadge status={event.status} />
                 {event.luma_event_id && (
-                  <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: 0.5, color: '#E8C48D', background: 'rgba(232,196,141,0.1)', padding: '2px 7px', borderRadius: 3, border: '1px solid rgba(232,196,141,0.3)' }}>
+                  <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: 0.5, color: 'var(--cp-warm)', background: 'var(--cp-warm-bg)', padding: '2px 7px', borderRadius: 3, border: '1px solid var(--cp-warm-border)' }}>
                     {t('lumaBadge')}
                   </span>
                 )}

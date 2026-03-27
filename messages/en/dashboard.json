@@ -10,7 +10,8 @@
     "id": "ID",
     "address": "Address",
     "overview": "OVERVIEW",
-    "store": "STORE",
+    "commerce": "COMMERCE",
+    "developer": "DEVELOPER",
     "products": "PRODUCTS",
     "events": "EVENTS",
     "pos": "POS",
@@ -59,8 +60,9 @@
     "network": "Network",
     "activeEvents": "ACTIVE EVENTS",
     "ticketsSold": "{count} tickets sold",
-    "createEvent": "+ CREATE EVENT",
-    "importFromLuma": "IMPORT FROM LUMA",
+    "createEvent": "+ EVENT",
+    "newCipherEvent": "New CipherEvent",
+    "importFromLuma": "Import from Luma",
     "upcomingEvents": "Upcoming Events",
     "soldLabel": "sold",
     "lumaIntegration": "Luma Integration"
@@ -145,6 +147,12 @@
   "invoices": {
     "title": "Invoices",
     "subtitle": "Track payments, create one-time payment links, and manage refunds.",
+    "typeAll": "ALL",
+    "typeOneTime": "ONE-TIME",
+    "typeRecurring": "RECURRING",
+    "typeTickets": "TICKETS",
+    "typeLuma": "LUMA",
+    "typeBilling": "PLATFORM",
     "paymentLink": "+ PAYMENT LINK",
     "exportCsv": "EXPORT CSV",
     "createPaymentLink": "CREATE PAYMENT LINK",
@@ -278,13 +286,23 @@
     "colError": "ERROR",
     "empty": "No webhook deliveries yet. Configure a webhook URL in Settings to start receiving events.",
     "prev": "PREV",
-    "next": "NEXT"
+    "next": "NEXT",
+    "setupTitle": "No webhook URL configured",
+    "setupDesc": "Add a webhook URL in Settings to receive real-time notifications when invoices are paid, expired, or refunded.",
+    "setupCta": "Configure in Settings →"
   },
   "x402": {
     "title": "Agentic Payments",
     "subtitle": "Payment verifications from your API integrations via x402 and MPP protocols.",
     "noVerifications": "No payment verifications yet",
-    "txid": "TX"
+    "txid": "TX",
+    "emptyTitle": "Let AI agents pay for your API",
+    "emptyDesc": "Agentic payments let AI agents and bots pay for API access using Zcash — no accounts, no credit cards, no KYC. Add a single middleware to your server and start monetizing any endpoint.",
+    "emptyUseCase1": "Pay-per-request APIs",
+    "emptyUseCase2": "Gated content & data feeds",
+    "emptyUseCase3": "Machine-to-machine micropayments",
+    "emptyDocs": "Read the docs",
+    "emptyGetStarted": "Get started →"
   },
   "pos": {
     "title": "POS // Point of Sale",

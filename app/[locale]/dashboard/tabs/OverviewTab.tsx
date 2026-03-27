@@ -1,6 +1,6 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import type { MerchantInfo, Invoice, Product, BillingSummary, ZecRates, EventSummary } from '@/lib/api';
 import { currencySymbol, zecToFiat, fiatLabel } from '@/lib/currency';
@@ -50,14 +50,15 @@ export const OverviewTab = memo(function OverviewTab({
   const webhookConfigured = !!merchant.webhook_url;
   const emailConfigured = merchant.has_recovery_email;
   const nameConfigured = !!merchant.name;
+  const [showEventMenu, setShowEventMenu] = useState(false);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* Stat cards */}
       <div className="dash-stat-grid">
         <div className="panel" style={{ textAlign: 'center' }}>
-          <div className="panel-body" style={{ padding: '16px 10px' }}>
-            <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--cp-cyan)', lineHeight: 1.2 }}>
+          <div className="panel-body" style={{ padding: '20px 12px' }}>
+            <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--cp-text)', lineHeight: 1.2 }}>
               {merchant.stats.total_zec.toFixed(4)}
             </div>
             <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
@@ -71,8 +72,8 @@ export const OverviewTab = memo(function OverviewTab({
           </div>
         </div>
         <div className="panel" style={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => setTab('invoices')}>
-          <div className="panel-body" style={{ padding: '16px 10px' }}>
-            <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--cp-green)', lineHeight: 1.2 }}>
+          <div className="panel-body" style={{ padding: '20px 12px' }}>
+            <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--cp-text)', lineHeight: 1.2 }}>
               {merchant.stats.confirmed}
             </div>
             <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
@@ -84,8 +85,8 @@ export const OverviewTab = memo(function OverviewTab({
           </div>
         </div>
         <div className="panel" style={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => setTab('invoices')}>
-          <div className="panel-body" style={{ padding: '16px 10px' }}>
-            <div style={{ fontSize: 22, fontWeight: 700, color: pending > 0 ? 'var(--cp-yellow)' : 'var(--cp-text-dim)', lineHeight: 1.2 }}>
+          <div className="panel-body" style={{ padding: '20px 12px' }}>
+            <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--cp-text)', lineHeight: 1.2 }}>
               {pending + detected}
             </div>
             <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
@@ -99,7 +100,7 @@ export const OverviewTab = memo(function OverviewTab({
           </div>
         </div>
         <div className="panel" style={{ textAlign: 'center' }}>
-          <div className="panel-body" style={{ padding: '16px 10px' }}>
+          <div className="panel-body" style={{ padding: '20px 12px' }}>
             <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--cp-text)', lineHeight: 1.2 }}>
               {rate}%
             </div>
@@ -112,8 +113,8 @@ export const OverviewTab = memo(function OverviewTab({
           </div>
         </div>
         <div className="panel" style={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => setTab('events')}>
-          <div className="panel-body" style={{ padding: '16px 10px' }}>
-            <div style={{ fontSize: 22, fontWeight: 700, color: '#E8C48D', lineHeight: 1.2 }}>
+          <div className="panel-body" style={{ padding: '20px 12px' }}>
+            <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--cp-text)', lineHeight: 1.2 }}>
               {activeEvents.length}
             </div>
             <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
@@ -129,7 +130,7 @@ export const OverviewTab = memo(function OverviewTab({
       </div>
 
       {/* Quick actions */}
-      <div className="panel">
+      <div className="panel" style={{ overflow: 'visible', zIndex: 2, position: 'relative' }}>
         <div className="panel-header">
           <span className="panel-title">{t('quickActions')}</span>
         </div>
@@ -143,14 +144,39 @@ export const OverviewTab = memo(function OverviewTab({
           <button onClick={() => setTab('pos')} className="btn" style={{ fontSize: 10 }}>
             {t('openPos')}
           </button>
-          <button onClick={() => navigateWithAction('events', 'create-event')} className="btn" style={{ fontSize: 10 }}>
-            {t('createEvent')}
-          </button>
-          {isTestnet && (
-            <button onClick={() => navigateWithAction('events', 'import-luma')} className="btn" style={{ fontSize: 10, color: '#E8C48D', borderColor: 'rgba(232,196,141,0.3)' }}>
-              {t('importFromLuma')}
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => setShowEventMenu(!showEventMenu)}
+              className="btn"
+              style={{ fontSize: 10 }}
+            >
+              {t('createEvent')} <span style={{ fontSize: 8, marginLeft: 2, opacity: 0.6 }}>▼</span>
             </button>
-          )}
+            {showEventMenu && (
+              <div style={{
+                position: 'absolute', top: '100%', left: 0, marginTop: 4, zIndex: 50,
+                background: 'var(--cp-surface)', border: '1px solid var(--cp-border)',
+                borderRadius: 6, padding: 4, minWidth: 160,
+                boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+              }}>
+                <button
+                  onClick={() => { setShowEventMenu(false); navigateWithAction('events', 'create-event'); }}
+                  className="dash-dropdown-item"
+                >
+                  {t('newCipherEvent')}
+                </button>
+                {isTestnet && (
+                  <button
+                    onClick={() => { setShowEventMenu(false); navigateWithAction('events', 'import-luma'); }}
+                    className="dash-dropdown-item"
+                    style={{ color: 'var(--cp-warm)' }}
+                  >
+                    {t('importFromLuma')}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -169,7 +195,7 @@ export const OverviewTab = memo(function OverviewTab({
             </div>
           ) : (
             recentInvoices.map((inv) => (
-              <div key={inv.id} className="stat-row" style={{ padding: '8px 0', cursor: 'pointer' }} onClick={() => setTab('invoices')}>
+              <div key={inv.id} className="stat-row dash-activity-row" style={{ cursor: 'pointer' }} onClick={() => setTab('invoices')}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
                   <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--cp-text)' }}>
                     {inv.product_name || inv.memo_code}
@@ -207,14 +233,14 @@ export const OverviewTab = memo(function OverviewTab({
           </div>
           <div className="panel-body">
             {upcomingEvents.map((ev) => (
-              <div key={ev.id} className="stat-row" style={{ padding: '8px 0', cursor: 'pointer' }} onClick={() => setTab('events')}>
+              <div key={ev.id} className="stat-row dash-activity-row" style={{ cursor: 'pointer' }} onClick={() => setTab('events')}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--cp-text)' }}>
                       {ev.title}
                     </span>
                     {ev.luma_event_id && (
-                      <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: 0.5, color: '#E8C48D', background: 'rgba(232,196,141,0.1)', padding: '1px 5px', borderRadius: 3, border: '1px solid rgba(232,196,141,0.3)' }}>
+                      <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: 0.5, color: 'var(--cp-warm)', background: 'var(--cp-warm-bg)', padding: '1px 5px', borderRadius: 3, border: '1px solid var(--cp-warm-border)' }}>
                         LUMA
                       </span>
                     )}
@@ -225,7 +251,7 @@ export const OverviewTab = memo(function OverviewTab({
                   </span>
                 </div>
                 <div style={{ flexShrink: 0, textAlign: 'right' }}>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--cp-cyan)' }}>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--cp-text)' }}>
                     {ev.total_capacity != null
                       ? `${ev.sold_count} / ${ev.total_capacity}`
                       : ev.sold_count}
@@ -249,17 +275,7 @@ export const OverviewTab = memo(function OverviewTab({
           <div className="stat-row">
             <span style={{ color: 'var(--cp-text-muted)' }}>{t('storeName')}</span>
             {nameConfigured ? (
-              <span style={{ color: 'var(--cp-green)', fontSize: 10, fontWeight: 600 }}>✓ {tc('configured')}</span>
-            ) : (
-              <button onClick={() => setTab('settings')} style={{ background: 'none', border: 'none', color: 'var(--cp-yellow)', fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: 1 }}>
-                {tc('setUp')}
-              </button>
-            )}
-          </div>
-          <div className="stat-row">
-            <span style={{ color: 'var(--cp-text-muted)' }}>{t('webhook')}</span>
-            {webhookConfigured ? (
-              <span style={{ color: 'var(--cp-green)', fontSize: 10, fontWeight: 600 }}>✓ {tc('configured')}</span>
+              <span style={{ color: 'var(--cp-green)', fontSize: 14, fontWeight: 700 }}>✓</span>
             ) : (
               <button onClick={() => setTab('settings')} style={{ background: 'none', border: 'none', color: 'var(--cp-yellow)', fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: 1 }}>
                 {tc('setUp')}
@@ -269,7 +285,17 @@ export const OverviewTab = memo(function OverviewTab({
           <div className="stat-row">
             <span style={{ color: 'var(--cp-text-muted)' }}>{t('recoveryEmail')}</span>
             {emailConfigured ? (
-              <span style={{ color: 'var(--cp-green)', fontSize: 10, fontWeight: 600 }}>✓ {tc('configured')}</span>
+              <span style={{ color: 'var(--cp-green)', fontSize: 14, fontWeight: 700 }}>✓</span>
+            ) : (
+              <button onClick={() => setTab('settings')} style={{ background: 'none', border: 'none', color: 'var(--cp-yellow)', fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: 1 }}>
+                {tc('setUp')}
+              </button>
+            )}
+          </div>
+          <div className="stat-row">
+            <span style={{ color: 'var(--cp-text-muted)' }}>{t('webhook')}</span>
+            {webhookConfigured ? (
+              <span style={{ color: 'var(--cp-green)', fontSize: 14, fontWeight: 700 }}>✓</span>
             ) : (
               <button onClick={() => setTab('settings')} style={{ background: 'none', border: 'none', color: 'var(--cp-yellow)', fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: 1 }}>
                 {tc('setUp')}
@@ -292,7 +318,7 @@ export const OverviewTab = memo(function OverviewTab({
             <div className="stat-row">
               <span style={{ color: 'var(--cp-text-muted)' }}>{t('lumaIntegration')}</span>
               {hasLumaKey ? (
-                <span style={{ color: 'var(--cp-green)', fontSize: 10, fontWeight: 600 }}>✓ {tc('configured')}</span>
+                <span style={{ color: 'var(--cp-green)', fontSize: 14, fontWeight: 700 }}>✓</span>
               ) : (
                 <button onClick={() => setTab('settings')} style={{ background: 'none', border: 'none', color: 'var(--cp-text-dim)', fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: 1 }}>
                   {tc('optional')}
@@ -300,6 +326,12 @@ export const OverviewTab = memo(function OverviewTab({
               )}
             </div>
           )}
+          <div className="stat-row">
+            <span style={{ color: 'var(--cp-text-muted)' }}>{t('network')}</span>
+            <span style={{ fontSize: 10, fontWeight: 500, color: merchant.payment_address.startsWith('utest') ? 'var(--cp-yellow)' : 'var(--cp-green)' }}>
+              {merchant.payment_address.startsWith('utest') ? tn('testnet') : tn('mainnet')}
+            </span>
+          </div>
           <div className="stat-row" style={{ cursor: 'pointer' }} onClick={() => setTab('products')}>
             <span style={{ color: 'var(--cp-text-muted)' }}>{t('productsLabel')}</span>
             <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--cp-text)' }}>{products.length}</span>
@@ -307,12 +339,6 @@ export const OverviewTab = memo(function OverviewTab({
           <div className="stat-row" style={{ cursor: 'pointer' }} onClick={() => setTab('events')}>
             <span style={{ color: 'var(--cp-text-muted)' }}>{t('eventsLabel')}</span>
             <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--cp-text)' }}>{events.length}</span>
-          </div>
-          <div className="stat-row">
-            <span style={{ color: 'var(--cp-text-muted)' }}>{t('network')}</span>
-            <span style={{ fontSize: 10, fontWeight: 500, color: merchant.payment_address.startsWith('utest') ? 'var(--cp-yellow)' : 'var(--cp-green)' }}>
-              {merchant.payment_address.startsWith('utest') ? tn('testnet') : tn('mainnet')}
-            </span>
           </div>
         </div>
       </div>

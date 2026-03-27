@@ -12,12 +12,10 @@ interface DashboardSidebarProps {
   tab: Tab;
   setTab: (t: Tab) => void;
   billing: BillingSummary | null;
-  hasX402: boolean;
-  hasWebhooks: boolean;
 }
 
 export const DashboardSidebar = memo(function DashboardSidebar({
-  merchant, tab, setTab, billing, hasX402, hasWebhooks,
+  merchant, tab, setTab, billing,
 }: DashboardSidebarProps) {
   const t = useTranslations('dashboard.sidebar');
   const navButton = (key: Tab, label: string, badge?: React.ReactNode) => (
@@ -65,14 +63,19 @@ export const DashboardSidebar = memo(function DashboardSidebar({
 
         <div className="dash-sidebar-divider" />
 
-        <div className="dash-sidebar-label"><span style={{ color: 'var(--cp-cyan)', opacity: 0.4 }}>//</span> {t('store')}</div>
+        <div className="dash-sidebar-label"><span style={{ color: 'var(--cp-cyan)', opacity: 0.4 }}>//</span> {t('commerce')}</div>
         <div className="dash-sidebar-nav-group">
+          {navButton('invoices', t('invoices'))}
           {navButton('products', t('products'))}
           {navButton('events', t('events'))}
           {navButton('pos', t('pos'))}
-          {navButton('invoices', t('invoices'))}
-          {hasWebhooks && navButton('webhooks', t('webhooks'))}
-          {hasX402 && navButton('x402', t('x402'))}
+        </div>
+
+        <div className="dash-sidebar-divider" />
+        <div className="dash-sidebar-label"><span style={{ color: 'var(--cp-cyan)', opacity: 0.4 }}>//</span> {t('developer')}</div>
+        <div className="dash-sidebar-nav-group">
+          {navButton('webhooks', t('webhooks'))}
+          {navButton('x402', t('x402'))}
         </div>
 
         <div className="dash-sidebar-divider" />

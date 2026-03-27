@@ -32,6 +32,9 @@
   --cp-yellow: #eab308;
   --cp-orange: #f97316;
   --cp-red: #ef4444;
+  --cp-warm: #E8C48D;
+  --cp-warm-bg: rgba(232,196,141,0.1);
+  --cp-warm-border: rgba(232,196,141,0.3);
 }
 
 .light {
@@ -50,6 +53,9 @@
   --cp-yellow: #a16207;
   --cp-orange: #ea580c;
   --cp-red: #dc2626;
+  --cp-warm: #92700a;
+  --cp-warm-bg: rgba(146,112,10,0.08);
+  --cp-warm-border: rgba(146,112,10,0.25);
 }
 
 .light .mesh-gradient {
@@ -591,6 +597,14 @@ body {
   animation: pulse 2s ease-in-out infinite;
 }
 
+/* ── Dashboard container ── */
+
+.dash-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
 /* ── Grid layout ── */
 
 .grid-layout {
@@ -663,7 +677,8 @@ body {
 
 .dash-nav-btn.active {
   background: var(--cp-surface);
-  border-color: var(--cp-border);
+  border-color: transparent;
+  border-left: 2px solid var(--cp-cyan);
   font-weight: 600;
   color: var(--cp-cyan);
 }
@@ -678,16 +693,62 @@ body {
 .dash-stat-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
+  gap: 12px;
 }
 
 .dash-stat-grid .panel {
   transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
 }
 
+.dash-stat-grid .panel[style*="cursor: pointer"]:hover {
+  border-color: var(--cp-cyan);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(86, 212, 200, 0.08);
+}
+
+/* ── Dashboard activity rows ── */
+
+.dash-activity-row {
+  padding: 8px 4px;
+  margin: 0 -4px;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+
+.dash-activity-row:hover {
+  background: var(--cp-hover);
+}
+
+/* ── Dashboard dropdown menu ── */
+
+.dash-dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  color: var(--cp-text);
+  font-size: 10px;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.15s;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.dash-dropdown-item:hover {
+  background: var(--cp-hover);
+}
+
 /* ── Dashboard responsive ── */
 
 @media (max-width: 800px) {
+  .dash-sidebar {
+    overflow: hidden;
+  }
+
   .dash-sidebar-identity {
     display: none;
   }
@@ -698,8 +759,10 @@ body {
     overflow-x: auto;
     gap: 0;
     -webkit-overflow-scrolling: touch;
-    padding-bottom: 4px;
+    padding: 0 24px 0;
+    margin: 0 -24px;
     scrollbar-width: none;
+    border-bottom: 1px solid var(--cp-border);
   }
 
   .dash-sidebar-nav::-webkit-scrollbar {
@@ -1170,10 +1233,18 @@ body {
     grid-template-columns: 1fr;
   }
 
+  .dash-container {
+    padding: 12px;
+  }
+
   .dash-nav-rate,
   .dash-nav-network,
   .dash-nav-divider {
     display: none !important;
+  }
+
+  .site-header > div {
+    gap: 6px;
   }
 
   .dash-stat-grid {
@@ -1195,6 +1266,30 @@ body {
 
   .dash-settings-row {
     flex-wrap: wrap;
+  }
+
+  .dash-settings-row .input {
+    width: 100%;
+    flex: 1 1 100% !important;
+  }
+
+  .dash-settings-row .btn,
+  .dash-settings-row .btn-small {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .dash-settings-buttons {
+    flex-direction: column;
+  }
+
+  .dash-filter-pills {
+    flex-wrap: wrap;
+  }
+
+  .panel-header {
+    flex-wrap: wrap;
+    gap: 8px;
   }
 
   .stat-row {
