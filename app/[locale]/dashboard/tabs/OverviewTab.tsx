@@ -135,8 +135,11 @@ export const OverviewTab = memo(function OverviewTab({
           <span className="panel-title">{t('quickActions')}</span>
         </div>
         <div className="panel-body" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button onClick={() => navigateWithAction('invoices', 'create-paylink')} className="btn-primary" style={{ fontSize: 10 }}>
+          <button onClick={() => navigateWithAction('links', 'create-link')} className="btn-primary" style={{ fontSize: 10 }}>
             {t('createPayLink')}
+          </button>
+          <button onClick={() => navigateWithAction('invoices', 'create-paylink')} className="btn" style={{ fontSize: 10 }}>
+            {t('quickInvoice')}
           </button>
           <button onClick={() => navigateWithAction('products', 'add-product')} className="btn" style={{ fontSize: 10 }}>
             {t('addProduct')}

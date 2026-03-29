@@ -5,19 +5,29 @@ import { api, type PaymentLink, type Product } from '@/lib/api';
 import { CopyButton } from '@/components/CopyButton';
 import { Spinner } from '@/components/Spinner';
 import { useToast } from '@/contexts/ToastContext';
+import type { TabAction } from '../DashboardClient';
 
 interface PaymentLinksTabProps {
   products: Product[];
   checkoutOrigin: string;
+  initialAction?: TabAction;
+  clearAction?: () => void;
 }
 
 export const PaymentLinksTab = memo(function PaymentLinksTab({
-  products, checkoutOrigin,
+  products, checkoutOrigin, initialAction, clearAction,
 }: PaymentLinksTabProps) {
   const { showToast } = useToast();
   const [links, setLinks] = useState<PaymentLink[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
+
+  useEffect(() => {
+    if (initialAction === 'create-link') {
+      setShowCreate(true);
+      clearAction?.();
+    }
+  }, [initialAction, clearAction]);
 
   const loadLinks = useCallback(async () => {
     try {

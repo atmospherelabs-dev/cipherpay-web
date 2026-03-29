@@ -23,7 +23,7 @@ import { WebhooksTab } from './tabs/WebhooksTab';
 import { PaymentLinksTab } from './tabs/PaymentLinksTab';
 
 
-export type TabAction = 'add-product' | 'create-paylink' | 'create-event' | 'import-luma' | null;
+export type TabAction = 'add-product' | 'create-paylink' | 'create-link' | 'create-event' | 'import-luma' | null;
 
 export default function DashboardClient({ merchant }: { merchant: MerchantInfo }) {
   const t = useTranslations('dashboard');
@@ -236,6 +236,8 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
               <PaymentLinksTab
                 products={products}
                 checkoutOrigin={checkoutOrigin}
+                initialAction={tabAction}
+                clearAction={() => setTabAction(null)}
               />
             )}
             {tab === 'pos' && (
