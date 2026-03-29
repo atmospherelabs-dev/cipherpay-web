@@ -134,6 +134,19 @@ export interface Product {
   prices?: Price[];
 }
 
+export interface PaymentLink {
+  id: string;
+  merchant_id: string;
+  price_id: string;
+  slug: string;
+  name: string | null;
+  success_url: string | null;
+  metadata: Record<string, string> | null;
+  active: boolean;
+  total_created: number;
+  created_at: string;
+}
+
 export interface PublicProduct {
   id: string;
   name: string;
@@ -498,6 +511,24 @@ export const api = {
 
   getPublicProduct: (id: string) =>
     request<PublicProduct>(`/api/products/${id}/public`),
+
+  // Payment Links
+  listPaymentLinks: () => request<PaymentLink[]>('/api/payment-links'),
+
+  createPaymentLink: (data: { price_id: string; name?: string; success_url?: string }) =>
+    request<PaymentLink>('/api/payment-links', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  updatePaymentLink: (id: string, data: { name?: string; success_url?: string; active?: boolean }) =>
+    request<PaymentLink>(`/api/payment-links/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  deletePaymentLink: (id: string) =>
+    request<{ status: string }>(`/api/payment-links/${id}`, { method: 'DELETE' }),
 
   // Prices
   createPrice: (data: { product_id: string; currency: string; unit_amount: number; label?: string; max_quantity?: number; price_type?: string; billing_interval?: string; interval_count?: number }) =>

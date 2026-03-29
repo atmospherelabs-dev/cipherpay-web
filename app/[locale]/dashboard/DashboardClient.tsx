@@ -20,6 +20,7 @@ import { BillingTab } from './tabs/BillingTab';
 import { SettingsTab } from './tabs/SettingsTab';
 import { X402Tab } from './tabs/X402Tab';
 import { WebhooksTab } from './tabs/WebhooksTab';
+import { PaymentLinksTab } from './tabs/PaymentLinksTab';
 
 
 export type TabAction = 'add-product' | 'create-paylink' | 'create-event' | 'import-luma' | null;
@@ -229,6 +230,12 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                 isTestnet={merchant.payment_address.startsWith('utest')}
                 initialAction={tabAction}
                 clearAction={() => setTabAction(null)}
+              />
+            )}
+            {tab === 'links' && (
+              <PaymentLinksTab
+                products={products}
+                checkoutOrigin={checkoutOrigin}
               />
             )}
             {tab === 'pos' && (
