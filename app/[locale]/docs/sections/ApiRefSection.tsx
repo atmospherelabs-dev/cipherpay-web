@@ -72,14 +72,23 @@ export default function ApiRefSection() {
         { method: 'PATCH', path: '/api/invoices/{id}/refund-address', auth: '—', desc: 'Set a refund address (buyer-facing)' },
       ]} />
 
-      <div style={{ fontSize: 12, color: 'var(--cp-text)', fontWeight: 600, marginBottom: 8, marginTop: 16 }}>Products</div>
+      <div style={{ fontSize: 12, color: 'var(--cp-text)', fontWeight: 600, marginBottom: 8, marginTop: 16 }}>Products &amp; Checkout</div>
       <EndpointTable endpoints={[
         { method: 'POST', path: '/api/products', auth: 'Session', desc: 'Create a new product (auto-creates a default price)' },
         { method: 'GET', path: '/api/products', auth: 'Session', desc: 'List your products (includes prices)' },
         { method: 'PATCH', path: '/api/products/{id}', auth: 'Session', desc: 'Update a product' },
         { method: 'DELETE', path: '/api/products/{id}', auth: 'Session', desc: 'Deactivate a product' },
         { method: 'GET', path: '/api/products/{id}/public', auth: '—', desc: 'Get public product info with active prices' },
-        { method: 'POST', path: '/api/checkout', auth: '—', desc: 'Create an invoice from a price_id or product_id' },
+        { method: 'POST', path: '/api/checkout', auth: '—', desc: 'Create an invoice from a price_id or product_id. Accepts optional success_url; returns checkout_url.' },
+      ]} />
+
+      <div style={{ fontSize: 12, color: 'var(--cp-text)', fontWeight: 600, marginBottom: 8, marginTop: 16 }}>Payment Links</div>
+      <EndpointTable endpoints={[
+        { method: 'POST', path: '/api/payment-links', auth: 'API Key / Session', desc: 'Create a reusable payment link tied to a price' },
+        { method: 'GET', path: '/api/payment-links', auth: 'API Key / Session', desc: 'List all your payment links' },
+        { method: 'PATCH', path: '/api/payment-links/{id}', auth: 'API Key / Session', desc: 'Update a payment link (name, success_url, active status)' },
+        { method: 'DELETE', path: '/api/payment-links/{id}', auth: 'API Key / Session', desc: 'Delete a payment link' },
+        { method: 'POST', path: '/api/payment-links/{slug}/checkout', auth: '—', desc: 'Resolve a link by slug: creates a new invoice and returns checkout_url (public)' },
       ]} />
 
       <div style={{ fontSize: 12, color: 'var(--cp-text)', fontWeight: 600, marginBottom: 8, marginTop: 16 }}>Prices</div>
@@ -178,6 +187,50 @@ export default function ApiRefSection() {
           <Code>interval_count</Code> — Number of intervals between charges (e.g. 2 with <Code>month</Code> = every 2 months)<br />
           <Code>active</Code> — Whether this price is active and usable
         </div>
+      </Expandable>
+
+      <Expandable title="Checkout: success_url and checkout_url">
+        <Paragraph>
+          When creating an invoice via <Code>POST /api/checkout</Code>, you can include an
+          optional <Code>success_url</Code> in the request body. If provided, the response includes
+          a <Code>checkout_url</Code> — a ready-made URL with the redirect baked in.
+        </Paragraph>
+        <CodeBlock lang="bash" code={`curl -X POST https://api.cipherpay.app/api/checkout \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "price_id": "cprice_a1b2c3...",
+    "success_url": "https://mystore.com/order/confirmed"
+  }'`} />
+        <Paragraph>
+          Response includes:
+        </Paragraph>
+        <div style={{ fontSize: 11, color: 'var(--cp-text-dim)', lineHeight: 2.2, marginBottom: 12 }}>
+          <Code>checkout_url</Code> — Full URL to redirect the buyer to (e.g. <Code>https://cipherpay.app/pay/&#123;id&#125;?return_url=...</Code>)<br />
+          <Code>invoice_id</Code> — The created invoice ID<br />
+          <Code>price_zec</Code> — ZEC amount to pay
+        </div>
+        <Callout type="tip">
+          This is the recommended pattern for platform integrations (Luma, custom apps).
+          One API call, one redirect — no manual URL construction needed.
+        </Callout>
+      </Expandable>
+
+      <Expandable title="Payment link fields">
+        <Paragraph>
+          Payment links are reusable URLs that auto-create a new invoice each time a buyer visits.
+          Managed via the dashboard or API.
+        </Paragraph>
+        <div style={{ fontSize: 11, color: 'var(--cp-text-dim)', lineHeight: 2.2, marginBottom: 12 }}>
+          <Code>price_id</Code> — (required) The price to charge. Must be an active price.<br />
+          <Code>name</Code> — Display name for the link (e.g. &quot;Buy Premium Plan&quot;)<br />
+          <Code>success_url</Code> — Where to redirect the buyer after payment<br />
+          <Code>metadata</Code> — Arbitrary JSON object for your records
+        </div>
+        <Paragraph>
+          Each link gets a unique slug. The public URL is <Code>https://cipherpay.app/link/&#123;slug&#125;</Code>.
+          When a buyer visits, a fresh invoice is created automatically. The link tracks how many invoices it has generated
+          via <Code>total_created</Code>.
+        </Paragraph>
       </Expandable>
 
       <SectionDivider />

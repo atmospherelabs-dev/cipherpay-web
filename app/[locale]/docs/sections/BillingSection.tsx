@@ -27,6 +27,8 @@ export default function BillingSection() {
 
       <Callout type="info">
         The fee rate is displayed in your dashboard billing section. It applies to the ZEC amount of each confirmed invoice.
+        Fees below 25,000 zatoshis (0.00025 ZEC, roughly $0.05) are waived entirely to avoid creating
+        uneconomical dust outputs that cost more to spend than they are worth.
       </Callout>
 
       <SectionDivider />

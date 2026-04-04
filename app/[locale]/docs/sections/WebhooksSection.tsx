@@ -85,7 +85,8 @@ export default function WebhooksSection() {
         <Strong>Headers:</Strong><br />
         <Code>Content-Type: application/json</Code><br />
         <Code>X-CipherPay-Signature</Code> — HMAC-SHA256 signature for verification<br />
-        <Code>X-CipherPay-Timestamp</Code> — ISO 8601 timestamp of when the webhook was sent
+        <Code>X-CipherPay-Timestamp</Code> — ISO 8601 timestamp of when the webhook was sent<br />
+        <Code>X-CipherPay-Delivery-Id</Code> — Unique ID for this delivery (use to deduplicate retries)
       </div>
 
       <div style={{ fontSize: 11, color: 'var(--cp-text)', fontWeight: 600, marginBottom: 8 }}>Payment event payload</div>
@@ -180,12 +181,12 @@ def verify_webhook(headers, body, webhook_secret):
 
       <Expandable title="Retry behavior">
         <Paragraph>
-          If your endpoint returns a non-2xx status code, CipherPay retries the webhook with exponential backoff.
-          Make sure your endpoint is idempotent — it may receive the same event more than once.
+          If your endpoint returns a non-2xx status code, CipherPay retries the webhook with exponential backoff
+          (up to 5 attempts). Make sure your endpoint is idempotent — it may receive the same event more than once.
         </Paragraph>
         <Callout type="tip">
-          A common pattern: store the <Code>invoice_id</Code> in your database when you receive a webhook.
-          Before processing, check if you&apos;ve already handled that invoice. This prevents duplicate fulfillment.
+          Use the <Code>X-CipherPay-Delivery-Id</Code> header to deduplicate retries. Store the delivery ID
+          when you process a webhook and skip any subsequent deliveries with the same ID.
         </Callout>
       </Expandable>
     </>

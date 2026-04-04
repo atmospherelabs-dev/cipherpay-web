@@ -163,11 +163,12 @@ if (result.valid) {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 20 }}>
         {[
-          { n: '1', label: 'Agent opens session', sub: 'POST /api/sessions/open' },
-          { n: '2', label: 'Agent deposits ZEC', sub: 'Shielded tx with memo' },
-          { n: '3', label: 'CipherPay confirms', sub: 'Returns bearer token (cps_...)' },
-          { n: '4', label: 'Agent uses token', sub: 'Authorization: Bearer cps_...' },
-          { n: '5', label: 'Balance deducted', sub: 'Per-request, atomically' },
+          { n: '1', label: 'Agent prepares session', sub: 'POST /api/sessions/prepare' },
+          { n: '2', label: 'Agent deposits ZEC', sub: 'Send to the returned address' },
+          { n: '3', label: 'Agent opens session', sub: 'POST /api/sessions/open with session_request_id' },
+          { n: '4', label: 'CipherPay confirms', sub: 'Returns bearer token (cps_...)' },
+          { n: '5', label: 'Agent uses token', sub: 'Authorization: Bearer cps_...' },
+          { n: '6', label: 'Balance deducted', sub: 'Per-request, atomically' },
         ].map(s => (
           <div key={s.n} style={{ textAlign: 'center', padding: '14px 10px', background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4 }}>
             <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--cp-cyan)', marginBottom: 4 }}>{s.n}</div>
@@ -178,10 +179,15 @@ if (result.valid) {
       </div>
 
       <Paragraph>
-        The deposit transaction must include a memo in the format <Code>{'zipher:session:{merchant_id}'}</Code>.
-        Minimum deposit is 10,000 zatoshis (0.0001 ZEC). The bearer token is returned once the deposit is detected,
-        and expires after the configured TTL (default 24h).
+        First, call <Code>POST /api/sessions/prepare</Code> with the merchant&apos;s API key to get a unique deposit address
+        and a <Code>session_request_id</Code>. Send ZEC to that address, then call <Code>POST /api/sessions/open</Code> with
+        the <Code>session_request_id</Code> and the <Code>txid</Code>. Minimum deposit is 10,000 zatoshis (0.0001 ZEC).
+        The bearer token is returned once the deposit is detected, and expires after the configured TTL (default 24h).
       </Paragraph>
+      <Callout type="warning">
+        The legacy memo-based session flow (<Code>merchant_id</Code> in the open request) is deprecated and will be
+        removed in a future version. Always use <Code>session_request_id</Code> from the prepare endpoint.
+      </Callout>
 
       <Callout type="info">
         Sessions are managed via the MCP server tools (<Code>open_session</Code>, <Code>get_session_status</Code>,
@@ -190,8 +196,9 @@ if (result.valid) {
 
       <Expandable title="Session API endpoints">
         <div style={{ fontSize: 11, color: 'var(--cp-text-dim)', lineHeight: 2.2, marginBottom: 12 }}>
-          <Strong>POST /api/sessions/open</Strong> — Open a new session. Body: <Code>merchant_id</Code>, <Code>deposit_amount_zats</Code>, <Code>cost_per_request_zats</Code>, <Code>refund_address</Code> (optional).<br />
-          <Strong>GET /api/sessions/validate</Strong> — Validate a session token and deduct balance. Token sent via <Code>Authorization: Bearer</Code> header.<br />
+          <Strong>POST /api/sessions/prepare</Strong> — Prepare a session deposit. Returns a unique <Code>deposit_address</Code> and <Code>session_request_id</Code>. Body: <Code>merchant_id</Code>, <Code>deposit_amount_zats</Code>, <Code>cost_per_request_zats</Code>.<br />
+          <Strong>POST /api/sessions/open</Strong> — Open a session after deposit. Body: <Code>txid</Code>, <Code>session_request_id</Code>, <Code>refund_address</Code> (optional).<br />
+          <Strong>GET /api/sessions/validate</Strong> — Validate a session token and deduct balance. Token must be sent via <Code>Authorization: Bearer</Code> header (query-string tokens are not supported).<br />
           <Strong>GET /api/sessions/{'{id}'}/status</Strong> — Check session status, balance, and request count. Requires merchant auth.<br />
           <Strong>POST /api/sessions/{'{id}'}/close</Strong> — Close a session early. Remaining balance tracked for refund. Requires merchant auth.<br />
           <Strong>GET /api/merchants/me/sessions</Strong> — List all sessions for your merchant account.
@@ -312,8 +319,9 @@ app.get('/api/premium/data', (req, res) => {
             {[
               { method: 'POST', path: '/api/x402/verify', auth: 'API Key', desc: 'Verify a shielded ZEC payment by txid (replay-protected)' },
               { method: 'GET', path: '/api/merchants/me/x402/history', auth: 'API Key / Session', desc: 'List past payment verifications (x402 + MPP)' },
-              { method: 'POST', path: '/api/sessions/open', auth: 'None', desc: 'Open a prepaid session with ZEC deposit' },
-              { method: 'GET', path: '/api/sessions/validate', auth: 'Bearer token', desc: 'Validate session token and deduct balance' },
+              { method: 'POST', path: '/api/sessions/prepare', auth: 'None', desc: 'Prepare a session: get a unique deposit address and session_request_id' },
+              { method: 'POST', path: '/api/sessions/open', auth: 'None', desc: 'Open a session after deposit (requires session_request_id + txid)' },
+              { method: 'GET', path: '/api/sessions/validate', auth: 'Bearer token', desc: 'Validate session token and deduct balance (header only, no query tokens)' },
               { method: 'GET', path: '/api/sessions/{id}/status', auth: 'API Key / Session', desc: 'Check session balance and usage' },
               { method: 'POST', path: '/api/sessions/{id}/close', auth: 'API Key / Session', desc: 'Close session, track remaining balance for refund' },
               { method: 'GET', path: '/api/merchants/me/sessions', auth: 'API Key / Session', desc: 'List all sessions for your merchant' },

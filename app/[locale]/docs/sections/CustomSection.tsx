@@ -78,6 +78,23 @@ export default function CustomSection() {
 const invoiceId = response.invoice_id;
 window.location.href = \`https://cipherpay.app/pay/\${invoiceId}\`;`} />
 
+        <Expandable title="Shortcut: use POST /api/checkout with success_url">
+          <Paragraph>
+            Instead of calling <Code>/api/invoices</Code> and constructing the checkout URL manually,
+            use <Code>POST /api/checkout</Code> with a <Code>success_url</Code>. The response
+            includes a ready-made <Code>checkout_url</Code> with the redirect baked in:
+          </Paragraph>
+          <CodeBlock lang="bash" code={`curl -X POST https://api.cipherpay.app/api/checkout \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "price_id": "cprice_a1b2c3...",
+    "success_url": "https://mystore.com/order/confirmed"
+  }'
+
+# Response includes:
+# { "checkout_url": "https://cipherpay.app/pay/abc123?return_url=...", ... }`} />
+        </Expandable>
+
         <Expandable title="Customize the checkout page">
           <div style={{ fontSize: 11, color: 'var(--cp-text-dim)', lineHeight: 2.4, marginBottom: 12 }}>
             <Code>return_url</Code> — Where to redirect the buyer after payment is confirmed (URL-encoded).
