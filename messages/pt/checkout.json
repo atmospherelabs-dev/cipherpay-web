@@ -53,5 +53,11 @@
   "lumaEmailNote": "O Luma enviará seu ingresso e convite de calendário por email.",
   "lumaOpenOnLuma": "Abrir no Luma",
   "lumaRegistrationFailed": "Pagamento confirmado. O registro no Luma está sendo processado.",
-  "lumaRegistrationFailedHint": "Contate o organizador do evento se seu registro não aparecer."
+  "lumaRegistrationFailedHint": "Contate o organizador do evento se seu registro não aparecer.",
+  "donationTo": "Doação para {org}",
+  "thankYouDonation": "OBRIGADO",
+  "donationConfirmed": "Sua doação foi recebida.",
+  "donationReceipt": "Precisa de recibo fiscal? Contate {org} em {email} com o código de referência {memo}.",
+  "donationReceiptNoEmail": "Precisa de recibo fiscal? Contate {org} com o código de referência {memo}.",
+  "downloadReceipt": "BAIXAR RECIBO"
 }

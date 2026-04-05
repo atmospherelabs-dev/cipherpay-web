@@ -49,6 +49,8 @@ export interface Invoice {
   price_zatoshis: number;
   received_zatoshis: number;
   overpaid?: boolean;
+  is_donation?: boolean;
+  payment_link_id?: string | null;
   is_event?: boolean;
   is_luma?: boolean;
   price_label?: string | null;
@@ -134,17 +136,49 @@ export interface Product {
   prices?: Price[];
 }
 
+export interface DonationConfig {
+  mission?: string | null;
+  thank_you?: string | null;
+  suggested_amounts?: number[] | null;
+  currency: string;
+  min_amount: number;
+  max_amount: number;
+  campaign_name?: string | null;
+  campaign_goal?: number | null;
+  cover_image_url?: string | null;
+  cover_image_position?: string | null;
+  contact_email?: string | null;
+  website_url?: string | null;
+  social_share_text?: string | null;
+}
+
 export interface PaymentLink {
   id: string;
   merchant_id: string;
-  price_id: string;
+  price_id: string | null;
   slug: string;
   name: string | null;
   success_url: string | null;
   metadata: Record<string, string> | null;
   active: boolean;
   total_created: number;
+  mode: 'payment' | 'donation';
+  donation_config?: DonationConfig | null;
+  total_raised: number;
   created_at: string;
+}
+
+export interface DonationLinkInfo {
+  slug: string;
+  name: string | null;
+  mode: string;
+  active: boolean;
+  total_raised: number;
+  total_created: number;
+  merchant_name: string | null;
+  donation_config?: DonationConfig | null;
+  donate_url?: string;
+  checkout_url?: string;
 }
 
 export interface PublicProduct {
@@ -521,7 +555,10 @@ export const api = {
       body: JSON.stringify(data),
     }),
 
-  updatePaymentLink: (id: string, data: { name?: string; success_url?: string; active?: boolean }) =>
+  updatePaymentLink: (id: string, data: {
+    name?: string; success_url?: string; active?: boolean;
+    donation_config?: Partial<DonationConfig>;
+  }) =>
     request<PaymentLink>(`/api/payment-links/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
@@ -529,6 +566,38 @@ export const api = {
 
   deletePaymentLink: (id: string) =>
     request<{ status: string }>(`/api/payment-links/${id}`, { method: 'DELETE' }),
+
+  // Donation Links
+  createDonationLink: (data: {
+    name: string;
+    mission?: string;
+    thank_you?: string;
+    suggested_amounts?: number[];
+    currency?: string;
+    min_amount?: number;
+    max_amount?: number;
+    campaign_name?: string;
+    campaign_goal?: number;
+    cover_image_url?: string;
+    cover_image_position?: string;
+    contact_email?: string;
+    website_url?: string;
+    social_share_text?: string;
+    success_url?: string;
+  }) =>
+    request<PaymentLink>('/api/donation-links', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  getDonationLinkInfo: (slug: string) =>
+    request<DonationLinkInfo>(`/api/payment-links/${slug}/info`),
+
+  resolveDonationLink: (slug: string, amount: number, currency: string) =>
+    request<{ invoice_id: string; checkout_url: string }>(`/api/payment-links/${slug}/checkout`, {
+      method: 'POST',
+      body: JSON.stringify({ amount, currency }),
+    }),
 
   // Prices
   createPrice: (data: { product_id: string; currency: string; unit_amount: number; label?: string; max_quantity?: number; price_type?: string; billing_interval?: string; interval_count?: number }) =>

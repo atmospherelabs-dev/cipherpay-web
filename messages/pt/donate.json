@@ -1,0 +1,11 @@
+{
+  "selectAmount": "SELECIONAR VALOR",
+  "custom": "PERSONALIZADO",
+  "donate": "DOAR",
+  "processing": "PROCESSANDO...",
+  "raised": "arrecadado",
+  "goalOf": "de",
+  "minAmount": "A doação mínima é {amount}",
+  "maxAmount": "A doação máxima é {amount}",
+  "poweredBy": "Doações privadas com CipherPay + Zcash"
+}

@@ -22,6 +22,7 @@ import X402Section from './sections/X402Section';
 import EventsSection from './sections/EventsSection';
 import MCPSection from './sections/MCPSection';
 import ZipherCliSection from './sections/ZipherCliSection';
+import DonationsSection from './sections/DonationsSection';
 
 const SECTIONS = [
   { id: 'overview', title: 'Overview' },
@@ -33,6 +34,7 @@ const SECTIONS = [
   { id: 'products', title: 'Product Pages' },
   { id: 'pos', title: 'In-Person POS' },
   { id: 'events', title: 'Events & Tickets' },
+  { id: 'donations', title: 'Donations' },
   { id: 'webhooks', title: 'Webhooks' },
   { id: 'subscriptions', title: 'Subscriptions' },
   { id: 'billing', title: 'Billing & Fees' },
@@ -44,7 +46,7 @@ const SECTIONS = [
 
 const SIDEBAR_GROUPS = [
   { label: 'Getting Started', ids: ['overview', 'quickstart', 'sandbox'] },
-  { label: 'Guides', ids: ['shopify', 'woocommerce', 'custom', 'products', 'pos', 'events'] },
+  { label: 'Guides', ids: ['shopify', 'woocommerce', 'custom', 'products', 'pos', 'events', 'donations'] },
   { label: 'Reference', ids: ['webhooks', 'subscriptions', 'billing', 'api-ref'] },
   { label: 'AI & Agents', ids: ['x402', 'zipher-cli', 'mcp'] },
 ];
@@ -60,6 +62,7 @@ function SectionContent({ id, onNavigate }: { id: string; onNavigate: (id: strin
     case 'products': return <ProductsSection />;
     case 'pos': return <POSSection />;
     case 'events': return <EventsSection />;
+    case 'donations': return <DonationsSection />;
     case 'webhooks': return <WebhooksSection />;
     case 'subscriptions': return <SubscriptionsSection />;
     case 'billing': return <BillingSection />;

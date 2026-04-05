@@ -317,15 +317,23 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
 
               {/* Order info — prominent */}
               <div style={{ marginBottom: 28, padding: '20px 0', borderBottom: '1px solid var(--cp-border)' }}>
-                {invoice.merchant_name && (
-                  <div style={{ fontSize: 11, letterSpacing: 2, color: 'var(--cp-text-muted)', marginBottom: 8 }}>
-                    {invoice.merchant_name.toUpperCase()}
-                  </div>
-                )}
-                {(invoice.product_name || invoice.size) && (
+                {invoice.is_donation ? (
                   <div style={{ fontSize: 14, color: 'var(--cp-text)', fontWeight: 600, marginBottom: 12 }}>
-                    {invoice.product_name}{invoice.size ? ` · ${invoice.size}` : ''}
+                    {invoice.product_name || t('donationTo', { org: invoice.merchant_name || '' })}
                   </div>
+                ) : (
+                  <>
+                    {invoice.merchant_name && (
+                      <div style={{ fontSize: 11, letterSpacing: 2, color: 'var(--cp-text-muted)', marginBottom: 8 }}>
+                        {invoice.merchant_name.toUpperCase()}
+                      </div>
+                    )}
+                    {(invoice.product_name || invoice.size) && (
+                      <div style={{ fontSize: 14, color: 'var(--cp-text)', fontWeight: 600, marginBottom: 12 }}>
+                        {invoice.product_name}{invoice.size ? ` · ${invoice.size}` : ''}
+                      </div>
+                    )}
+                  </>
                 )}
                 <div style={{ fontSize: 32, fontWeight: 700, color: 'var(--cp-text)' }}>
                   {primaryPrice}{secondaryPrice && <span style={{ fontSize: 16, color: 'var(--cp-text-muted)', fontWeight: 400, marginLeft: 8 }}>{secondaryPrice}</span>}
@@ -401,8 +409,8 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
                     </div>
                   </div>
 
-                  {/* Refund address */}
-                  <div style={{ borderTop: '1px solid var(--cp-border)', paddingTop: 16, marginBottom: 16, textAlign: 'left' }}>
+                  {/* Refund address (hidden for donations) */}
+                  {!invoice.is_donation && <div style={{ borderTop: '1px solid var(--cp-border)', paddingTop: 16, marginBottom: 16, textAlign: 'left' }}>
                     <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', letterSpacing: 1, marginBottom: 4 }}>
                       {t('refundAddress')} <span style={{ fontWeight: 400 }}>({t('optional')})</span>
                     </div>
@@ -440,7 +448,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
                         {refundSaved ? tc('saved') : tc('save')}
                       </button>
                     </div>
-                  </div>
+                  </div>}
                 </div>
               )}
 
@@ -674,7 +682,7 @@ function ReceiptDetails({ invoice, row, label, primaryPrice, secondaryPrice, t }
           );
         })()}
       </div>
-      {invoice.overpaid && invoice.received_zatoshis > invoice.price_zatoshis && (
+      {invoice.overpaid && invoice.received_zatoshis > invoice.price_zatoshis && !invoice.is_donation && (
         <div style={{
           marginTop: 16, padding: '14px 20px', borderRadius: 6,
           background: 'rgba(249, 115, 22, 0.1)', border: '1px solid rgba(249, 115, 22, 0.3)',
@@ -694,7 +702,8 @@ function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending, ticke
 }) {
   const t = useTranslations('checkout');
   const receiptRef = useRef<HTMLDivElement>(null);
-  const shouldRedirect = returnUrl && !ticketPending;
+  const isDonation = !!invoice.is_donation;
+  const shouldRedirect = returnUrl && !ticketPending && !isDonation;
   const [redirectIn, setRedirectIn] = useState(shouldRedirect ? 5 : -1);
 
   useEffect(() => {
@@ -732,7 +741,12 @@ function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending, ticke
   return (
     <div>
       <div className="checkout-status confirmed" style={{ marginTop: 0, marginBottom: 20, padding: 20 }}>
-        <div style={{ fontSize: 15, fontWeight: 700 }}>{t('paymentAccepted')}</div>
+        <div style={{ fontSize: 15, fontWeight: 700 }}>{isDonation ? t('thankYouDonation') : t('paymentAccepted')}</div>
+        {isDonation && (
+          <div style={{ fontSize: 12, color: 'var(--cp-text-dim)', marginTop: 6, lineHeight: 1.6 }}>
+            {t('donationConfirmed')}
+          </div>
+        )}
       </div>
 
       {ticketPending && !ticketCode && !lumaPass && (

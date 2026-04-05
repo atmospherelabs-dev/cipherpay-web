@@ -23,7 +23,8 @@ interface InvoicesTabProps {
   isTestnet: boolean;
 }
 
-function getInvoiceType(inv: Invoice, recurringPriceIds: Set<string>): 'billing' | 'recurring' | 'payment' {
+function getInvoiceType(inv: Invoice, recurringPriceIds: Set<string>): 'billing' | 'recurring' | 'payment' | 'donation' {
+  if (inv.is_donation) return 'donation';
   if (inv.product_name === 'Fee Settlement') return 'billing';
   if (inv.price_id && recurringPriceIds.has(inv.price_id)) return 'recurring';
   return 'payment';
@@ -33,6 +34,7 @@ const TYPE_BADGE_STYLES: Record<string, { color: string; bg: string }> = {
   billing:   { color: 'var(--cp-purple)', bg: 'rgba(167,139,250,0.1)' },
   recurring: { color: 'var(--cp-purple, #a855f7)', bg: 'rgba(168,85,247,0.1)' },
   payment:   { color: 'var(--cp-text-dim)', bg: 'rgba(255,255,255,0.03)' },
+  donation:  { color: '#22c55e', bg: 'rgba(34,197,94,0.1)' },
 };
 
 export const InvoicesTab = memo(function InvoicesTab({
@@ -187,10 +189,12 @@ export const InvoicesTab = memo(function InvoicesTab({
           const hasLuma = invoices.some(i => !!i.is_luma);
           const hasRecurring = invoices.some(i => getInvoiceType(i, recurringPriceIds) === 'recurring');
           const hasBilling = invoices.some(i => getInvoiceType(i, recurringPriceIds) === 'billing');
+          const hasDonations = invoices.some(i => !!i.is_donation);
           const typeFilters: { key: string; label: string; match: (i: Invoice) => boolean }[] = [
             { key: 'all', label: t('typeAll'), match: () => true },
-            { key: 'payments', label: t('typeOneTime'), match: (i) => !i.is_event && getInvoiceType(i, recurringPriceIds) === 'payment' },
+            { key: 'payments', label: t('typeOneTime'), match: (i) => !i.is_event && !i.is_donation && getInvoiceType(i, recurringPriceIds) === 'payment' },
           ];
+          if (hasDonations) typeFilters.push({ key: 'donations', label: 'DONATIONS', match: (i) => !!i.is_donation });
           if (hasRecurring) typeFilters.push({ key: 'recurring', label: t('typeRecurring'), match: (i) => getInvoiceType(i, recurringPriceIds) === 'recurring' });
           if (hasEvents) typeFilters.push({ key: 'tickets', label: t('typeTickets'), match: (i) => !!i.is_event && !i.is_luma });
           if (hasLuma) typeFilters.push({ key: 'luma', label: t('typeLuma'), match: (i) => !!i.is_luma });

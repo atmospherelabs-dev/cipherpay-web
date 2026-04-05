@@ -1,0 +1,11 @@
+{
+  "selectAmount": "SELECT AMOUNT",
+  "custom": "CUSTOM",
+  "donate": "DONATE",
+  "processing": "PROCESSING...",
+  "raised": "raised",
+  "goalOf": "of",
+  "minAmount": "Minimum donation is {amount}",
+  "maxAmount": "Maximum donation is {amount}",
+  "poweredBy": "Private donations powered by CipherPay + Zcash"
+}

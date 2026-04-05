@@ -53,5 +53,11 @@
   "lumaEmailNote": "Luma will email your ticket and calendar invite.",
   "lumaOpenOnLuma": "Open on Luma",
   "lumaRegistrationFailed": "Payment confirmed. Luma registration is being processed.",
-  "lumaRegistrationFailedHint": "Contact the event organizer if your registration doesn't appear."
+  "lumaRegistrationFailedHint": "Contact the event organizer if your registration doesn't appear.",
+  "donationTo": "Donation to {org}",
+  "thankYouDonation": "THANK YOU",
+  "donationConfirmed": "Your donation has been received.",
+  "donationReceipt": "Want a tax receipt? Contact {org} at {email} with reference code {memo}.",
+  "donationReceiptNoEmail": "Want a tax receipt? Contact {org} with reference code {memo}.",
+  "downloadReceipt": "DOWNLOAD RECEIPT"
 }
