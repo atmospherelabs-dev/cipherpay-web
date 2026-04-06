@@ -278,14 +278,19 @@ export const InvoicesTab = memo(function InvoicesTab({
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', minWidth: 0 }}>
                     <span style={{ fontSize: 10, color: 'var(--cp-text-dim)', transition: 'transform 0.15s', transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)', display: 'inline-block' }}>▸</span>
                     <span className="invoice-id">{inv.memo_code}</span>
-                    <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: 0.5, color: typeBadge.color, background: typeBadge.bg, padding: '1px 6px', borderRadius: 3 }}>
-                      {invType === 'donation' ? 'DONATION' : t(invType === 'billing' ? 'platform' : invType === 'recurring' ? 'recurring' : 'oneTime')}
-                    </span>
-                    {inv.is_event && (
-                      <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: 0.5, color: inv.is_luma ? 'var(--cp-warm)' : 'var(--cp-cyan)', background: inv.is_luma ? 'var(--cp-warm-bg)' : 'rgba(86,212,200,0.1)', padding: '1px 6px', borderRadius: 3 }}>
-                        {inv.is_luma ? te('lumaBadge') : te('ticketBadge')}
-                      </span>
-                    )}
+                    {(() => {
+                      const badgeLabel = inv.is_luma ? te('lumaBadge')
+                        : inv.is_event ? te('ticketBadge')
+                        : invType === 'donation' ? 'DONATION'
+                        : invType === 'billing' ? t('platform')
+                        : invType === 'recurring' ? t('recurring')
+                        : null;
+                      return badgeLabel ? (
+                        <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: 0.5, color: typeBadge.color, background: typeBadge.bg, padding: '1px 6px', borderRadius: 3 }}>
+                          {badgeLabel}
+                        </span>
+                      ) : null;
+                    })()}
                     <span style={{ fontSize: 10, color: 'var(--cp-text-dim)' }}>
                       {new Date(inv.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                     </span>

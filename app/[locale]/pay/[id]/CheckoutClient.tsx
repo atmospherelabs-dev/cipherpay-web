@@ -643,6 +643,7 @@ function ReceiptDetails({ invoice, row, label, primaryPrice, secondaryPrice, t }
   primaryPrice: string; secondaryPrice: string | null;
   t: ReturnType<typeof useTranslations>;
 }) {
+  const locale = useLocale();
   const isDonation = !!invoice.is_donation;
 
   return (
