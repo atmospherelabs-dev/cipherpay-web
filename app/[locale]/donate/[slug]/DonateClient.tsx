@@ -11,6 +11,7 @@ import { currencySymbol } from '@/lib/currency';
 import type { DonationLinkInfo } from '@/lib/api';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cipherpay.app';
+const ALLOWED_POSITIONS = new Set(['center top', 'center center', 'center bottom']);
 
 interface DonateClientProps {
   info: DonationLinkInfo;
@@ -112,7 +113,7 @@ export default function DonateClient({ info, slug, locale }: DonateClientProps) 
                 loading="lazy"
                 style={{
                   width: '100%', height: '100%', objectFit: 'cover',
-                  objectPosition: config.cover_image_position || 'center top',
+                  objectPosition: ALLOWED_POSITIONS.has(config.cover_image_position ?? '') ? config.cover_image_position! : 'center top',
                 }}
               />
             </div>
@@ -141,7 +142,7 @@ export default function DonateClient({ info, slug, locale }: DonateClientProps) 
               }}>
                 {config?.campaign_name ? `by ${info.name || info.merchant_name}` : (info.name || info.merchant_name)}
               </span>
-              {config?.website_url && (
+              {config?.website_url && /^https?:\/\//.test(config.website_url) && (
                 <>
                   <span style={{ fontSize: 10, color: 'var(--cp-text-dim)' }}>·</span>
                   <a
