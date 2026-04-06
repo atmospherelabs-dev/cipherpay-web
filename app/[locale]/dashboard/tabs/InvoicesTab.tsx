@@ -331,7 +331,7 @@ export const InvoicesTab = memo(function InvoicesTab({
 
                     {inv.product_name && (
                       <div className="stat-row">
-                        <span style={{ color: 'var(--cp-text-muted)' }}>{t('product')}</span>
+                        <span style={{ color: 'var(--cp-text-muted)' }}>{inv.is_donation ? t('campaign') : t('product')}</span>
                         <span>{inv.product_name}{inv.size ? ` · ${inv.size}` : ''}</span>
                       </div>
                     )}
