@@ -1,6 +1,7 @@
 'use client';
 
 import { memo, useState, useEffect, useCallback } from 'react';
+import { useLocale } from 'next-intl';
 import { api, type PaymentLink, type Product } from '@/lib/api';
 import { CopyButton } from '@/components/CopyButton';
 import { Spinner } from '@/components/Spinner';
@@ -21,6 +22,7 @@ export const PaymentLinksTab = memo(function PaymentLinksTab({
   products, checkoutOrigin, initialAction, clearAction,
 }: PaymentLinksTabProps) {
   const { showToast } = useToast();
+  const locale = useLocale();
   const [links, setLinks] = useState<PaymentLink[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -238,7 +240,7 @@ export const PaymentLinksTab = memo(function PaymentLinksTab({
 
   const getLinkUrl = (link: PaymentLink) =>
     link.mode === 'donation'
-      ? `${checkoutOrigin}/en/donate/${link.slug}`
+      ? `${checkoutOrigin}/${locale}/donate/${link.slug}`
       : `${checkoutOrigin}/link/${link.slug}`;
 
   if (loading) {

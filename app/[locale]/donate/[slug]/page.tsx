@@ -13,22 +13,18 @@ interface PageProps {
 }
 
 async function fetchInfo(slug: string, retries = 2): Promise<DonationLinkInfo | null> {
-  const url = `${API_URL}/api/payment-links/${slug}/info`;
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
-      const res = await fetch(url, {
+      const res = await fetch(`${API_URL}/api/payment-links/${slug}/info`, {
         cache: 'no-store',
         signal: AbortSignal.timeout(8000),
       });
       if (!res.ok) {
-        const body = await res.text().catch(() => '');
-        console.error(`[donate/${slug}] /info returned ${res.status} (attempt ${attempt + 1}): ${body}`);
         if (attempt < retries && res.status >= 500) continue;
         return null;
       }
       return await res.json();
-    } catch (err) {
-      console.error(`[donate/${slug}] /info fetch failed (attempt ${attempt + 1}):`, err);
+    } catch {
       if (attempt < retries) {
         await new Promise(r => setTimeout(r, 500 * (attempt + 1)));
         continue;
@@ -40,7 +36,7 @@ async function fetchInfo(slug: string, retries = 2): Promise<DonationLinkInfo | 
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug, locale } = await params;
   const info = await fetchInfo(slug);
 
   if (!info || info.mode !== 'donation') {
@@ -52,7 +48,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const orgName = info.name || 'CipherPay';
   const title = `${campaignName} — ${orgName}`;
   const description = dc?.mission || `Donate privately with Zcash to ${orgName}`;
-  const url = `${SITE_URL}/en/donate/${slug}`;
+  const url = `${SITE_URL}/${locale}/donate/${slug}`;
 
   const meta: Metadata = {
     title,

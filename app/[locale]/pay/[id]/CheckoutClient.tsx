@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { api, type Invoice, type LumaPassData } from '@/lib/api';
 import { validateZcashAddress } from '@/lib/validation';
 import { currencySymbol } from '@/lib/currency';
@@ -719,6 +719,7 @@ function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending, ticke
   lumaPass?: LumaPassData | null;
 }) {
   const t = useTranslations('checkout');
+  const locale = useLocale();
   const receiptRef = useRef<HTMLDivElement>(null);
   const isDonation = !!invoice.is_donation;
   const shouldRedirect = returnUrl && !ticketPending && !isDonation;
@@ -803,7 +804,7 @@ function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending, ticke
               <a
                 href={`https://x.com/intent/tweet?${new URLSearchParams({
                   text: invoice.donation_meta.social_share_text || t('donationShareDefault'),
-                  url: `${typeof window !== 'undefined' ? window.location.origin : ''}/en/donate/${invoice.donation_meta.slug}`,
+                  url: `${typeof window !== 'undefined' ? window.location.origin : ''}/${locale}/donate/${invoice.donation_meta.slug}`,
                 }).toString()}`}
                 target="_blank"
                 rel="noopener noreferrer"
