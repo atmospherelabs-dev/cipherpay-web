@@ -55,6 +55,7 @@
   "lumaRegistrationFailed": "Payment confirmed. Luma registration is being processed.",
   "lumaRegistrationFailedHint": "Contact the event organizer if your registration doesn't appear.",
   "donationTo": "Donation to {org}",
+  "donationBy": "by {org}",
   "thankYouDonation": "THANK YOU",
   "donationConfirmed": "Your donation has been received.",
   "donationContact": "Questions? Reach out at {email}",

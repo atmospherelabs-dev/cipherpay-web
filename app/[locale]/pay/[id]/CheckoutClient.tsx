@@ -318,8 +318,15 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
               {/* Order info — prominent */}
               <div style={{ marginBottom: 28, padding: '20px 0', borderBottom: '1px solid var(--cp-border)' }}>
                 {invoice.is_donation ? (
-                  <div style={{ fontSize: 14, color: 'var(--cp-text)', fontWeight: 600, marginBottom: 12 }}>
-                    {invoice.product_name || t('donationTo', { org: invoice.merchant_name || '' })}
+                  <div style={{ marginBottom: 12 }}>
+                    <div style={{ fontSize: 16, color: 'var(--cp-text)', fontWeight: 700, lineHeight: 1.3 }}>
+                      {invoice.donation_meta?.campaign_name || invoice.product_name || t('donationTo', { org: invoice.merchant_name || '' })}
+                    </div>
+                    {invoice.merchant_name && (
+                      <div style={{ fontSize: 11, color: 'var(--cp-text-muted)', marginTop: 4 }}>
+                        {t('donationBy', { org: invoice.merchant_name })}
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <>

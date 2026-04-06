@@ -55,6 +55,7 @@
   "lumaRegistrationFailed": "Pagamento confirmado. O registro no Luma está sendo processado.",
   "lumaRegistrationFailedHint": "Contate o organizador do evento se seu registro não aparecer.",
   "donationTo": "Doação para {org}",
+  "donationBy": "por {org}",
   "thankYouDonation": "OBRIGADO",
   "donationConfirmed": "Sua doação foi recebida.",
   "donationContact": "Dúvidas? Entre em contato pelo {email}",
