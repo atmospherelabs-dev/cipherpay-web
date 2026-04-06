@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import type { Metadata } from 'next';
 import DonateClient from './DonateClient';
 import type { DonationLinkInfo } from '@/lib/api';
@@ -12,7 +13,7 @@ interface PageProps {
   params: Promise<{ slug: string; locale: string }>;
 }
 
-async function fetchInfo(slug: string, retries = 2): Promise<DonationLinkInfo | null> {
+const fetchInfo = cache(async function fetchInfo(slug: string, retries = 2): Promise<DonationLinkInfo | null> {
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       const res = await fetch(`${API_URL}/api/payment-links/${slug}/info`, {
@@ -20,7 +21,7 @@ async function fetchInfo(slug: string, retries = 2): Promise<DonationLinkInfo | 
         signal: AbortSignal.timeout(8000),
       });
       if (!res.ok) {
-        if (attempt < retries && res.status >= 500) continue;
+        if (attempt < retries && (res.status >= 500 || res.status === 429)) continue;
         return null;
       }
       return await res.json();
@@ -33,7 +34,7 @@ async function fetchInfo(slug: string, retries = 2): Promise<DonationLinkInfo | 
     }
   }
   return null;
-}
+});
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug, locale } = await params;
