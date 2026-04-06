@@ -238,7 +238,7 @@ export const PaymentLinksTab = memo(function PaymentLinksTab({
 
   const getLinkUrl = (link: PaymentLink) =>
     link.mode === 'donation'
-      ? `${checkoutOrigin}/donate/${link.slug}`
+      ? `${checkoutOrigin}/en/donate/${link.slug}`
       : `${checkoutOrigin}/link/${link.slug}`;
 
   if (loading) {
@@ -599,7 +599,10 @@ export const PaymentLinksTab = memo(function PaymentLinksTab({
                     <span>{sym}{(link.total_raised / 100).toLocaleString()} raised</span>
                   )}
                   <span>
-                    {link.total_created} {link.mode === 'donation' ? 'donation' : 'invoice'}{link.total_created !== 1 ? 's' : ''}
+                    {link.mode === 'donation'
+                      ? `${link.total_confirmed ?? 0} donation${(link.total_confirmed ?? 0) !== 1 ? 's' : ''}`
+                      : `${link.total_created} invoice${link.total_created !== 1 ? 's' : ''}`
+                    }
                   </span>
                   {link.success_url && (
                     <span style={{ color: 'var(--cp-text-dim)' }}>

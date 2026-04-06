@@ -521,39 +521,8 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
             </div>
           )}
 
-          {/* ── Donation: waiting for block confirmation ── */}
-          {invoice.is_donation && invoice.status === 'detected' && (
-            <div style={{
-              marginTop: 0, marginBottom: 20, borderRadius: 6,
-              border: '1px solid rgba(86, 212, 200, 0.15)',
-              background: 'linear-gradient(180deg, rgba(86, 212, 200, 0.06) 0%, transparent 100%)',
-              padding: '28px 20px 24px', textAlign: 'center',
-            }}>
-              <div style={{
-                fontSize: 11, letterSpacing: 3, fontWeight: 700,
-                color: 'var(--cp-cyan)', marginBottom: 14,
-              }}>
-                {t('donationDetected')}
-              </div>
-              {invoice.donation_meta?.campaign_name && (
-                <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--cp-text)', lineHeight: 1.3, marginBottom: 4 }}>
-                  {invoice.donation_meta.campaign_name}
-                </div>
-              )}
-              {invoice.merchant_name && (
-                <div style={{ fontSize: 11, color: 'var(--cp-text-muted)', marginBottom: 16 }}>
-                  {t('donationBy', { org: invoice.merchant_name })}
-                </div>
-              )}
-              <Spinner size={20} />
-              <div style={{ fontSize: 12, color: 'var(--cp-text-dim)', marginTop: 14, lineHeight: 1.6 }}>
-                {t('donationConfirming')}
-              </div>
-            </div>
-          )}
-
-          {/* ── Receipt (non-donation: detected+confirmed, donation: confirmed only) ── */}
-          {showReceipt && !(invoice.is_donation && invoice.status === 'detected') && (
+          {/* ── Receipt (detected or confirmed) ── */}
+          {showReceipt && (
             <ConfirmedReceipt invoice={invoice} returnUrl={returnUrl} ticketCode={ticketCode} ticketPending={ticketPending} ticketMeta={ticketMeta} lumaPass={lumaPass} />
           )}
 
@@ -834,7 +803,7 @@ function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending, ticke
               <a
                 href={`https://x.com/intent/tweet?${new URLSearchParams({
                   text: invoice.donation_meta.social_share_text || t('donationShareDefault'),
-                  url: `${typeof window !== 'undefined' ? window.location.origin : ''}/donate/${invoice.donation_meta.slug}`,
+                  url: `${typeof window !== 'undefined' ? window.location.origin : ''}/en/donate/${invoice.donation_meta.slug}`,
                 }).toString()}`}
                 target="_blank"
                 rel="noopener noreferrer"

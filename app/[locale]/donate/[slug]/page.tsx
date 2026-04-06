@@ -52,7 +52,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const orgName = info.name || 'CipherPay';
   const title = `${campaignName} — ${orgName}`;
   const description = dc?.mission || `Donate privately with Zcash to ${orgName}`;
-  const url = `${SITE_URL}/donate/${slug}`;
+  const url = `${SITE_URL}/en/donate/${slug}`;
 
   const meta: Metadata = {
     title,

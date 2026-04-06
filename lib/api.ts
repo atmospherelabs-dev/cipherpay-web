@@ -169,6 +169,7 @@ export interface PaymentLink {
   metadata: Record<string, string> | null;
   active: boolean;
   total_created: number;
+  total_confirmed?: number;
   mode: 'payment' | 'donation';
   donation_config?: DonationConfig | null;
   total_raised: number;
