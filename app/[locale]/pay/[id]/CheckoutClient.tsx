@@ -351,10 +351,10 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
                 </div>
               </div>
 
-              {/* QR Code */}
+              {/* QR Code — dense mode: smaller logo + lower error correction for long Zcash URIs */}
               {zcashUri && (
                 <div className="qr-container" style={{ marginBottom: 12 }}>
-                  <QRCode data={zcashUri} size={200} />
+                  <QRCode data={zcashUri} size={300} dense />
                 </div>
               )}
 
@@ -478,7 +478,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
               {/* Updated QR for remaining amount */}
               {address && remainingZec > 0 && (
                 <div className="qr-container" style={{ marginBottom: 12 }}>
-                  <QRCode data={`zcash:${address}?amount=${remainingZec.toFixed(8)}`} size={200} />
+                  <QRCode data={`zcash:${address}?amount=${remainingZec.toFixed(8)}`} size={300} dense />
                 </div>
               )}
 
