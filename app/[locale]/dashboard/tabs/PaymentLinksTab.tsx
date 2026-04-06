@@ -553,7 +553,7 @@ export const PaymentLinksTab = memo(function PaymentLinksTab({
                   {link.mode === 'donation' && (
                     <span style={{
                       fontSize: 8, padding: '2px 6px', borderRadius: 3,
-                      background: 'rgba(34,197,94,0.1)', color: '#22c55e',
+                      background: 'rgba(255,255,255,0.05)', color: 'var(--cp-text-muted)',
                       fontWeight: 600, letterSpacing: 0.5,
                     }}>
                       DONATION

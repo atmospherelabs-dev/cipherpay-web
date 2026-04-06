@@ -47,14 +47,6 @@ export const OverviewTab = memo(function OverviewTab({
     .sort((a, b) => new Date(a.event_date!).getTime() - new Date(b.event_date!).getTime())
     .slice(0, 3);
 
-  const donationInvoices = invoices.filter(i => i.is_donation);
-  const confirmedDonations = donationInvoices.filter(i => i.status === 'confirmed');
-  const donationsThisMonth = confirmedDonations.filter(i => {
-    const d = new Date(i.confirmed_at || i.created_at);
-    const now = new Date();
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-  });
-
   const webhookConfigured = !!merchant.webhook_url;
   const emailConfigured = merchant.has_recovery_email;
   const nameConfigured = !!merchant.name;
@@ -135,23 +127,6 @@ export const OverviewTab = memo(function OverviewTab({
             )}
           </div>
         </div>
-        {confirmedDonations.length > 0 && (
-          <div className="panel" style={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => setTab('links')}>
-            <div className="panel-body" style={{ padding: '20px 12px' }}>
-              <div style={{ fontSize: 22, fontWeight: 700, color: '#22c55e', lineHeight: 1.2 }}>
-                {confirmedDonations.length}
-              </div>
-              <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>
-                DONATIONS
-              </div>
-              {donationsThisMonth.length > 0 && (
-                <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 2 }}>
-                  {donationsThisMonth.length} this month
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Quick actions */}
@@ -160,11 +135,11 @@ export const OverviewTab = memo(function OverviewTab({
           <span className="panel-title">{t('quickActions')}</span>
         </div>
         <div className="panel-body" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button onClick={() => navigateWithAction('links', 'create-donation-link')} className="btn" style={{ fontSize: 10, color: '#22c55e', borderColor: 'rgba(34,197,94,0.3)' }}>
-            + Donation Link
-          </button>
           <button onClick={() => navigateWithAction('links', 'create-link')} className="btn-primary" style={{ fontSize: 10 }}>
             {t('createPayLink')}
+          </button>
+          <button onClick={() => navigateWithAction('links', 'create-donation-link')} className="btn" style={{ fontSize: 10 }}>
+            + Donation Link
           </button>
           <button onClick={() => navigateWithAction('invoices', 'create-paylink')} className="btn" style={{ fontSize: 10 }}>
             {t('quickInvoice')}
@@ -228,9 +203,16 @@ export const OverviewTab = memo(function OverviewTab({
             recentInvoices.map((inv) => (
               <div key={inv.id} className="stat-row dash-activity-row" style={{ cursor: 'pointer' }} onClick={() => setTab('invoices')}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
-                  <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--cp-text)' }}>
-                    {inv.product_name || inv.memo_code}
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--cp-text)' }}>
+                      {inv.product_name || inv.memo_code}
+                    </span>
+                    {(inv.is_donation || inv.is_event) && (
+                      <span style={{ fontSize: 8, fontWeight: 600, letterSpacing: 0.5, color: 'var(--cp-text-muted)', background: 'rgba(255,255,255,0.05)', padding: '1px 5px', borderRadius: 3 }}>
+                        {inv.is_donation ? 'DONATION' : inv.is_luma ? 'LUMA' : 'TICKET'}
+                      </span>
+                    )}
+                  </div>
                   <span style={{ fontSize: 9, color: 'var(--cp-text-dim)' }}>
                     {new Date(inv.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   </span>

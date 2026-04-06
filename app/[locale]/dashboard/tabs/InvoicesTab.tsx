@@ -30,12 +30,7 @@ function getInvoiceType(inv: Invoice, recurringPriceIds: Set<string>): 'billing'
   return 'payment';
 }
 
-const TYPE_BADGE_STYLES: Record<string, { color: string; bg: string }> = {
-  billing:   { color: 'var(--cp-purple)', bg: 'rgba(167,139,250,0.1)' },
-  recurring: { color: 'var(--cp-purple, #a855f7)', bg: 'rgba(168,85,247,0.1)' },
-  payment:   { color: 'var(--cp-text-dim)', bg: 'rgba(255,255,255,0.03)' },
-  donation:  { color: '#22c55e', bg: 'rgba(34,197,94,0.1)' },
-};
+const TYPE_BADGE_STYLE = { color: 'var(--cp-text-muted)', bg: 'rgba(255,255,255,0.05)' };
 
 export const InvoicesTab = memo(function InvoicesTab({
   invoices, loadingInvoices, reloadInvoices, products, displayCurrency, checkoutOrigin, initialAction, clearAction, isTestnet,
@@ -276,7 +271,7 @@ export const InvoicesTab = memo(function InvoicesTab({
             const isExpanded = expandedInvoice === inv.id;
             const isOverpaid = inv.received_zatoshis > inv.price_zatoshis + 1000 && inv.price_zatoshis > 0;
             const invType = getInvoiceType(inv, recurringPriceIds);
-            const typeBadge = TYPE_BADGE_STYLES[invType];
+            const typeBadge = TYPE_BADGE_STYLE;
             return (
               <div key={inv.id} className="invoice-card" style={{ cursor: 'pointer' }} onClick={() => setExpandedInvoice(isExpanded ? null : inv.id)}>
                 <div className="invoice-header">
@@ -284,7 +279,7 @@ export const InvoicesTab = memo(function InvoicesTab({
                     <span style={{ fontSize: 10, color: 'var(--cp-text-dim)', transition: 'transform 0.15s', transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)', display: 'inline-block' }}>▸</span>
                     <span className="invoice-id">{inv.memo_code}</span>
                     <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: 0.5, color: typeBadge.color, background: typeBadge.bg, padding: '1px 6px', borderRadius: 3 }}>
-                      {t(invType === 'billing' ? 'platform' : invType === 'recurring' ? 'recurring' : 'oneTime')}
+                      {invType === 'donation' ? 'DONATION' : t(invType === 'billing' ? 'platform' : invType === 'recurring' ? 'recurring' : 'oneTime')}
                     </span>
                     {inv.is_event && (
                       <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: 0.5, color: inv.is_luma ? 'var(--cp-warm)' : 'var(--cp-cyan)', background: inv.is_luma ? 'var(--cp-warm-bg)' : 'rgba(86,212,200,0.1)', padding: '1px 6px', borderRadius: 3 }}>

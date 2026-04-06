@@ -656,12 +656,21 @@ function ReceiptDetails({ invoice, row, label, primaryPrice, secondaryPrice, t }
         )}
         <div style={row}>
           <span style={label}>{isDonation ? t('campaign') : t('item')}</span>
-          <span style={{ fontWeight: 600 }}>
-            {isDonation
-              ? (invoice.donation_meta?.campaign_name || invoice.product_name || t('donationTo', { org: invoice.merchant_name || '' }))
-              : <>{invoice.product_name}{invoice.size ? ` · ${invoice.size}` : ''}</>
-            }
-          </span>
+          {isDonation ? (
+            invoice.donation_meta?.slug ? (
+              <a href={`/${locale}/donate/${invoice.donation_meta.slug}`} style={{ fontWeight: 600, color: 'var(--cp-cyan, #56D4C8)', textDecoration: 'none' }}>
+                {invoice.donation_meta?.campaign_name || invoice.product_name || t('donationTo', { org: invoice.merchant_name || '' })}
+              </a>
+            ) : (
+              <span style={{ fontWeight: 600 }}>
+                {invoice.donation_meta?.campaign_name || invoice.product_name || t('donationTo', { org: invoice.merchant_name || '' })}
+              </span>
+            )
+          ) : (
+            <span style={{ fontWeight: 600 }}>
+              {invoice.product_name}{invoice.size ? ` · ${invoice.size}` : ''}
+            </span>
+          )}
         </div>
         {isDonation && invoice.merchant_name && (
           <div style={row}>
@@ -776,8 +785,12 @@ function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending, ticke
           </div>
 
           {invoice.donation_meta?.campaign_name && (
-            <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--cp-text)', lineHeight: 1.3, marginBottom: 4 }}>
-              {invoice.donation_meta.campaign_name}
+            <div style={{ fontSize: 16, fontWeight: 700, lineHeight: 1.3, marginBottom: 4 }}>
+              {invoice.donation_meta.slug ? (
+                <a href={`/${locale}/donate/${invoice.donation_meta.slug}`} style={{ color: 'var(--cp-text)', textDecoration: 'none' }}>
+                  {invoice.donation_meta.campaign_name}
+                </a>
+              ) : invoice.donation_meta.campaign_name}
             </div>
           )}
           {invoice.merchant_name && (
