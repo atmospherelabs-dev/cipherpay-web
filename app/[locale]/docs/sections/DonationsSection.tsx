@@ -20,18 +20,32 @@ export default function DonationsSection() {
         2. Click <strong>+ New Donation Link</strong> and fill in the form:
       </Paragraph>
       <ul style={{ fontSize: 13, lineHeight: 1.8, color: 'var(--cp-text-dim)', paddingLeft: 20 }}>
-        <li><strong>Organization Name</strong> — displayed to donors</li>
+        <li><strong>Organization Name</strong> — displayed to donors (required)</li>
+        <li><strong>Campaign Name</strong> — the specific campaign or initiative</li>
+        <li><strong>Cover Image</strong> — HTTPS URL for a campaign hero image, with focus position (Top / Center / Bottom)</li>
         <li><strong>Mission Statement</strong> — shown on the donation page</li>
-        <li><strong>Suggested Amounts</strong> — preset buttons (e.g. $10, $25, $50, $100)</li>
-        <li><strong>Currency</strong> — USD, EUR, or GBP</li>
-        <li><strong>Campaign Name / Goal</strong> — enables a progress bar</li>
-        <li><strong>Thank You Message</strong> — shown after payment confirmation</li>
+        <li><strong>Campaign Goal / Currency</strong> — enables a progress bar. Currency is locked after creation.</li>
+        <li><strong>Suggested Amounts</strong> — preset buttons (e.g. $10, $25, $50, $100). Donors can also enter a custom amount.</li>
+        <li><strong>Thank You Message</strong> — shown to donors after payment is confirmed</li>
         <li><strong>Contact Email</strong> — for tax receipt inquiries (out-of-band)</li>
         <li><strong>Website URL</strong> — link to your organization</li>
-        <li><strong>Cover Image</strong> — HTTPS URL for a campaign hero image</li>
+        <li><strong>Social Share Text</strong> — pre-filled text when donors share the donation link</li>
       </ul>
       <Paragraph>
         3. Share the generated <code>/donate/&#123;slug&#125;</code> URL with your supporters.
+      </Paragraph>
+
+      <SectionDivider />
+
+      <SectionTitle>Editing Campaigns</SectionTitle>
+      <Paragraph>
+        Click <strong>Edit</strong> on any donation link in the dashboard to update its details.
+        All fields are editable except <strong>Currency</strong>, which is locked after creation
+        to preserve the integrity of the total raised amount.
+      </Paragraph>
+      <Paragraph>
+        Common edits include updating the mission text, raising the goal after it&apos;s reached,
+        changing the cover image, or refining the thank-you message.
       </Paragraph>
 
       <SectionDivider />
@@ -41,7 +55,7 @@ export default function DonationsSection() {
       <Paragraph>2. Selects an amount (preset or custom) and clicks <strong>Donate</strong>.</Paragraph>
       <Paragraph>3. An invoice is created with the chosen fiat amount, converted to ZEC at the live rate.</Paragraph>
       <Paragraph>4. Donor scans the QR code or clicks <strong>Open in Wallet</strong> to pay from their Zcash wallet.</Paragraph>
-      <Paragraph>5. After confirmation, a thank-you page is shown with the donation receipt and reference code.</Paragraph>
+      <Paragraph>5. After confirmation, a thank-you page is shown with the merchant&apos;s custom message, the donation receipt, and reference code.</Paragraph>
 
       <SectionDivider />
 
@@ -56,6 +70,7 @@ export default function DonationsSection() {
   "campaign_name": "2026 Legal Defense Fund",
   "campaign_goal": 1000000,
   "cover_image_url": "https://example.org/campaign-hero.jpg",
+  "cover_image_position": "center top",
   "contact_email": "donations@example.org",
   "website_url": "https://example.org",
   "social_share_text": "I just donated with Zcash!"
@@ -63,6 +78,8 @@ export default function DonationsSection() {
       <Paragraph>
         All amounts are in <strong>cents</strong> (e.g. 1000 = $10.00).
         <code>min_amount</code> defaults to 100 ($1), <code>max_amount</code> to 1000000 ($10,000).
+        <code>cover_image_position</code> accepts <code>center top</code>, <code>center center</code>,
+        or <code>center bottom</code>.
       </Paragraph>
 
       <SectionDivider />
@@ -75,6 +92,10 @@ export default function DonationsSection() {
       </Paragraph>
       <Paragraph>
         The campaign stays active after the goal is reached. Donors can still contribute.
+        The progress bar caps at 100%, but the raised amount displays the true total.
+      </Paragraph>
+      <Paragraph>
+        Campaigns have no time limit. Deactivate the link from the dashboard when the campaign is complete.
       </Paragraph>
 
       <SectionDivider />
@@ -109,12 +130,31 @@ Authorization: Bearer <api_key>
   "currency": "USD",
   "campaign_name": "2026 Fund",
   "campaign_goal": 1000000,
-  "contact_email": "donate@example.org"
+  "contact_email": "donate@example.org",
+  "cover_image_url": "https://example.org/hero.jpg",
+  "cover_image_position": "center top",
+  "website_url": "https://example.org",
+  "social_share_text": "Donate with Zcash!"
 }`} />
+
+      <Paragraph><strong>Update Donation Link</strong></Paragraph>
+      <CodeBlock lang="bash" code={`PATCH /api/payment-links/{id}
+Authorization: Bearer <api_key>
+
+{
+  "name": "Updated Foundation Name",
+  "donation_config": {
+    "mission": "Updated mission statement",
+    "campaign_goal": 2000000
+  }
+}`} />
+      <Paragraph>
+        Only include the fields you want to change. Omitted fields keep their existing values.
+      </Paragraph>
 
       <Paragraph><strong>Get Donation Link Info (Public)</strong></Paragraph>
       <CodeBlock lang="bash" code={`GET /api/payment-links/{slug}/info`} />
-      <Paragraph>Returns donation config, campaign progress, org name. No authentication required.</Paragraph>
+      <Paragraph>Returns donation config, campaign progress, org name. No authentication required. Rate limited.</Paragraph>
 
       <Paragraph><strong>Create Donation Invoice (Public)</strong></Paragraph>
       <CodeBlock lang="bash" code={`POST /api/payment-links/{slug}/checkout
