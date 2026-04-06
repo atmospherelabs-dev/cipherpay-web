@@ -342,9 +342,15 @@ export const PaymentLinksTab = memo(function PaymentLinksTab({
       {showCreate && view === 'donation' && (
         <div className="panel">
           <div className="panel-header">
-            <span className="panel-title">{editingLink ? 'Edit Donation Link' : 'Create Donation Link'}</span>
+            <span className="panel-title">
+              {editingLink
+                ? `Edit: ${editingLink.name || 'Untitled'}`
+                : 'Create Donation Link'}
+            </span>
           </div>
           <div className="panel-body" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+
+            {/* — Identity — */}
             <div>
               <label style={{ fontSize: 10, color: 'var(--cp-text-muted)', marginBottom: 4, display: 'block' }}>
                 ORGANIZATION NAME *
@@ -355,83 +361,13 @@ export const PaymentLinksTab = memo(function PaymentLinksTab({
 
             <div>
               <label style={{ fontSize: 10, color: 'var(--cp-text-muted)', marginBottom: 4, display: 'block' }}>
-                MISSION STATEMENT
+                CAMPAIGN NAME
               </label>
-              <textarea value={donMission} onChange={e => setDonMission(e.target.value)}
-                placeholder="Defending digital rights worldwide" className="input"
-                rows={2} style={{ width: '100%', resize: 'vertical' }} />
+              <input type="text" value={donCampaignName} onChange={e => setDonCampaignName(e.target.value)}
+                placeholder="2026 Legal Defense Fund" className="input" style={{ width: '100%' }} />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <div>
-                <label style={{ fontSize: 10, color: 'var(--cp-text-muted)', marginBottom: 4, display: 'block' }}>
-                  CURRENCY {editingLink && <span style={{ color: 'var(--cp-text-dim)' }}>(locked)</span>}
-                </label>
-                <select value={donCurrency} onChange={e => setDonCurrency(e.target.value)}
-                  className="input" style={{ width: '100%' }} disabled={!!editingLink}>
-                  <option value="USD">USD</option>
-                  <option value="EUR">EUR</option>
-                  <option value="GBP">GBP</option>
-                </select>
-              </div>
-              <div>
-                <label style={{ fontSize: 10, color: 'var(--cp-text-muted)', marginBottom: 4, display: 'block' }}>
-                  SUGGESTED AMOUNTS
-                </label>
-                <input type="text" value={donSuggested} onChange={e => setDonSuggested(e.target.value)}
-                  placeholder="10, 25, 50, 100" className="input" style={{ width: '100%' }} />
-                <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 3 }}>
-                  Comma-separated, in {donCurrency}
-                </div>
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <div>
-                <label style={{ fontSize: 10, color: 'var(--cp-text-muted)', marginBottom: 4, display: 'block' }}>
-                  CAMPAIGN NAME
-                </label>
-                <input type="text" value={donCampaignName} onChange={e => setDonCampaignName(e.target.value)}
-                  placeholder="2026 Legal Defense Fund" className="input" style={{ width: '100%' }} />
-              </div>
-              <div>
-                <label style={{ fontSize: 10, color: 'var(--cp-text-muted)', marginBottom: 4, display: 'block' }}>
-                  CAMPAIGN GOAL ({donCurrency})
-                </label>
-                <input type="number" value={donCampaignGoal} onChange={e => setDonCampaignGoal(e.target.value)}
-                  placeholder="10000" className="input" style={{ width: '100%' }} />
-              </div>
-            </div>
-
-            <div>
-              <label style={{ fontSize: 10, color: 'var(--cp-text-muted)', marginBottom: 4, display: 'block' }}>
-                THANK YOU MESSAGE
-              </label>
-              <textarea value={donThankYou} onChange={e => setDonThankYou(e.target.value)}
-                placeholder="Thank you for supporting privacy." className="input"
-                rows={2} style={{ width: '100%', resize: 'vertical' }} />
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <div>
-                <label style={{ fontSize: 10, color: 'var(--cp-text-muted)', marginBottom: 4, display: 'block' }}>
-                  CONTACT EMAIL
-                </label>
-                <input type="email" value={donContactEmail} onChange={e => setDonContactEmail(e.target.value)}
-                  placeholder="donations@example.org" className="input" style={{ width: '100%' }} />
-                <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 3 }}>
-                  For tax receipt requests
-                </div>
-              </div>
-              <div>
-                <label style={{ fontSize: 10, color: 'var(--cp-text-muted)', marginBottom: 4, display: 'block' }}>
-                  WEBSITE URL
-                </label>
-                <input type="url" value={donWebsiteUrl} onChange={e => setDonWebsiteUrl(e.target.value)}
-                  placeholder="https://example.org" className="input" style={{ width: '100%' }} />
-              </div>
-            </div>
-
+            {/* — Visual — */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 10 }}>
               <div>
                 <label style={{ fontSize: 10, color: 'var(--cp-text-muted)', marginBottom: 4, display: 'block' }}>
@@ -477,6 +413,83 @@ export const PaymentLinksTab = memo(function PaymentLinksTab({
               </div>
             )}
 
+            <div>
+              <label style={{ fontSize: 10, color: 'var(--cp-text-muted)', marginBottom: 4, display: 'block' }}>
+                MISSION STATEMENT
+              </label>
+              <textarea value={donMission} onChange={e => setDonMission(e.target.value)}
+                placeholder="Defending digital rights worldwide" className="input"
+                rows={2} style={{ width: '100%', resize: 'vertical' }} />
+            </div>
+
+            {/* — Fundraising — */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div>
+                <label style={{ fontSize: 10, color: 'var(--cp-text-muted)', marginBottom: 4, display: 'block' }}>
+                  CAMPAIGN GOAL ({donCurrency})
+                </label>
+                <input type="number" value={donCampaignGoal} onChange={e => setDonCampaignGoal(e.target.value)}
+                  placeholder="10000" className="input" style={{ width: '100%' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: 10, color: 'var(--cp-text-muted)', marginBottom: 4, display: 'block' }}>
+                  CURRENCY {editingLink && <span style={{ color: 'var(--cp-text-dim)' }}>(locked)</span>}
+                </label>
+                <select value={donCurrency} onChange={e => setDonCurrency(e.target.value)}
+                  className="input" style={{ width: '100%' }} disabled={!!editingLink}>
+                  <option value="USD">USD</option>
+                  <option value="EUR">EUR</option>
+                  <option value="GBP">GBP</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label style={{ fontSize: 10, color: 'var(--cp-text-muted)', marginBottom: 4, display: 'block' }}>
+                SUGGESTED AMOUNTS
+              </label>
+              <input type="text" value={donSuggested} onChange={e => setDonSuggested(e.target.value)}
+                placeholder="10, 25, 50, 100" className="input" style={{ width: '100%' }} />
+              <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 3 }}>
+                Comma-separated, in {donCurrency}
+              </div>
+            </div>
+
+            {/* — Post-donation — */}
+            <div>
+              <label style={{ fontSize: 10, color: 'var(--cp-text-muted)', marginBottom: 4, display: 'block' }}>
+                THANK YOU MESSAGE
+              </label>
+              <textarea value={donThankYou} onChange={e => setDonThankYou(e.target.value)}
+                placeholder="Thank you for supporting privacy." className="input"
+                rows={2} style={{ width: '100%', resize: 'vertical' }} />
+              <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 3 }}>
+                Shown to donors after payment is confirmed
+              </div>
+            </div>
+
+            {/* — Contact & links — */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div>
+                <label style={{ fontSize: 10, color: 'var(--cp-text-muted)', marginBottom: 4, display: 'block' }}>
+                  CONTACT EMAIL
+                </label>
+                <input type="email" value={donContactEmail} onChange={e => setDonContactEmail(e.target.value)}
+                  placeholder="donations@example.org" className="input" style={{ width: '100%' }} />
+                <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 3 }}>
+                  For tax receipt requests
+                </div>
+              </div>
+              <div>
+                <label style={{ fontSize: 10, color: 'var(--cp-text-muted)', marginBottom: 4, display: 'block' }}>
+                  WEBSITE URL
+                </label>
+                <input type="url" value={donWebsiteUrl} onChange={e => setDonWebsiteUrl(e.target.value)}
+                  placeholder="https://example.org" className="input" style={{ width: '100%' }} />
+              </div>
+            </div>
+
+            {/* — Sharing — */}
             <div>
               <label style={{ fontSize: 10, color: 'var(--cp-text-muted)', marginBottom: 4, display: 'block' }}>
                 SOCIAL SHARE TEXT
