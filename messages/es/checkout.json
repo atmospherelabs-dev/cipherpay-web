@@ -60,5 +60,7 @@
   "donationContact": "¿Preguntas? Escríbenos a {email}",
   "donationReceipt": "¿Necesitas un recibo fiscal? Contacta a {org} en {email} con el código de referencia {memo}.",
   "donationReceiptNoEmail": "¿Necesitas un recibo fiscal? Contacta a {org} con el código de referencia {memo}.",
-  "downloadReceipt": "DESCARGAR RECIBO"
+  "downloadReceipt": "DESCARGAR RECIBO",
+  "shareDonation": "Compartir en X",
+  "donationShareDefault": "Acabo de donar con Zcash — privado, sin custodia, directo."
 }

@@ -58,6 +58,8 @@ export interface Invoice {
     thank_you?: string | null;
     campaign_name?: string | null;
     contact_email?: string | null;
+    social_share_text?: string | null;
+    slug?: string | null;
   } | null;
 }
 

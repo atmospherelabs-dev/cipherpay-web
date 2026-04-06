@@ -60,5 +60,7 @@
   "donationContact": "Questions? Reach out at {email}",
   "donationReceipt": "Want a tax receipt? Contact {org} at {email} with reference code {memo}.",
   "donationReceiptNoEmail": "Want a tax receipt? Contact {org} with reference code {memo}.",
-  "downloadReceipt": "DOWNLOAD RECEIPT"
+  "downloadReceipt": "DOWNLOAD RECEIPT",
+  "shareDonation": "Share on X",
+  "donationShareDefault": "I just donated with Zcash — private, non-custodial, direct."
 }

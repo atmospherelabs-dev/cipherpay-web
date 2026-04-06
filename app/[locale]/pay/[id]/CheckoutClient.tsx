@@ -752,6 +752,30 @@ function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending, ticke
             {t('donationContact', { email: invoice.donation_meta.contact_email })}
           </div>
         )}
+        {isDonation && invoice.donation_meta?.slug && (
+          <div style={{ marginTop: 16, display: 'flex', gap: 8, justifyContent: 'center' }}>
+            <a
+              href={`https://x.com/intent/tweet?${new URLSearchParams({
+                text: invoice.donation_meta.social_share_text || t('donationShareDefault'),
+                url: `${typeof window !== 'undefined' ? window.location.origin : ''}/donate/${invoice.donation_meta.slug}`,
+              }).toString()}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '7px 16px', fontSize: 11, fontWeight: 600,
+                borderRadius: 4, border: '1px solid rgba(255,255,255,0.1)',
+                background: 'rgba(255,255,255,0.04)', color: 'var(--cp-text)',
+                textDecoration: 'none', transition: 'background 0.15s',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.04)')}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              {t('shareDonation')}
+            </a>
+          </div>
+        )}
       </div>
 
       {ticketPending && !ticketCode && !lumaPass && (
