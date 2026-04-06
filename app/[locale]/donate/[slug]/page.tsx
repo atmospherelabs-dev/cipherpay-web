@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import DonateClient from './DonateClient';
 import type { DonationLinkInfo } from '@/lib/api';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cipherpay.app';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.cipherpay.app';
 
@@ -10,18 +13,22 @@ interface PageProps {
 }
 
 async function fetchInfo(slug: string, retries = 2): Promise<DonationLinkInfo | null> {
+  const url = `${API_URL}/api/payment-links/${slug}/info`;
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
-      const res = await fetch(`${API_URL}/api/payment-links/${slug}/info`, {
+      const res = await fetch(url, {
         cache: 'no-store',
         signal: AbortSignal.timeout(8000),
       });
       if (!res.ok) {
+        const body = await res.text().catch(() => '');
+        console.error(`[donate/${slug}] /info returned ${res.status} (attempt ${attempt + 1}): ${body}`);
         if (attempt < retries && res.status >= 500) continue;
         return null;
       }
       return await res.json();
-    } catch {
+    } catch (err) {
+      console.error(`[donate/${slug}] /info fetch failed (attempt ${attempt + 1}):`, err);
       if (attempt < retries) {
         await new Promise(r => setTimeout(r, 500 * (attempt + 1)));
         continue;
