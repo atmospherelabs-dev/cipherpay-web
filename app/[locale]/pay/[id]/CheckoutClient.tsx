@@ -260,7 +260,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
       <header className="site-header">
         <Link href="/"><Logo size="sm" /></Link>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {(invoice.status === 'pending' || isUnderpaid) && <span className="tag">{countdown.text}</span>}
+          {(invoice.status === 'pending' || isUnderpaid) && <span className="tag">{invoice.is_donation ? t('donation') : countdown.text}</span>}
           {showReceipt && <span className="tag">{t('paid')}</span>}
           <LanguageSwitcher />
           <ThemeToggle />
@@ -521,8 +521,39 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
             </div>
           )}
 
-          {/* ── Receipt ── */}
-          {showReceipt && (
+          {/* ── Donation: waiting for block confirmation ── */}
+          {invoice.is_donation && invoice.status === 'detected' && (
+            <div style={{
+              marginTop: 0, marginBottom: 20, borderRadius: 6,
+              border: '1px solid rgba(86, 212, 200, 0.15)',
+              background: 'linear-gradient(180deg, rgba(86, 212, 200, 0.06) 0%, transparent 100%)',
+              padding: '28px 20px 24px', textAlign: 'center',
+            }}>
+              <div style={{
+                fontSize: 11, letterSpacing: 3, fontWeight: 700,
+                color: 'var(--cp-cyan)', marginBottom: 14,
+              }}>
+                {t('donationDetected')}
+              </div>
+              {invoice.donation_meta?.campaign_name && (
+                <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--cp-text)', lineHeight: 1.3, marginBottom: 4 }}>
+                  {invoice.donation_meta.campaign_name}
+                </div>
+              )}
+              {invoice.merchant_name && (
+                <div style={{ fontSize: 11, color: 'var(--cp-text-muted)', marginBottom: 16 }}>
+                  {t('donationBy', { org: invoice.merchant_name })}
+                </div>
+              )}
+              <Spinner size={20} />
+              <div style={{ fontSize: 12, color: 'var(--cp-text-dim)', marginTop: 14, lineHeight: 1.6 }}>
+                {t('donationConfirming')}
+              </div>
+            </div>
+          )}
+
+          {/* ── Receipt (non-donation: detected+confirmed, donation: confirmed only) ── */}
+          {showReceipt && !(invoice.is_donation && invoice.status === 'detected') && (
             <ConfirmedReceipt invoice={invoice} returnUrl={returnUrl} ticketCode={ticketCode} ticketPending={ticketPending} ticketMeta={ticketMeta} lumaPass={lumaPass} />
           )}
 
@@ -643,19 +674,30 @@ function ReceiptDetails({ invoice, row, label, primaryPrice, secondaryPrice, t }
   primaryPrice: string; secondaryPrice: string | null;
   t: ReturnType<typeof useTranslations>;
 }) {
+  const isDonation = !!invoice.is_donation;
+
   return (
     <>
       <div style={{ border: '1px solid var(--cp-border)', borderRadius: 6, padding: '0 20px' }}>
-        {invoice.merchant_name && (
+        {!isDonation && invoice.merchant_name && (
           <div style={row}>
             <span style={label}>{t('merchant')}</span>
             <span style={{ fontWeight: 600 }}>{invoice.merchant_name}</span>
           </div>
         )}
-        {invoice.product_name && (
+        <div style={row}>
+          <span style={label}>{isDonation ? t('campaign') : t('item')}</span>
+          <span style={{ fontWeight: 600 }}>
+            {isDonation
+              ? (invoice.donation_meta?.campaign_name || invoice.product_name || t('donationTo', { org: invoice.merchant_name || '' }))
+              : <>{invoice.product_name}{invoice.size ? ` · ${invoice.size}` : ''}</>
+            }
+          </span>
+        </div>
+        {isDonation && invoice.merchant_name && (
           <div style={row}>
-            <span style={label}>{t('item')}</span>
-            <span style={{ fontWeight: 600 }}>{invoice.product_name}{invoice.size ? ` · ${invoice.size}` : ''}</span>
+            <span style={label}>{t('organizer')}</span>
+            <span style={{ fontWeight: 600 }}>{invoice.merchant_name}</span>
           </div>
         )}
         <div style={row}>
@@ -747,43 +789,82 @@ function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending, ticke
 
   return (
     <div>
-      <div className="checkout-status confirmed" style={{ marginTop: 0, marginBottom: 20, padding: 20 }}>
-        <div style={{ fontSize: 15, fontWeight: 700 }}>{isDonation ? t('thankYouDonation') : t('paymentAccepted')}</div>
-        {isDonation && (
-          <div style={{ fontSize: 12, color: 'var(--cp-text-dim)', marginTop: 6, lineHeight: 1.6 }}>
+      {isDonation ? (
+        <div style={{
+          marginTop: 0, marginBottom: 20, borderRadius: 6,
+          border: '1px solid rgba(86, 212, 200, 0.15)',
+          background: 'linear-gradient(180deg, rgba(86, 212, 200, 0.06) 0%, transparent 100%)',
+          padding: '28px 20px 24px', textAlign: 'center',
+        }}>
+          <div style={{
+            fontSize: 11, letterSpacing: 3, fontWeight: 700,
+            background: 'linear-gradient(135deg, #5B9CF6, #56D4C8)',
+            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+            marginBottom: 14,
+          }}>
+            {t('thankYouDonation')}
+          </div>
+
+          {invoice.donation_meta?.campaign_name && (
+            <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--cp-text)', lineHeight: 1.3, marginBottom: 4 }}>
+              {invoice.donation_meta.campaign_name}
+            </div>
+          )}
+          {invoice.merchant_name && (
+            <div style={{ fontSize: 11, color: 'var(--cp-text-muted)', marginBottom: 16 }}>
+              {t('donationBy', { org: invoice.merchant_name })}
+            </div>
+          )}
+
+          <div style={{
+            fontSize: 12, color: 'var(--cp-text-dim)', lineHeight: 1.7,
+            maxWidth: 340, margin: '0 auto',
+          }}>
             {invoice.donation_meta?.thank_you || t('donationConfirmed')}
           </div>
-        )}
-        {isDonation && invoice.donation_meta?.contact_email && (
-          <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: 10, opacity: 0.7 }}>
-            {t('donationContact', { email: invoice.donation_meta.contact_email })}
-          </div>
-        )}
-        {isDonation && invoice.donation_meta?.slug && (
-          <div style={{ marginTop: 16, display: 'flex', gap: 8, justifyContent: 'center' }}>
-            <a
-              href={`https://x.com/intent/tweet?${new URLSearchParams({
-                text: invoice.donation_meta.social_share_text || t('donationShareDefault'),
-                url: `${typeof window !== 'undefined' ? window.location.origin : ''}/donate/${invoice.donation_meta.slug}`,
-              }).toString()}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-                padding: '7px 16px', fontSize: 11, fontWeight: 600,
-                borderRadius: 4, border: '1px solid rgba(255,255,255,0.1)',
-                background: 'rgba(255,255,255,0.04)', color: 'var(--cp-text)',
-                textDecoration: 'none', transition: 'background 0.15s',
-              }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.04)')}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-              {t('shareDonation')}
-            </a>
-          </div>
-        )}
-      </div>
+
+          {invoice.donation_meta?.contact_email && (
+            <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: 14, opacity: 0.7 }}>
+              {t('donationContact', { email: invoice.donation_meta.contact_email })}
+            </div>
+          )}
+
+          {invoice.donation_meta?.slug && (
+            <div style={{ marginTop: 18, display: 'flex', gap: 8, justifyContent: 'center' }}>
+              <a
+                href={`https://x.com/intent/tweet?${new URLSearchParams({
+                  text: invoice.donation_meta.social_share_text || t('donationShareDefault'),
+                  url: `${typeof window !== 'undefined' ? window.location.origin : ''}/donate/${invoice.donation_meta.slug}`,
+                }).toString()}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '8px 20px', fontSize: 11, fontWeight: 600,
+                  borderRadius: 6, border: '1px solid rgba(86, 212, 200, 0.2)',
+                  background: 'rgba(86, 212, 200, 0.08)', color: 'var(--cp-text)',
+                  textDecoration: 'none', transition: 'all 0.15s',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = 'rgba(86, 212, 200, 0.14)';
+                  e.currentTarget.style.borderColor = 'rgba(86, 212, 200, 0.35)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = 'rgba(86, 212, 200, 0.08)';
+                  e.currentTarget.style.borderColor = 'rgba(86, 212, 200, 0.2)';
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                {t('shareDonation')}
+              </a>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="checkout-status confirmed" style={{ marginTop: 0, marginBottom: 20, padding: 20 }}>
+          <div style={{ fontSize: 15, fontWeight: 700 }}>{t('paymentAccepted')}</div>
+        </div>
+      )}
 
       {ticketPending && !ticketCode && !lumaPass && (
         <div style={{
@@ -977,7 +1058,7 @@ function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending, ticke
 
       {!returnUrl && !ticketPending && (
         <div style={{ textAlign: 'center', marginTop: 24, fontSize: 10, color: 'var(--cp-text-dim)', letterSpacing: 1 }}>
-          {t('canClosePage')}
+          {isDonation ? t('donationClosePage') : t('canClosePage')}
         </div>
       )}
     </div>

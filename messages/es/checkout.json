@@ -63,5 +63,11 @@
   "donationReceiptNoEmail": "¿Necesitas un recibo fiscal? Contacta a {org} con el código de referencia {memo}.",
   "downloadReceipt": "DESCARGAR RECIBO",
   "shareDonation": "Compartir en X",
-  "donationShareDefault": "Acabo de donar con Zcash — privado, sin custodia, directo."
+  "donationShareDefault": "Acabo de donar con Zcash — privado, sin custodia, directo.",
+  "campaign": "CAMPAÑA",
+  "organizer": "ORGANIZADOR",
+  "donationClosePage": "TU DONACIÓN HACE LA DIFERENCIA",
+  "donationDetected": "DONACIÓN RECIBIDA",
+  "donationConfirming": "Tu donación ha sido detectada en la red y está esperando confirmación de bloque. Esto suele tardar unos minutos.",
+  "donation": "DONACIÓN"
 }

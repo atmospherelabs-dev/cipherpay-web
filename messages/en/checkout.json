@@ -63,5 +63,11 @@
   "donationReceiptNoEmail": "Want a tax receipt? Contact {org} with reference code {memo}.",
   "downloadReceipt": "DOWNLOAD RECEIPT",
   "shareDonation": "Share on X",
-  "donationShareDefault": "I just donated with Zcash — private, non-custodial, direct."
+  "donationShareDefault": "I just donated with Zcash — private, non-custodial, direct.",
+  "campaign": "CAMPAIGN",
+  "organizer": "ORGANIZER",
+  "donationClosePage": "YOUR DONATION MAKES A DIFFERENCE",
+  "donationDetected": "DONATION RECEIVED",
+  "donationConfirming": "Your donation has been detected on the network and is waiting for block confirmation. This usually takes a few minutes.",
+  "donation": "DONATION"
 }

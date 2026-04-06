@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import DonateClient from './DonateClient';
+import type { DonationLinkInfo } from '@/lib/api';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cipherpay.app';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.cipherpay.app';
@@ -8,16 +9,27 @@ interface PageProps {
   params: Promise<{ slug: string; locale: string }>;
 }
 
-async function fetchInfo(slug: string) {
-  try {
-    const res = await fetch(`${API_URL}/api/payment-links/${slug}/info`, {
-      cache: 'no-store',
-    });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
+async function fetchInfo(slug: string, retries = 2): Promise<DonationLinkInfo | null> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(`${API_URL}/api/payment-links/${slug}/info`, {
+        cache: 'no-store',
+        signal: AbortSignal.timeout(8000),
+      });
+      if (!res.ok) {
+        if (attempt < retries && res.status >= 500) continue;
+        return null;
+      }
+      return await res.json();
+    } catch {
+      if (attempt < retries) {
+        await new Promise(r => setTimeout(r, 500 * (attempt + 1)));
+        continue;
+      }
+      return null;
+    }
   }
+  return null;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -66,11 +78,11 @@ export default async function DonatePage({ params }: PageProps) {
   const info = await fetchInfo(slug);
 
   if (!info) {
-    return <ErrorView status={500} message="Something went wrong" />;
+    return <ErrorView status={503} message="The campaign page is temporarily unavailable. Please refresh to try again." />;
   }
 
-  if (info.error) {
-    return <ErrorView status={404} message={info.error} />;
+  if ((info as unknown as { error?: string }).error) {
+    return <ErrorView status={404} message={(info as unknown as { error: string }).error} />;
   }
 
   if (info.mode !== 'donation') {
@@ -84,7 +96,10 @@ function ErrorView({ status, message }: { status: number; message: string }) {
   const title =
     status === 404 ? 'Not found' :
     status === 410 ? 'No longer active' :
+    status === 503 ? 'Temporarily unavailable' :
     'Error';
+
+  const showRefresh = status === 503 || status === 500;
 
   return (
     <div style={{
@@ -96,7 +111,7 @@ function ErrorView({ status, message }: { status: number; message: string }) {
       color: 'var(--cp-text, #e0e0e0)',
       fontFamily: 'var(--font-mono, monospace)',
     }}>
-      <div style={{ textAlign: 'center', maxWidth: 400 }}>
+      <div style={{ textAlign: 'center', maxWidth: 400, padding: '0 20px' }}>
         <div style={{ fontSize: 48, fontWeight: 700, opacity: 0.3, marginBottom: 12 }}>
           {status}
         </div>
@@ -106,6 +121,21 @@ function ErrorView({ status, message }: { status: number; message: string }) {
         <p style={{ fontSize: 14, opacity: 0.6, lineHeight: 1.5 }}>
           {message}
         </p>
+        {showRefresh && (
+          <a
+            href=""
+            style={{
+              display: 'inline-block', marginTop: 20,
+              padding: '10px 24px', borderRadius: 6,
+              background: 'rgba(86, 212, 200, 0.1)',
+              border: '1px solid rgba(86, 212, 200, 0.25)',
+              color: '#56D4C8', fontSize: 13, fontWeight: 600,
+              textDecoration: 'none',
+            }}
+          >
+            Try again
+          </a>
+        )}
       </div>
     </div>
   );
