@@ -57,6 +57,7 @@
   "donationTo": "Donation to {org}",
   "thankYouDonation": "THANK YOU",
   "donationConfirmed": "Your donation has been received.",
+  "donationContact": "Questions? Reach out at {email}",
   "donationReceipt": "Want a tax receipt? Contact {org} at {email} with reference code {memo}.",
   "donationReceiptNoEmail": "Want a tax receipt? Contact {org} with reference code {memo}.",
   "downloadReceipt": "DOWNLOAD RECEIPT"

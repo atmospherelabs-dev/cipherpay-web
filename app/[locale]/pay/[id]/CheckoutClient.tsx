@@ -744,7 +744,12 @@ function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending, ticke
         <div style={{ fontSize: 15, fontWeight: 700 }}>{isDonation ? t('thankYouDonation') : t('paymentAccepted')}</div>
         {isDonation && (
           <div style={{ fontSize: 12, color: 'var(--cp-text-dim)', marginTop: 6, lineHeight: 1.6 }}>
-            {t('donationConfirmed')}
+            {invoice.donation_meta?.thank_you || t('donationConfirmed')}
+          </div>
+        )}
+        {isDonation && invoice.donation_meta?.contact_email && (
+          <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: 10, opacity: 0.7 }}>
+            {t('donationContact', { email: invoice.donation_meta.contact_email })}
           </div>
         )}
       </div>

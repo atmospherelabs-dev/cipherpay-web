@@ -54,6 +54,11 @@ export interface Invoice {
   is_event?: boolean;
   is_luma?: boolean;
   price_label?: string | null;
+  donation_meta?: {
+    thank_you?: string | null;
+    campaign_name?: string | null;
+    contact_email?: string | null;
+  } | null;
 }
 
 export interface CreateInvoiceRequest {
