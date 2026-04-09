@@ -211,6 +211,8 @@
     "graceUntil": "Vencimento",
     "daysRemaining": "{days}d restantes",
     "tierProgress": "{current}/{target} ciclos para {next}",
+    "tierGrace": "Carência: {days}",
+    "tierSuspend": "Suspensão: {days}",
     "noCycle": "Nenhum ciclo de faturamento ativo ainda. Um ciclo começa quando sua primeira fatura é confirmada.",
     "settlementThreshold": "LIMITE DE LIQUIDAÇÃO",
     "belowMinimum": "Abaixo do mínimo de {min} ZEC. As taxas acumulam automaticamente até atingir o limite.",

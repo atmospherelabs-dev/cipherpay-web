@@ -31,6 +31,12 @@ function tierProgress(tier: string, paidCount: number): { current: number; targe
   return { current: Math.min(paidCount, 3), target: 3, nextTier };
 }
 
+const TIER_INFO: Record<string, { grace: string; suspend: string }> = {
+  new: { grace: '7 days', suspend: '7 days' },
+  standard: { grace: '7 days', suspend: '14 days' },
+  trusted: { grace: '14 days', suspend: '30 days' },
+};
+
 export const BillingTab = memo(function BillingTab({
   billing, billingHistory, reloadBilling, zecRates, displayCurrency,
 }: BillingTabProps) {
@@ -38,6 +44,7 @@ export const BillingTab = memo(function BillingTab({
   const t = useTranslations('dashboard.billing');
   const [settling, setSettling] = useState(false);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const [showTierInfo, setShowTierInfo] = useState(false);
   const sym = currencySymbol(displayCurrency);
 
   const settleBilling = async () => {
@@ -90,7 +97,7 @@ export const BillingTab = memo(function BillingTab({
                 <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-dim)', textTransform: 'uppercase', marginBottom: 6 }}>
                   {t('outstanding')}
                 </div>
-                <div style={{ fontSize: 28, fontWeight: 700, fontFamily: 'monospace', color: 'var(--cp-yellow)', lineHeight: 1 }}>
+                <div style={{ fontSize: 28, fontWeight: 700, fontFamily: 'monospace', color: 'var(--cp-text)', lineHeight: 1 }}>
                   {billing.outstanding_zec.toFixed(6)} <span style={{ fontSize: 14, fontWeight: 400 }}>ZEC</span>
                 </div>
                 {toFiat(billing.outstanding_zec) !== null && (
@@ -107,8 +114,13 @@ export const BillingTab = memo(function BillingTab({
                 <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>{t('feeRate')}</div>
                 <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--cp-text)' }}>{(billing.fee_rate * 100).toFixed(1)}%</div>
               </div>
-              <div style={{ background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4, padding: 12, textAlign: 'center' }}>
-                <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>{t('trustTier')}</div>
+              <div
+                style={{ background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4, padding: 12, textAlign: 'center', cursor: 'pointer', position: 'relative' }}
+                onClick={() => setShowTierInfo(!showTierInfo)}
+              >
+                <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>
+                  {t('trustTier')} <span style={{ fontSize: 8, opacity: 0.5 }}>ⓘ</span>
+                </div>
                 <div style={{ fontSize: 18, fontWeight: 700, color: billing.trust_tier === 'trusted' ? 'var(--cp-green)' : billing.trust_tier === 'standard' ? 'var(--cp-cyan)' : 'var(--cp-text-muted)' }}>
                   {billing.trust_tier.toUpperCase()}
                 </div>
@@ -117,60 +129,33 @@ export const BillingTab = memo(function BillingTab({
                     {t('tierProgress', { current: progress.current, target: progress.target, next: progress.nextTier.toUpperCase() })}
                   </div>
                 )}
+                {showTierInfo && (
+                  <div style={{
+                    position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 4, zIndex: 10,
+                    background: 'var(--cp-surface)', border: '1px solid var(--cp-border)', borderRadius: 4,
+                    padding: 10, textAlign: 'left', fontSize: 10, lineHeight: 1.6,
+                  }}>
+                    {(['new', 'standard', 'trusted'] as const).map(tier => {
+                      const info = TIER_INFO[tier];
+                      const isCurrent = billing.trust_tier === tier;
+                      return (
+                        <div key={tier} style={{ marginBottom: tier !== 'trusted' ? 6 : 0, opacity: isCurrent ? 1 : 0.6 }}>
+                          <span style={{ fontWeight: 700, color: isCurrent ? 'var(--cp-cyan)' : 'var(--cp-text-muted)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                            {tier}{isCurrent ? ' ←' : ''}
+                          </span>
+                          <br />
+                          <span style={{ color: 'var(--cp-text-dim)' }}>
+                            {t('tierGrace', { days: info.grace })} · {t('tierSuspend', { days: info.suspend })}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Current Cycle */}
-            {billing.current_cycle ? (
-              <div style={{ background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4, padding: 16, marginBottom: 16 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                  <span style={{ fontSize: 10, letterSpacing: 1, color: 'var(--cp-cyan)', fontWeight: 600 }}>{t('currentCycle')}</span>
-                  {zecRates && (
-                    <span style={{ fontSize: 9, color: 'var(--cp-text-dim)', fontFamily: 'monospace' }}>
-                      1 ZEC = {sym}{((zecRates as unknown as Record<string, number>)[`zec_${displayCurrency.toLowerCase()}`] || zecRates.zec_eur).toFixed(2)}
-                    </span>
-                  )}
-                </div>
-                <div className="stat-row" style={{ marginBottom: 6 }}>
-                  <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>{t('period')}</span>
-                  <span style={{ fontSize: 11 }}>
-                    {formatDateShort(billing.current_cycle.period_start)} — {formatDateShort(billing.current_cycle.period_end)}
-                  </span>
-                </div>
-                <div className="stat-row" style={{ marginBottom: 6 }}>
-                  <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>{t('totalFees')}</span>
-                  <span style={{ fontSize: 11, fontFamily: 'monospace' }}>{billing.total_fees_zec.toFixed(6)} ZEC{label(toFiat(billing.total_fees_zec))}</span>
-                </div>
-                {billing.auto_collected_zec > 0.000001 && (
-                  <div className="stat-row" style={{ marginBottom: 6 }}>
-                    <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>{t('autoCollected')}</span>
-                    <span style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--cp-green)' }}>{billing.auto_collected_zec.toFixed(6)} ZEC{label(toFiat(billing.auto_collected_zec))}</span>
-                  </div>
-                )}
-                {billing.current_cycle.grace_until && (() => {
-                  const days = daysUntil(billing.current_cycle!.grace_until!);
-                  return (
-                    <div className="stat-row">
-                      <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>{t('graceUntil')}</span>
-                      <span style={{ fontSize: 11, color: days <= 3 ? 'var(--cp-red)' : 'var(--cp-yellow)' }}>
-                        {t('daysRemaining', { days })}
-                        <span style={{ color: 'var(--cp-text-dim)', marginLeft: 6, fontSize: 10 }}>
-                          ({formatDateShort(billing.current_cycle!.grace_until!)})
-                        </span>
-                      </span>
-                    </div>
-                  );
-                })()}
-              </div>
-            ) : (
-              <div style={{ background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4, padding: 16, marginBottom: 16, textAlign: 'center' }}>
-                <div style={{ fontSize: 11, color: 'var(--cp-text-muted)' }}>
-                  {t('noCycle')}
-                </div>
-              </div>
-            )}
-
-            {/* Settlement action */}
+            {/* Settlement action — before cycle details so merchant sees "do I need to act?" first */}
             {billing.outstanding_zec > 0.00001 && (() => {
               const min = billing.min_settlement_zec || 0.05;
               const pct = Math.min((billing.outstanding_zec / min) * 100, 100);
@@ -224,6 +209,56 @@ export const BillingTab = memo(function BillingTab({
                 </div>
               );
             })()}
+
+            {/* Current Cycle */}
+            {billing.current_cycle ? (
+              <div style={{ background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4, padding: 16, marginBottom: 16 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <span style={{ fontSize: 10, letterSpacing: 1, color: 'var(--cp-cyan)', fontWeight: 600 }}>{t('currentCycle')}</span>
+                  {zecRates && (
+                    <span style={{ fontSize: 9, color: 'var(--cp-text-dim)', fontFamily: 'monospace' }}>
+                      1 ZEC = {sym}{((zecRates as unknown as Record<string, number>)[`zec_${displayCurrency.toLowerCase()}`] || zecRates.zec_eur).toFixed(2)}
+                    </span>
+                  )}
+                </div>
+                <div className="stat-row" style={{ marginBottom: 6 }}>
+                  <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>{t('period')}</span>
+                  <span style={{ fontSize: 11 }}>
+                    {formatDateShort(billing.current_cycle.period_start)} — {formatDateShort(billing.current_cycle.period_end)}
+                  </span>
+                </div>
+                <div className="stat-row" style={{ marginBottom: 6 }}>
+                  <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>{t('totalFees')}</span>
+                  <span style={{ fontSize: 11, fontFamily: 'monospace' }}>{billing.total_fees_zec.toFixed(6)} ZEC{label(toFiat(billing.total_fees_zec))}</span>
+                </div>
+                {billing.auto_collected_zec > 0.000001 && (
+                  <div className="stat-row" style={{ marginBottom: 6 }}>
+                    <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>{t('autoCollected')}</span>
+                    <span style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--cp-green)' }}>{billing.auto_collected_zec.toFixed(6)} ZEC{label(toFiat(billing.auto_collected_zec))}</span>
+                  </div>
+                )}
+                {billing.current_cycle.grace_until && (() => {
+                  const days = daysUntil(billing.current_cycle!.grace_until!);
+                  return (
+                    <div className="stat-row">
+                      <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>{t('graceUntil')}</span>
+                      <span style={{ fontSize: 11, color: days <= 3 ? 'var(--cp-red)' : 'var(--cp-yellow)' }}>
+                        {t('daysRemaining', { days })}
+                        <span style={{ color: 'var(--cp-text-dim)', marginLeft: 6, fontSize: 10 }}>
+                          ({formatDateShort(billing.current_cycle!.grace_until!)})
+                        </span>
+                      </span>
+                    </div>
+                  );
+                })()}
+              </div>
+            ) : (
+              <div style={{ background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4, padding: 16, marginBottom: 16, textAlign: 'center' }}>
+                <div style={{ fontSize: 11, color: 'var(--cp-text-muted)' }}>
+                  {t('noCycle')}
+                </div>
+              </div>
+            )}
 
             {/* Billing History */}
             {billingHistory.filter(c => c.status !== 'open').length > 0 && (

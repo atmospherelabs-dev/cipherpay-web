@@ -210,6 +210,8 @@
     "graceUntil": "Vencimiento",
     "daysRemaining": "{days}d restantes",
     "tierProgress": "{current}/{target} ciclos para {next}",
+    "tierGrace": "Gracia: {days}",
+    "tierSuspend": "Suspensión: {days}",
     "noCycle": "No hay ciclo de facturación activo aún. Un ciclo comienza cuando tu primera factura es confirmada.",
     "settlementThreshold": "UMBRAL DE LIQUIDACIÓN",
     "belowMinimum": "Por debajo del mínimo de {min} ZEC. Las comisiones se acumulan automáticamente hasta alcanzar el umbral.",
