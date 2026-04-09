@@ -14,6 +14,23 @@ interface BillingTabProps {
   displayCurrency: string;
 }
 
+function formatDateShort(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function daysUntil(iso: string): number {
+  const now = new Date();
+  const target = new Date(iso);
+  return Math.max(0, Math.ceil((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+}
+
+function tierProgress(tier: string, paidCount: number): { current: number; target: number; nextTier: string } | null {
+  if (tier === 'trusted') return null;
+  const nextTier = tier === 'new' ? 'standard' : 'trusted';
+  return { current: Math.min(paidCount, 3), target: 3, nextTier };
+}
+
 export const BillingTab = memo(function BillingTab({
   billing, billingHistory, reloadBilling, zecRates, displayCurrency,
 }: BillingTabProps) {
@@ -41,6 +58,9 @@ export const BillingTab = memo(function BillingTab({
   const toFiat = (zec: number) => zecToFiat(zec, zecRates, displayCurrency);
   const label = (fiat: number | null) => fiatLabel(fiat, displayCurrency);
 
+  const recentPaidCount = billingHistory.filter(c => ['paid', 'carried_over'].includes(c.status)).length;
+  const progress = billing ? tierProgress(billing.trust_tier, recentPaidCount) : null;
+
   return (
     <div className="panel">
       <div className="panel-header">
@@ -50,9 +70,6 @@ export const BillingTab = memo(function BillingTab({
             {billing.billing_status.toUpperCase().replace('_', ' ')}
           </span>
         )}
-      </div>
-      <div className="panel-subtitle">
-        {t('subtitle')}
       </div>
       <div className="panel-body">
         {!billing?.fee_enabled ? (
@@ -64,8 +81,28 @@ export const BillingTab = memo(function BillingTab({
           </div>
         ) : (
           <>
-            {/* Overview */}
-            <div className="dash-billing-metrics" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 16 }}>
+            {/* Outstanding hero */}
+            {billing.outstanding_zec > 0.00001 && (
+              <div style={{
+                textAlign: 'center', padding: '20px 16px', marginBottom: 16,
+                background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4,
+              }}>
+                <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-dim)', textTransform: 'uppercase', marginBottom: 6 }}>
+                  {t('outstanding')}
+                </div>
+                <div style={{ fontSize: 28, fontWeight: 700, fontFamily: 'monospace', color: 'var(--cp-yellow)', lineHeight: 1 }}>
+                  {billing.outstanding_zec.toFixed(6)} <span style={{ fontSize: 14, fontWeight: 400 }}>ZEC</span>
+                </div>
+                {toFiat(billing.outstanding_zec) !== null && (
+                  <div style={{ fontSize: 12, color: 'var(--cp-text-muted)', marginTop: 4, fontFamily: 'monospace' }}>
+                    ≈ {sym}{toFiat(billing.outstanding_zec)!.toFixed(2)}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Metrics */}
+            <div className="dash-billing-metrics" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 16 }}>
               <div style={{ background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4, padding: 12, textAlign: 'center' }}>
                 <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>{t('feeRate')}</div>
                 <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--cp-text)' }}>{(billing.fee_rate * 100).toFixed(1)}%</div>
@@ -75,16 +112,11 @@ export const BillingTab = memo(function BillingTab({
                 <div style={{ fontSize: 18, fontWeight: 700, color: billing.trust_tier === 'trusted' ? 'var(--cp-green)' : billing.trust_tier === 'standard' ? 'var(--cp-cyan)' : 'var(--cp-text-muted)' }}>
                   {billing.trust_tier.toUpperCase()}
                 </div>
-              </div>
-              <div style={{ background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4, padding: 12, textAlign: 'center' }}>
-                <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>{t('status')}</div>
-                <div style={{
-                  fontSize: 18, fontWeight: 700,
-                  color: billing.billing_status === 'active' ? 'var(--cp-green)' :
-                    billing.billing_status === 'past_due' ? 'var(--cp-yellow)' : 'var(--cp-red)'
-                }}>
-                  {billing.billing_status.toUpperCase().replace('_', ' ')}
-                </div>
+                {progress && (
+                  <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 4 }}>
+                    {t('tierProgress', { current: progress.current, target: progress.target, next: progress.nextTier.toUpperCase() })}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -102,31 +134,33 @@ export const BillingTab = memo(function BillingTab({
                 <div className="stat-row" style={{ marginBottom: 6 }}>
                   <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>{t('period')}</span>
                   <span style={{ fontSize: 11 }}>
-                    {new Date(billing.current_cycle.period_start).toLocaleDateString()} — {new Date(billing.current_cycle.period_end).toLocaleDateString()}
+                    {formatDateShort(billing.current_cycle.period_start)} — {formatDateShort(billing.current_cycle.period_end)}
                   </span>
                 </div>
                 <div className="stat-row" style={{ marginBottom: 6 }}>
                   <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>{t('totalFees')}</span>
                   <span style={{ fontSize: 11, fontFamily: 'monospace' }}>{billing.total_fees_zec.toFixed(6)} ZEC{label(toFiat(billing.total_fees_zec))}</span>
                 </div>
-                <div className="stat-row" style={{ marginBottom: 6 }}>
-                  <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>{t('autoCollected')}</span>
-                  <span style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--cp-green)' }}>{billing.auto_collected_zec.toFixed(6)} ZEC{label(toFiat(billing.auto_collected_zec))}</span>
-                </div>
-                <div className="stat-row" style={{ marginBottom: 6 }}>
-                  <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>{t('outstanding')}</span>
-                  <span style={{ fontSize: 11, fontFamily: 'monospace', fontWeight: 600, color: billing.outstanding_zec > 0.00001 ? 'var(--cp-yellow)' : 'var(--cp-green)' }}>
-                    {billing.outstanding_zec.toFixed(6)} ZEC{label(toFiat(billing.outstanding_zec))}
-                  </span>
-                </div>
-                {billing.current_cycle.grace_until && (
-                  <div className="stat-row">
-                    <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>{t('graceUntil')}</span>
-                    <span style={{ fontSize: 11, color: 'var(--cp-yellow)' }}>
-                      {new Date(billing.current_cycle.grace_until).toLocaleDateString()}
-                    </span>
+                {billing.auto_collected_zec > 0.000001 && (
+                  <div className="stat-row" style={{ marginBottom: 6 }}>
+                    <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>{t('autoCollected')}</span>
+                    <span style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--cp-green)' }}>{billing.auto_collected_zec.toFixed(6)} ZEC{label(toFiat(billing.auto_collected_zec))}</span>
                   </div>
                 )}
+                {billing.current_cycle.grace_until && (() => {
+                  const days = daysUntil(billing.current_cycle!.grace_until!);
+                  return (
+                    <div className="stat-row">
+                      <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>{t('graceUntil')}</span>
+                      <span style={{ fontSize: 11, color: days <= 3 ? 'var(--cp-red)' : 'var(--cp-yellow)' }}>
+                        {t('daysRemaining', { days })}
+                        <span style={{ color: 'var(--cp-text-dim)', marginLeft: 6, fontSize: 10 }}>
+                          ({formatDateShort(billing.current_cycle!.grace_until!)})
+                        </span>
+                      </span>
+                    </div>
+                  );
+                })()}
               </div>
             ) : (
               <div style={{ background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4, padding: 16, marginBottom: 16, textAlign: 'center' }}>
@@ -136,51 +170,56 @@ export const BillingTab = memo(function BillingTab({
               </div>
             )}
 
-            {/* Settlement threshold */}
+            {/* Settlement action */}
             {billing.outstanding_zec > 0.00001 && (() => {
               const min = billing.min_settlement_zec || 0.05;
               const pct = Math.min((billing.outstanding_zec / min) * 100, 100);
               const canSettle = billing.outstanding_zec >= min;
               return (
                 <div style={{ marginBottom: 16 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
-                    <span style={{ fontSize: 10, letterSpacing: 1, color: 'var(--cp-text-dim)', fontWeight: 600 }}>{t('settlementThreshold')}</span>
-                    <span style={{ fontSize: 10, fontFamily: 'monospace', color: canSettle ? 'var(--cp-green)' : 'var(--cp-text-muted)' }}>
-                      {billing.outstanding_zec.toFixed(4)} / {min.toFixed(2)} ZEC
-                    </span>
-                  </div>
-                  <div style={{ width: '100%', height: 8, background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4, overflow: 'hidden', marginBottom: 8 }}>
-                    <div style={{
-                      width: `${pct}%`, height: '100%',
-                      background: canSettle ? 'var(--cp-green)' : 'linear-gradient(90deg, var(--cp-cyan), var(--cp-blue))',
-                      transition: 'width 0.4s ease',
-                      minWidth: pct > 0 ? 4 : 0,
-                    }} />
-                  </div>
-                  {billing.settlement_invoice_status === 'detected' ? (
-                    <div style={{ width: '100%', padding: '10px 0', textAlign: 'center', background: 'rgba(86,212,200,0.08)', border: '1px solid rgba(86,212,200,0.3)', borderRadius: 4 }}>
-                      <span style={{ fontSize: 11, color: 'var(--cp-cyan)', fontWeight: 600, letterSpacing: 0.5 }}>
-                        {t('paymentDetected')}
-                      </span>
-                    </div>
-                  ) : billing.settlement_invoice_status === 'confirmed' ? (
-                    <div style={{ width: '100%', padding: '10px 0', textAlign: 'center', background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.3)', borderRadius: 4 }}>
-                      <span style={{ fontSize: 11, color: 'var(--cp-green)', fontWeight: 600, letterSpacing: 0.5 }}>
-                        {t('paymentConfirmed')}
-                      </span>
-                    </div>
-                  ) : billing.settlement_invoice_status === 'pending' ? (
-                    <button onClick={() => window.open(`/pay/${billing.current_cycle?.settlement_invoice_id}`, '_blank')} className="btn" style={{ width: '100%' }}>
-                      {t('settleNow', { amount: `${billing.outstanding_zec.toFixed(6)} ZEC${label(toFiat(billing.outstanding_zec))}` })}
-                    </button>
-                  ) : canSettle ? (
-                    <button onClick={settleBilling} disabled={settling} className="btn" style={{ width: '100%' }}>
-                      {settling ? t('creatingInvoice') : t('settleNow', { amount: `${billing.outstanding_zec.toFixed(6)} ZEC${label(toFiat(billing.outstanding_zec))}` })}
-                    </button>
-                  ) : (
-                    <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', lineHeight: 1.6 }}>
-                      {t('belowMinimum', { min: min.toFixed(2) })}
-                    </div>
+                  {!canSettle && (
+                    <>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
+                        <span style={{ fontSize: 10, letterSpacing: 1, color: 'var(--cp-text-dim)', fontWeight: 600 }}>{t('settlementThreshold')}</span>
+                        <span style={{ fontSize: 10, fontFamily: 'monospace', color: 'var(--cp-text-muted)' }}>
+                          {billing.outstanding_zec.toFixed(4)} / {min.toFixed(2)} ZEC
+                        </span>
+                      </div>
+                      <div style={{ width: '100%', height: 8, background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4, overflow: 'hidden', marginBottom: 8 }}>
+                        <div style={{
+                          width: `${pct}%`, height: '100%',
+                          background: 'linear-gradient(90deg, var(--cp-cyan), var(--cp-blue))',
+                          transition: 'width 0.4s ease',
+                          minWidth: pct > 0 ? 4 : 0,
+                        }} />
+                      </div>
+                      <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', lineHeight: 1.6 }}>
+                        {t('belowMinimum', { min: min.toFixed(2) })}
+                      </div>
+                    </>
+                  )}
+                  {canSettle && (
+                    billing.settlement_invoice_status === 'detected' ? (
+                      <div style={{ width: '100%', padding: '10px 0', textAlign: 'center', background: 'rgba(86,212,200,0.08)', border: '1px solid rgba(86,212,200,0.3)', borderRadius: 4 }}>
+                        <span style={{ fontSize: 11, color: 'var(--cp-cyan)', fontWeight: 600, letterSpacing: 0.5 }}>
+                          {t('paymentDetected')}
+                        </span>
+                      </div>
+                    ) : billing.settlement_invoice_status === 'confirmed' ? (
+                      <div style={{ width: '100%', padding: '10px 0', textAlign: 'center', background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.3)', borderRadius: 4 }}>
+                        <span style={{ fontSize: 11, color: 'var(--cp-green)', fontWeight: 600, letterSpacing: 0.5 }}>
+                          {t('paymentConfirmed')}
+                        </span>
+                      </div>
+                    ) : billing.settlement_invoice_status === 'pending' ? (
+                      <button onClick={() => window.open(`/pay/${billing.current_cycle?.settlement_invoice_id}`, '_blank')} className="btn" style={{ width: '100%' }}>
+                        {t('settleNow', { amount: `${billing.outstanding_zec.toFixed(6)} ZEC${label(toFiat(billing.outstanding_zec))}` })}
+                      </button>
+                    ) : (
+                      <button onClick={settleBilling} disabled={settling} className="btn" style={{ width: '100%' }}>
+                        {settling ? t('creatingInvoice') : t('settleNow', { amount: `${billing.outstanding_zec.toFixed(6)} ZEC${label(toFiat(billing.outstanding_zec))}` })}
+                      </button>
+                    )
                   )}
                 </div>
               );
@@ -196,14 +235,22 @@ export const BillingTab = memo(function BillingTab({
                       paid: 'var(--cp-green)', carried_over: 'var(--cp-purple)',
                       invoiced: 'var(--cp-yellow)', past_due: 'var(--cp-yellow)', suspended: 'var(--cp-red)',
                     };
+                    const isClickable = cycle.settlement_invoice_id && ['invoiced', 'past_due'].includes(cycle.status);
                     return (
-                      <div key={cycle.id} style={{
-                        display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap',
-                        padding: '8px 10px', background: 'var(--cp-surface)', borderRadius: 4, fontSize: 11, gap: 6,
-                      }}>
+                      <div
+                        key={cycle.id}
+                        onClick={isClickable ? () => window.open(`/pay/${cycle.settlement_invoice_id}`, '_blank') : undefined}
+                        style={{
+                          display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap',
+                          padding: '8px 10px', background: 'var(--cp-surface)', borderRadius: 4, fontSize: 11, gap: 6,
+                          cursor: isClickable ? 'pointer' : 'default',
+                          transition: 'border-color 0.15s',
+                          border: isClickable ? '1px solid var(--cp-border)' : '1px solid transparent',
+                        }}
+                      >
                         <div>
                           <span style={{ color: 'var(--cp-text-muted)' }}>
-                            {new Date(cycle.period_start).toLocaleDateString()} — {new Date(cycle.period_end).toLocaleDateString()}
+                            {formatDateShort(cycle.period_start)} — {formatDateShort(cycle.period_end)}
                           </span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
