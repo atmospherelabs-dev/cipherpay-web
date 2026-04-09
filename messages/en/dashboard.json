@@ -225,6 +225,7 @@
     "settlementRef": "Reference",
     "paidOn": "Paid",
     "payInvoice": "PAY INVOICE",
+    "copied": "Copied to clipboard",
     "howItWorks": "HOW IT WORKS",
     "howItWorksDesc": "A {rate}% fee is added as a second output in payment QR codes (ZIP 321). When buyers scan the QR, the fee is auto-collected. If a buyer copies the address manually, the fee accrues and is billed at cycle end. Consistent on-time payment upgrades your trust tier, extending billing cycles and grace periods.",
     "toastSettlement": "Settlement invoice created: {amount} ZEC",

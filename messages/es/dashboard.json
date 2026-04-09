@@ -224,6 +224,7 @@
     "settlementRef": "Referencia",
     "paidOn": "Pagado",
     "payInvoice": "PAGAR FACTURA",
+    "copied": "Copiado",
     "howItWorks": "CÓMO FUNCIONA",
     "howItWorksDesc": "Una comisión del {rate}% se agrega como una segunda salida en los códigos QR de pago (ZIP 321). Cuando los compradores escanean el QR, la comisión se auto-recauda. Si un comprador copia la dirección manualmente, la comisión se acumula y se factura al final del ciclo. Pagos puntuales consistentes mejoran tu nivel de confianza, extendiendo ciclos de facturación y períodos de gracia.",
     "subtitle": "Rastrea comisiones por transacción, ciclos de facturación e historial de pagos.",

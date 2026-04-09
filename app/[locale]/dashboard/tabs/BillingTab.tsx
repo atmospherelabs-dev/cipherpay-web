@@ -266,7 +266,7 @@ export const BillingTab = memo(function BillingTab({
             {billingHistory.filter(c => c.status !== 'open').length > 0 && (
               <div style={{ marginBottom: 16 }}>
                 <div style={{ fontSize: 10, letterSpacing: 1, color: 'var(--cp-text-muted)', marginBottom: 8, fontWeight: 600 }}>{t('pastCycles')}</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {billingHistory.filter(c => c.status !== 'open').map(cycle => {
                     const statusColors: Record<string, string> = {
                       paid: 'var(--cp-green)', carried_over: 'var(--cp-purple)',
@@ -282,10 +282,8 @@ export const BillingTab = memo(function BillingTab({
                           onClick={() => setExpandedCycle(isExpanded ? null : cycle.id)}
                           style={{
                             display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap',
-                            padding: '8px 10px', background: 'var(--cp-surface)', borderRadius: isExpanded ? '4px 4px 0 0' : 4, fontSize: 11, gap: 6,
-                            cursor: 'pointer',
-                            border: '1px solid var(--cp-border)',
-                            borderBottom: isExpanded ? '1px solid var(--cp-border)' : '1px solid var(--cp-border)',
+                            padding: '8px 10px', fontSize: 11, gap: 6, cursor: 'pointer',
+                            borderBottom: '1px solid var(--cp-border)',
                           }}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -307,42 +305,50 @@ export const BillingTab = memo(function BillingTab({
                           </div>
                         </div>
                         {isExpanded && (
-                          <div style={{
-                            padding: '10px 12px', background: 'var(--cp-bg)',
-                            border: '1px solid var(--cp-border)', borderTop: 'none',
-                            borderRadius: '0 0 4px 4px', fontSize: 10,
-                          }}>
+                          <div style={{ padding: '8px 10px 12px 25px', fontSize: 10, borderBottom: '1px solid var(--cp-border)' }}>
                             <div className="stat-row" style={{ marginBottom: 4 }}>
                               <span style={{ color: 'var(--cp-text-dim)' }}>{t('totalFees')}</span>
                               <span style={{ fontFamily: 'monospace' }}>{cycle.total_fees_zec.toFixed(6)} ZEC{label(toFiat(cycle.total_fees_zec))}</span>
                             </div>
-                            <div className="stat-row" style={{ marginBottom: 4 }}>
-                              <span style={{ color: 'var(--cp-text-dim)' }}>{t('autoCollected')}</span>
-                              <span style={{ fontFamily: 'monospace', color: cycle.auto_collected_zec > 0 ? 'var(--cp-green)' : 'var(--cp-text-dim)' }}>
-                                {cycle.auto_collected_zec.toFixed(6)} ZEC
-                              </span>
-                            </div>
-                            <div className="stat-row" style={{ marginBottom: 4 }}>
-                              <span style={{ color: 'var(--cp-text-dim)' }}>{t('outstanding')}</span>
-                              <span style={{ fontFamily: 'monospace' }}>{cycle.outstanding_zec.toFixed(6)} ZEC</span>
-                            </div>
+                            {cycle.auto_collected_zec > 0 && (
+                              <div className="stat-row" style={{ marginBottom: 4 }}>
+                                <span style={{ color: 'var(--cp-text-dim)' }}>{t('autoCollected')}</span>
+                                <span style={{ fontFamily: 'monospace', color: 'var(--cp-green)' }}>
+                                  {cycle.auto_collected_zec.toFixed(6)} ZEC
+                                </span>
+                              </div>
+                            )}
                             {settlementInvoice && (
                               <>
-                                <div style={{ borderTop: '1px solid var(--cp-border)', margin: '8px 0' }} />
-                                <div className="stat-row" style={{ marginBottom: 4 }}>
-                                  <span style={{ color: 'var(--cp-text-dim)' }}>{t('settlementRef')}</span>
-                                  <span style={{ fontFamily: 'monospace' }}>{settlementInvoice.memo_code}</span>
-                                </div>
                                 {settlementInvoice.detected_txid && (
                                   <div className="stat-row" style={{ marginBottom: 4 }}>
                                     <span style={{ color: 'var(--cp-text-dim)' }}>TxID</span>
-                                    <span style={{ fontFamily: 'monospace', fontSize: 9 }}>{settlementInvoice.detected_txid.slice(0, 16)}...</span>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                      <a
+                                        href={`https://cipherscan.app/tx/${settlementInvoice.detected_txid}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{ fontFamily: 'monospace', fontSize: 9, color: 'var(--cp-cyan)', textDecoration: 'none' }}
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        {settlementInvoice.detected_txid.slice(0, 16)}...
+                                      </a>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          navigator.clipboard.writeText(settlementInvoice.detected_txid!);
+                                          showToast(t('copied'));
+                                        }}
+                                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 10, color: 'var(--cp-text-dim)', lineHeight: 1 }}
+                                        title="Copy TxID"
+                                      >⎘</button>
+                                    </span>
                                   </div>
                                 )}
                                 {settlementInvoice.confirmed_at && (
                                   <div className="stat-row" style={{ marginBottom: 4 }}>
                                     <span style={{ color: 'var(--cp-text-dim)' }}>{t('paidOn')}</span>
-                                    <span>{formatDateShort(settlementInvoice.confirmed_at)}</span>
+                                    <span style={{ fontSize: 10 }}>{formatDateShort(settlementInvoice.confirmed_at)}</span>
                                   </div>
                                 )}
                                 {['invoiced', 'past_due'].includes(cycle.status) && (

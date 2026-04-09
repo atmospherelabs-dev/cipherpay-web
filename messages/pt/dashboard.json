@@ -225,6 +225,7 @@
     "settlementRef": "Referência",
     "paidOn": "Pago em",
     "payInvoice": "PAGAR FATURA",
+    "copied": "Copiado",
     "howItWorks": "COMO FUNCIONA",
     "howItWorksDesc": "Uma taxa de {rate}% é adicionada como uma segunda saída nos QR codes de pagamento (ZIP 321). Quando os compradores escaneiam o QR, a taxa é auto-coletada. Se um comprador copiar o endereço manualmente, a taxa acumula e é cobrada no fim do ciclo. Pagamentos pontuais consistentes elevam seu nível de confiança, estendendo ciclos de faturamento e períodos de carência.",
     "toastSettlement": "Fatura de liquidação criada: {amount} ZEC",
