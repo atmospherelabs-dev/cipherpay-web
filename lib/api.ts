@@ -270,6 +270,7 @@ export interface BillingSummary {
   auto_collected_zec: number;
   outstanding_zec: number;
   min_settlement_zec: number;
+  settlement_invoice_status?: string | null;
 }
 
 export interface SettleResponse {

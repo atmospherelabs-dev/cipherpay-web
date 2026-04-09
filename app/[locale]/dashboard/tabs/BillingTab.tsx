@@ -157,7 +157,23 @@ export const BillingTab = memo(function BillingTab({
                       minWidth: pct > 0 ? 4 : 0,
                     }} />
                   </div>
-                  {canSettle ? (
+                  {billing.settlement_invoice_status === 'detected' ? (
+                    <div style={{ width: '100%', padding: '10px 0', textAlign: 'center', background: 'rgba(86,212,200,0.08)', border: '1px solid rgba(86,212,200,0.3)', borderRadius: 4 }}>
+                      <span style={{ fontSize: 11, color: 'var(--cp-cyan)', fontWeight: 600, letterSpacing: 0.5 }}>
+                        {t('paymentDetected')}
+                      </span>
+                    </div>
+                  ) : billing.settlement_invoice_status === 'confirmed' ? (
+                    <div style={{ width: '100%', padding: '10px 0', textAlign: 'center', background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.3)', borderRadius: 4 }}>
+                      <span style={{ fontSize: 11, color: 'var(--cp-green)', fontWeight: 600, letterSpacing: 0.5 }}>
+                        {t('paymentConfirmed')}
+                      </span>
+                    </div>
+                  ) : billing.settlement_invoice_status === 'pending' ? (
+                    <button onClick={() => window.open(`/pay/${billing.current_cycle?.settlement_invoice_id}`, '_blank')} className="btn" style={{ width: '100%' }}>
+                      {t('settleNow', { amount: `${billing.outstanding_zec.toFixed(6)} ZEC${label(toFiat(billing.outstanding_zec))}` })}
+                    </button>
+                  ) : canSettle ? (
                     <button onClick={settleBilling} disabled={settling} className="btn" style={{ width: '100%' }}>
                       {settling ? t('creatingInvoice') : t('settleNow', { amount: `${billing.outstanding_zec.toFixed(6)} ZEC${label(toFiat(billing.outstanding_zec))}` })}
                     </button>

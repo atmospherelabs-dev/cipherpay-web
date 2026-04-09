@@ -214,6 +214,8 @@
     "belowMinimum": "Below the {min} ZEC minimum. Fees carry over automatically until the threshold is reached.",
     "settleNow": "SETTLE NOW — {amount}",
     "creatingInvoice": "CREATING INVOICE...",
+    "paymentDetected": "PAYMENT DETECTED — WAITING FOR CONFIRMATION",
+    "paymentConfirmed": "PAYMENT CONFIRMED",
     "pastCycles": "PAST CYCLES",
     "carriedOver": "CARRIED OVER",
     "howItWorks": "HOW IT WORKS",

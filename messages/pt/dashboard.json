@@ -214,6 +214,8 @@
     "belowMinimum": "Abaixo do mínimo de {min} ZEC. As taxas acumulam automaticamente até atingir o limite.",
     "settleNow": "LIQUIDAR AGORA — {amount}",
     "creatingInvoice": "CRIANDO FATURA...",
+    "paymentDetected": "PAGAMENTO DETECTADO — AGUARDANDO CONFIRMAÇÃO",
+    "paymentConfirmed": "PAGAMENTO CONFIRMADO",
     "pastCycles": "CICLOS ANTERIORES",
     "carriedOver": "TRANSFERIDO",
     "howItWorks": "COMO FUNCIONA",

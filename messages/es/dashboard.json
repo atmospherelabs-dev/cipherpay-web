@@ -213,6 +213,8 @@
     "belowMinimum": "Por debajo del mínimo de {min} ZEC. Las comisiones se acumulan automáticamente hasta alcanzar el umbral.",
     "settleNow": "LIQUIDAR AHORA — {amount}",
     "creatingInvoice": "CREANDO FACTURA...",
+    "paymentDetected": "PAGO DETECTADO — ESPERANDO CONFIRMACIÓN",
+    "paymentConfirmed": "PAGO CONFIRMADO",
     "pastCycles": "CICLOS ANTERIORES",
     "carriedOver": "TRANSFERIDO",
     "howItWorks": "CÓMO FUNCIONA",
