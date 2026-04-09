@@ -207,9 +207,9 @@ export const OverviewTab = memo(function OverviewTab({
                     <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--cp-text)' }}>
                       {inv.product_name || inv.memo_code}
                     </span>
-                    {(inv.is_donation || inv.is_event) && (
-                      <span style={{ fontSize: 8, fontWeight: 600, letterSpacing: 0.5, color: 'var(--cp-text-muted)', background: 'rgba(255,255,255,0.05)', padding: '1px 5px', borderRadius: 3 }}>
-                        {inv.is_donation ? 'DONATION' : inv.is_luma ? 'LUMA' : 'TICKET'}
+                    {(inv.is_donation || inv.is_event || inv.product_name === 'Fee Settlement') && (
+                      <span style={{ fontSize: 8, fontWeight: 600, letterSpacing: 0.5, color: inv.product_name === 'Fee Settlement' ? 'var(--cp-cyan)' : 'var(--cp-text-muted)', background: 'rgba(255,255,255,0.05)', padding: '1px 5px', borderRadius: 3 }}>
+                        {inv.product_name === 'Fee Settlement' ? 'BILLING' : inv.is_donation ? 'DONATION' : inv.is_luma ? 'LUMA' : 'TICKET'}
                       </span>
                     )}
                   </div>
