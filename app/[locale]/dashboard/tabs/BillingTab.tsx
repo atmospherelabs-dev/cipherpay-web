@@ -2,7 +2,7 @@
 
 import { memo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { api, type BillingSummary, type BillingCycle, type ZecRates } from '@/lib/api';
+import { api, type BillingSummary, type BillingCycle, type ZecRates, type Invoice } from '@/lib/api';
 import { currencySymbol, zecToFiat, fiatLabel } from '@/lib/currency';
 import { useToast } from '@/contexts/ToastContext';
 
@@ -12,6 +12,7 @@ interface BillingTabProps {
   reloadBilling: () => void;
   zecRates: ZecRates | null;
   displayCurrency: string;
+  invoices: Invoice[];
 }
 
 function formatDateShort(iso: string): string {
@@ -38,13 +39,14 @@ const TIER_INFO: Record<string, { grace: string; suspend: string }> = {
 };
 
 export const BillingTab = memo(function BillingTab({
-  billing, billingHistory, reloadBilling, zecRates, displayCurrency,
+  billing, billingHistory, reloadBilling, zecRates, displayCurrency, invoices,
 }: BillingTabProps) {
   const { showToast } = useToast();
   const t = useTranslations('dashboard.billing');
   const [settling, setSettling] = useState(false);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [showTierInfo, setShowTierInfo] = useState(false);
+  const [expandedCycle, setExpandedCycle] = useState<string | null>(null);
   const sym = currencySymbol(displayCurrency);
 
   const settleBilling = async () => {
@@ -270,35 +272,91 @@ export const BillingTab = memo(function BillingTab({
                       paid: 'var(--cp-green)', carried_over: 'var(--cp-purple)',
                       invoiced: 'var(--cp-yellow)', past_due: 'var(--cp-yellow)', suspended: 'var(--cp-red)',
                     };
-                    const isClickable = cycle.settlement_invoice_id && ['invoiced', 'past_due'].includes(cycle.status);
+                    const isExpanded = expandedCycle === cycle.id;
+                    const settlementInvoice = cycle.settlement_invoice_id
+                      ? invoices.find(inv => inv.id === cycle.settlement_invoice_id)
+                      : null;
                     return (
-                      <div
-                        key={cycle.id}
-                        onClick={isClickable ? () => window.open(`/pay/${cycle.settlement_invoice_id}`, '_blank') : undefined}
-                        style={{
-                          display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap',
-                          padding: '8px 10px', background: 'var(--cp-surface)', borderRadius: 4, fontSize: 11, gap: 6,
-                          cursor: isClickable ? 'pointer' : 'default',
-                          transition: 'border-color 0.15s',
-                          border: isClickable ? '1px solid var(--cp-border)' : '1px solid transparent',
-                        }}
-                      >
-                        <div>
-                          <span style={{ color: 'var(--cp-text-muted)' }}>
-                            {formatDateShort(cycle.period_start)} — {formatDateShort(cycle.period_end)}
-                          </span>
+                      <div key={cycle.id}>
+                        <div
+                          onClick={() => setExpandedCycle(isExpanded ? null : cycle.id)}
+                          style={{
+                            display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap',
+                            padding: '8px 10px', background: 'var(--cp-surface)', borderRadius: isExpanded ? '4px 4px 0 0' : 4, fontSize: 11, gap: 6,
+                            cursor: 'pointer',
+                            border: '1px solid var(--cp-border)',
+                            borderBottom: isExpanded ? '1px solid var(--cp-border)' : '1px solid var(--cp-border)',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span style={{ fontSize: 9, transition: 'transform 0.15s', transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)', display: 'inline-block', color: 'var(--cp-text-dim)' }}>▸</span>
+                            <span style={{ color: 'var(--cp-text-muted)' }}>
+                              {formatDateShort(cycle.period_start)} — {formatDateShort(cycle.period_end)}
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <span style={{ fontFamily: 'monospace', fontSize: 10 }}>
+                              {cycle.total_fees_zec.toFixed(6)} ZEC
+                            </span>
+                            <span style={{
+                              fontSize: 9, fontWeight: 700, letterSpacing: 1,
+                              color: statusColors[cycle.status] || 'var(--cp-text-muted)',
+                            }}>
+                              {cycle.status === 'carried_over' ? t('carriedOver') : cycle.status.toUpperCase().replace('_', ' ')}
+                            </span>
+                          </div>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <span style={{ fontFamily: 'monospace', fontSize: 10 }}>
-                            {cycle.total_fees_zec.toFixed(6)} ZEC
-                          </span>
-                          <span style={{
-                            fontSize: 9, fontWeight: 700, letterSpacing: 1,
-                            color: statusColors[cycle.status] || 'var(--cp-text-muted)',
+                        {isExpanded && (
+                          <div style={{
+                            padding: '10px 12px', background: 'var(--cp-bg)',
+                            border: '1px solid var(--cp-border)', borderTop: 'none',
+                            borderRadius: '0 0 4px 4px', fontSize: 10,
                           }}>
-                            {cycle.status === 'carried_over' ? t('carriedOver') : cycle.status.toUpperCase().replace('_', ' ')}
-                          </span>
-                        </div>
+                            <div className="stat-row" style={{ marginBottom: 4 }}>
+                              <span style={{ color: 'var(--cp-text-dim)' }}>{t('totalFees')}</span>
+                              <span style={{ fontFamily: 'monospace' }}>{cycle.total_fees_zec.toFixed(6)} ZEC{label(toFiat(cycle.total_fees_zec))}</span>
+                            </div>
+                            <div className="stat-row" style={{ marginBottom: 4 }}>
+                              <span style={{ color: 'var(--cp-text-dim)' }}>{t('autoCollected')}</span>
+                              <span style={{ fontFamily: 'monospace', color: cycle.auto_collected_zec > 0 ? 'var(--cp-green)' : 'var(--cp-text-dim)' }}>
+                                {cycle.auto_collected_zec.toFixed(6)} ZEC
+                              </span>
+                            </div>
+                            <div className="stat-row" style={{ marginBottom: 4 }}>
+                              <span style={{ color: 'var(--cp-text-dim)' }}>{t('outstanding')}</span>
+                              <span style={{ fontFamily: 'monospace' }}>{cycle.outstanding_zec.toFixed(6)} ZEC</span>
+                            </div>
+                            {settlementInvoice && (
+                              <>
+                                <div style={{ borderTop: '1px solid var(--cp-border)', margin: '8px 0' }} />
+                                <div className="stat-row" style={{ marginBottom: 4 }}>
+                                  <span style={{ color: 'var(--cp-text-dim)' }}>{t('settlementRef')}</span>
+                                  <span style={{ fontFamily: 'monospace' }}>{settlementInvoice.memo_code}</span>
+                                </div>
+                                {settlementInvoice.detected_txid && (
+                                  <div className="stat-row" style={{ marginBottom: 4 }}>
+                                    <span style={{ color: 'var(--cp-text-dim)' }}>TxID</span>
+                                    <span style={{ fontFamily: 'monospace', fontSize: 9 }}>{settlementInvoice.detected_txid.slice(0, 16)}...</span>
+                                  </div>
+                                )}
+                                {settlementInvoice.confirmed_at && (
+                                  <div className="stat-row" style={{ marginBottom: 4 }}>
+                                    <span style={{ color: 'var(--cp-text-dim)' }}>{t('paidOn')}</span>
+                                    <span>{formatDateShort(settlementInvoice.confirmed_at)}</span>
+                                  </div>
+                                )}
+                                {['invoiced', 'past_due'].includes(cycle.status) && (
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); window.open(`/pay/${cycle.settlement_invoice_id}`, '_blank'); }}
+                                    className="btn" style={{ width: '100%', marginTop: 8, fontSize: 10 }}
+                                  >
+                                    {t('payInvoice')}
+                                  </button>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        )}
                       </div>
                     );
                   })}

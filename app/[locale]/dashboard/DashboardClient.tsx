@@ -267,6 +267,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                 reloadBilling={loadBilling}
                 zecRates={zecRates}
                 displayCurrency={displayCurrency}
+                invoices={invoices}
               />
             )}
             {tab === 'settings' && (

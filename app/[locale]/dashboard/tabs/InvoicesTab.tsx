@@ -183,7 +183,6 @@ export const InvoicesTab = memo(function InvoicesTab({
           const hasEvents = invoices.some(i => !!i.is_event);
           const hasLuma = invoices.some(i => !!i.is_luma);
           const hasRecurring = invoices.some(i => getInvoiceType(i, recurringPriceIds) === 'recurring');
-          const hasBilling = invoices.some(i => getInvoiceType(i, recurringPriceIds) === 'billing');
           const hasDonations = invoices.some(i => !!i.is_donation);
           const typeFilters: { key: string; label: string; match: (i: Invoice) => boolean }[] = [
             { key: 'all', label: t('typeAll'), match: () => true },
@@ -193,7 +192,6 @@ export const InvoicesTab = memo(function InvoicesTab({
           if (hasRecurring) typeFilters.push({ key: 'recurring', label: t('typeRecurring'), match: (i) => getInvoiceType(i, recurringPriceIds) === 'recurring' });
           if (hasEvents) typeFilters.push({ key: 'tickets', label: t('typeTickets'), match: (i) => !!i.is_event && !i.is_luma });
           if (hasLuma) typeFilters.push({ key: 'luma', label: t('typeLuma'), match: (i) => !!i.is_luma });
-          if (hasBilling) typeFilters.push({ key: 'billing', label: t('typeBilling'), match: (i) => getInvoiceType(i, recurringPriceIds) === 'billing' });
 
           const statuses = ['all', ...Array.from(new Set(invoices.map(i => i.status)))];
           return (
@@ -259,12 +257,12 @@ export const InvoicesTab = memo(function InvoicesTab({
           </div>
         ) : (
           invoices.filter(inv => {
+            if (inv.product_name === 'Fee Settlement') return false;
             if (statusFilter !== 'all' && inv.status !== statusFilter) return false;
             if (typeFilter === 'payments') return !inv.is_event && getInvoiceType(inv, recurringPriceIds) === 'payment';
             if (typeFilter === 'recurring') return getInvoiceType(inv, recurringPriceIds) === 'recurring';
             if (typeFilter === 'tickets') return inv.is_event && !inv.is_luma;
             if (typeFilter === 'luma') return !!inv.is_luma;
-            if (typeFilter === 'billing') return getInvoiceType(inv, recurringPriceIds) === 'billing';
             return true;
           }).map((inv) => {
             const priceStr = fiatStr(inv, displayCurrency);
