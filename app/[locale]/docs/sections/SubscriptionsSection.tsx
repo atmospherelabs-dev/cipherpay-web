@@ -97,12 +97,28 @@ curl -X POST https://api.cipherpay.app/api/products \\
       <SectionDivider />
 
       <SectionTitle>Canceling a subscription</SectionTitle>
-      <CodeBlock lang="bash" code={`curl -X POST https://api.cipherpay.app/api/subscriptions/{id}/cancel \\
-  -H "Authorization: Bearer cpay_sk_YOUR_KEY"`} />
       <Paragraph>
-        The subscription is marked <Code>cancel_at_period_end</Code>. It remains active until the current billing
-        period ends, then transitions to <Code>canceled</Code>. A <Code>subscription.canceled</Code> webhook fires
-        when the cancellation takes effect.
+        Cancel immediately (default) or at the end of the current billing period:
+      </Paragraph>
+      <CodeBlock lang="bash" code={`# Immediate cancel (default)
+curl -X POST https://api.cipherpay.app/api/subscriptions/{id}/cancel \\
+  -H "Authorization: Bearer cpay_sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{}'
+
+# Cancel at period end
+curl -X POST https://api.cipherpay.app/api/subscriptions/{id}/cancel \\
+  -H "Authorization: Bearer cpay_sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"at_period_end": true}'`} />
+      <Paragraph>
+        <Strong>Immediate cancel</Strong> sets the status to <Code>canceled</Code> right away and fires a
+        <Code>subscription.canceled</Code> webhook with <Code>&quot;immediate&quot;: true</Code>.
+      </Paragraph>
+      <Paragraph>
+        <Strong>Cancel at period end</Strong> marks the subscription <Code>cancel_at_period_end</Code>. It remains
+        active until the billing period ends, then transitions to <Code>canceled</Code>. The webhook fires when the
+        cancellation actually takes effect.
       </Paragraph>
 
       <SectionDivider />

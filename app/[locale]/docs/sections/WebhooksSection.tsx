@@ -105,20 +105,39 @@ export default function WebhooksSection() {
         Use <Code>overpaid</Code> to detect when a buyer sent more ZEC than required.
       </Paragraph>
 
-      <div style={{ fontSize: 11, color: 'var(--cp-text)', fontWeight: 600, marginBottom: 8, marginTop: 16 }}>Subscription event payload</div>
-      <CodeBlock lang="json" code={`{
+      <div style={{ fontSize: 11, color: 'var(--cp-text)', fontWeight: 600, marginBottom: 8, marginTop: 16 }}>Subscription event payloads</div>
+      <CodeBlock lang="json" code={`// invoice.created — draft renewal invoice generated
+{
   "event": "invoice.created",
   "invoice_id": "inv_9f8e7d6c-...",
   "subscription_id": "sub_a1b2c3d4-...",
   "amount": 10.00,
   "currency": "EUR",
-  "hosted_invoice_url": "https://cipherpay.app/pay/inv_9f8e7d6c-...",
   "due_date": "2026-03-15T00:00:00Z",
   "timestamp": "2026-03-12T00:00:00Z"
+}
+
+// subscription.renewed — payment confirmed, period advanced
+{
+  "event": "subscription.renewed",
+  "subscription_id": "sub_a1b2c3d4-...",
+  "invoice_id": "inv_9f8e7d6c-...",
+  "new_period_start": "2026-03-15T00:00:00Z",
+  "new_period_end": "2026-04-15T00:00:00Z",
+  "timestamp": "2026-03-14T14:30:00Z"
+}
+
+// subscription.canceled — immediate or end-of-period
+{
+  "event": "subscription.canceled",
+  "subscription_id": "sub_a1b2c3d4-...",
+  "price_id": "cprice_abc123",
+  "immediate": true,  // only present for immediate cancels
+  "timestamp": "2026-03-10T09:00:00Z"
 }`} />
       <Callout type="tip">
-        Use the <Code>hosted_invoice_url</Code> from <Code>invoice.created</Code> webhooks to send your customers a payment link
-        via email, Discord, or any notification channel. The customer clicks the link, locks the ZEC rate, and pays.
+        Use the <Code>invoice_id</Code> from <Code>invoice.created</Code> webhooks to build a payment link
+        (<Code>https://cipherpay.app/pay/&#123;invoice_id&#125;</Code>) and send it to your customer via email, Discord, or any notification channel.
       </Callout>
 
       <SectionDivider />
