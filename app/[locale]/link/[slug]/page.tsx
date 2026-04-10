@@ -19,6 +19,7 @@ export default async function PaymentLinkPage({ params }: PageProps) {
     const res = await fetch(`${API_URL}/api/payment-links/${slug}/checkout`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      body: '{}',
       cache: 'no-store',
     });
 
