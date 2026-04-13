@@ -13,6 +13,7 @@ export function SiteFooter() {
           <Link href="/docs">{t('docs')}</Link>
           <Link href="/faq">{t('faq')}</Link>
           <Link href="/privacy">{t('privacy')}</Link>
+          <Link href="/terms">{t('terms')}</Link>
           <a href="https://cipherscan.app" target="_blank" rel="noopener noreferrer">CipherScan</a>
         </div>
         <div className="footer-links">
