@@ -17,6 +17,7 @@
     "links": "ENLACES DE PAGO",
     "pos": "TPV",
     "invoices": "FACTURAS",
+    "subscriptions": "SUSCRIPCIONES",
     "webhooks": "WEBHOOKS",
     "x402": "PAGOS AGÉNTICOS",
     "account": "CUENTA",
@@ -446,5 +447,28 @@
     "confirmRefund": "CONFIRMAR REEMBOLSO",
     "toastRefunded": "Factura marcada como reembolsada",
     "toastFailed": "Error al marcar como reembolsada"
+  },
+  "subscriptions": {
+    "title": "SUSCRIPCIONES",
+    "active": "activas",
+    "loadError": "Error al cargar suscripciones",
+    "noActive": "No hay suscripciones activas",
+    "noActiveHint": "Las suscripciones se crean vía API cuando los clientes se suscriben a precios recurrentes.",
+    "subscription": "Suscripción",
+    "period": "Período",
+    "created": "Creada",
+    "statusActive": "ACTIVA",
+    "statusPastDue": "VENCIDA",
+    "statusCanceled": "CANCELADA",
+    "cancelingAtEnd": "CANCELANDO",
+    "cancel": "Cancelar",
+    "cancelAtEnd": "Cancelar al final del período",
+    "cancelNow": "Cancelar inmediatamente",
+    "nevermind": "Mantener",
+    "canceledAtEnd": "La suscripción se cancelará al final del período",
+    "canceledNow": "Suscripción cancelada",
+    "cancelError": "Error al cancelar suscripción",
+    "canceled": "CANCELADAS",
+    "cancelsOn": "Se cancela el {date}"
   }
 }

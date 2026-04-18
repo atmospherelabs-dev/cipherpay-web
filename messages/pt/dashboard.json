@@ -17,6 +17,7 @@
     "links": "LINKS DE PAGAMENTO",
     "pos": "PDV",
     "invoices": "FATURAS",
+    "subscriptions": "ASSINATURAS",
     "webhooks": "WEBHOOKS",
     "x402": "PAGAMENTOS AGÊNTICOS",
     "account": "CONTA",
@@ -446,5 +447,28 @@
     "confirmRefund": "CONFIRMAR REEMBOLSO",
     "toastRefunded": "Fatura marcada como reembolsada",
     "toastFailed": "Falha ao marcar como reembolsada"
+  },
+  "subscriptions": {
+    "title": "ASSINATURAS",
+    "active": "ativas",
+    "loadError": "Falha ao carregar assinaturas",
+    "noActive": "Nenhuma assinatura ativa",
+    "noActiveHint": "Assinaturas são criadas via API quando clientes assinam preços recorrentes.",
+    "subscription": "Assinatura",
+    "period": "Período",
+    "created": "Criada",
+    "statusActive": "ATIVA",
+    "statusPastDue": "VENCIDA",
+    "statusCanceled": "CANCELADA",
+    "cancelingAtEnd": "CANCELANDO",
+    "cancel": "Cancelar",
+    "cancelAtEnd": "Cancelar no final do período",
+    "cancelNow": "Cancelar imediatamente",
+    "nevermind": "Manter",
+    "canceledAtEnd": "A assinatura será cancelada no final do período",
+    "canceledNow": "Assinatura cancelada",
+    "cancelError": "Falha ao cancelar assinatura",
+    "canceled": "CANCELADAS",
+    "cancelsOn": "Cancela em {date}"
   }
 }

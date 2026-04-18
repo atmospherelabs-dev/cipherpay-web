@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation';
 import type { Metadata } from 'next';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cipherpay.app';
+const API_URL = process.env.CIPHERPAY_API_URL || process.env.NEXT_PUBLIC_API_URL || 'https://api.cipherpay.app';
+const CHECKOUT_KEY = process.env.CHECKOUT_SERVICE_KEY || '';
 
 interface PageProps {
   params: Promise<{ slug: string; locale: string }>;
@@ -16,9 +17,12 @@ export default async function PaymentLinkPage({ params }: PageProps) {
   const { slug, locale } = await params;
 
   try {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (CHECKOUT_KEY) headers['X-Checkout-Key'] = CHECKOUT_KEY;
+
     const res = await fetch(`${API_URL}/api/payment-links/${slug}/checkout`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: '{}',
       cache: 'no-store',
     });

@@ -9,8 +9,8 @@ import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { Spinner } from '@/components/Spinner';
 import { currencySymbol } from '@/lib/currency';
 import type { DonationLinkInfo } from '@/lib/api';
+import { createDonationCheckout } from './actions';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cipherpay.app';
 const ALLOWED_POSITIONS = new Set(['center top', 'center center', 'center bottom']);
 
 interface DonateClientProps {
@@ -50,20 +50,14 @@ export default function DonateClient({ info, slug, locale }: DonateClientProps) 
     setError(null);
 
     try {
-      const res = await fetch(`${API_URL}/api/payment-links/${slug}/checkout`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: effectiveAmount, currency }),
-      });
+      const result = await createDonationCheckout(slug, effectiveAmount, currency);
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: 'Failed' }));
-        setError(err.error || 'Something went wrong');
+      if (result.error) {
+        setError(result.error);
         return;
       }
 
-      const data = await res.json();
-      router.push(`/${locale}/pay/${data.invoice_id}`);
+      router.push(`/${locale}/pay/${result.invoice_id}`);
     } catch {
       setError('Network error. Please try again.');
     } finally {

@@ -21,6 +21,7 @@ import { SettingsTab } from './tabs/SettingsTab';
 import { X402Tab } from './tabs/X402Tab';
 import { WebhooksTab } from './tabs/WebhooksTab';
 import { PaymentLinksTab } from './tabs/PaymentLinksTab';
+import { SubscriptionsTab } from './tabs/SubscriptionsTab';
 
 
 export type TabAction = 'add-product' | 'create-paylink' | 'create-link' | 'create-donation-link' | 'create-event' | 'import-luma' | null;
@@ -245,6 +246,9 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                 products={products}
                 loadingProducts={loadingProducts}
               />
+            )}
+            {tab === 'subscriptions' && (
+              <SubscriptionsTab products={products} />
             )}
             {tab === 'invoices' && (
               <InvoicesTab

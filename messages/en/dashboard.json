@@ -17,6 +17,7 @@
     "links": "PAYMENT LINKS",
     "pos": "POS",
     "invoices": "INVOICES",
+    "subscriptions": "SUBSCRIPTIONS",
     "webhooks": "WEBHOOKS",
     "x402": "AGENTIC PAYMENTS",
     "account": "ACCOUNT",
@@ -446,5 +447,28 @@
     "confirmRefund": "CONFIRM REFUND",
     "toastRefunded": "Invoice marked as refunded",
     "toastFailed": "Failed to mark as refunded"
+  },
+  "subscriptions": {
+    "title": "SUBSCRIPTIONS",
+    "active": "active",
+    "loadError": "Failed to load subscriptions",
+    "noActive": "No active subscriptions",
+    "noActiveHint": "Subscriptions are created via the API when customers subscribe to recurring prices.",
+    "subscription": "Subscription",
+    "period": "Period",
+    "created": "Created",
+    "statusActive": "ACTIVE",
+    "statusPastDue": "PAST DUE",
+    "statusCanceled": "CANCELED",
+    "cancelingAtEnd": "CANCELING",
+    "cancel": "Cancel",
+    "cancelAtEnd": "Cancel at period end",
+    "cancelNow": "Cancel immediately",
+    "nevermind": "Keep",
+    "canceledAtEnd": "Subscription will cancel at period end",
+    "canceledNow": "Subscription canceled",
+    "cancelError": "Failed to cancel subscription",
+    "canceled": "CANCELED",
+    "cancelsOn": "Cancels on {date}"
   }
 }

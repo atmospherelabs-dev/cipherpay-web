@@ -128,6 +128,7 @@ export interface Subscription {
   cancel_at_period_end: number;
   canceled_at: string | null;
   created_at: string;
+  current_invoice_id: string | null;
 }
 
 export interface Product {
