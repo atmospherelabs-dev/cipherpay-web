@@ -1,5 +1,5 @@
 interface BannerProps {
-  variant: 'warning' | 'error';
+  variant: 'warning' | 'error' | 'info';
   title: string;
   description?: string;
   action?: React.ReactNode;
@@ -15,6 +15,11 @@ const variantStyles: Record<BannerProps['variant'], { bg: string; border: string
     bg: 'rgba(239,68,68,0.15)',
     border: '1px solid rgba(239,68,68,0.5)',
     color: 'var(--cp-red)',
+  },
+  info: {
+    bg: 'rgba(86,212,200,0.08)',
+    border: '1px solid rgba(86,212,200,0.3)',
+    color: 'var(--cp-cyan)',
   },
 };
 

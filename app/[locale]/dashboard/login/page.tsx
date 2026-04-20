@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from '@/i18n/navigation';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, supportsWebAuthn } from '@/contexts/AuthContext';
 import { Logo } from '@/components/Logo';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -16,7 +16,10 @@ export default function LoginPage() {
   const [token, setToken] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, merchant, loading: authLoading } = useAuth();
+  const [passkeyLoading, setPasskeyLoading] = useState(false);
+  const [showTokenForm, setShowTokenForm] = useState(false);
+  const [webauthnSupported, setWebauthnSupported] = useState(false);
+  const { login, loginWithPasskey, merchant, loading: authLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -24,6 +27,23 @@ export default function LoginPage() {
       router.replace('/dashboard');
     }
   }, [authLoading, merchant, router]);
+
+  useEffect(() => {
+    setWebauthnSupported(supportsWebAuthn());
+  }, []);
+
+  const handlePasskeyLogin = async () => {
+    setPasskeyLoading(true);
+    setError('');
+    const ok = await loginWithPasskey();
+    if (ok) {
+      router.push('/dashboard');
+    } else {
+      setError(t('passkeyFailed'));
+      setShowTokenForm(true);
+    }
+    setPasskeyLoading(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,32 +92,82 @@ export default function LoginPage() {
                 {t('description')}
               </p>
 
-              <form onSubmit={handleSubmit}>
-                <div className="form-group">
-                  <label className="form-label">{t('tokenLabel')}</label>
-                  <input
-                    type="password"
-                    value={token}
-                    onChange={(e) => setToken(e.target.value)}
-                    placeholder="cpay_dash_..."
-                    className="input"
-                    autoFocus
-                  />
-                </div>
+              {webauthnSupported && !showTokenForm && (
+                <>
+                  <button
+                    onClick={handlePasskeyLogin}
+                    disabled={passkeyLoading}
+                    className="btn-primary"
+                    style={{
+                      width: '100%',
+                      opacity: passkeyLoading ? 0.5 : 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                    }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                    {passkeyLoading ? t('passkeyLoading') : t('passkeyButton')}
+                  </button>
 
-                {error && (
-                  <div style={{ color: 'var(--cp-red)', fontSize: 11, marginBottom: 12 }}>{error}</div>
-                )}
+                  <button
+                    onClick={() => setShowTokenForm(true)}
+                    className="btn"
+                    style={{
+                      width: '100%',
+                      marginTop: 10,
+                      fontSize: 10,
+                      color: 'var(--cp-text-dim)',
+                    }}
+                  >
+                    {t('useToken')}
+                  </button>
+                </>
+              )}
 
-                <button
-                  type="submit"
-                  disabled={loading || !token}
-                  className="btn-primary"
-                  style={{ width: '100%', opacity: loading || !token ? 0.5 : 1 }}
-                >
-                  {loading ? t('submitting') : t('submit')}
-                </button>
-              </form>
+              {(!webauthnSupported || showTokenForm) && (
+                <form onSubmit={handleSubmit}>
+                  <div className="form-group">
+                    <label className="form-label">{t('tokenLabel')}</label>
+                    <input
+                      type="password"
+                      value={token}
+                      onChange={(e) => setToken(e.target.value)}
+                      placeholder="cpay_dash_..."
+                      className="input"
+                      autoFocus
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading || !token}
+                    className="btn-primary"
+                    style={{ width: '100%', opacity: loading || !token ? 0.5 : 1 }}
+                  >
+                    {loading ? t('submitting') : t('submit')}
+                  </button>
+
+                  {webauthnSupported && (
+                    <button
+                      type="button"
+                      onClick={() => { setShowTokenForm(false); setError(''); }}
+                      className="btn"
+                      style={{ width: '100%', marginTop: 10, fontSize: 10, color: 'var(--cp-text-dim)' }}
+                    >
+                      {t('passkeyButton')}
+                    </button>
+                  )}
+                </form>
+              )}
+
+              {error && (
+                <div style={{ color: 'var(--cp-red)', fontSize: 11, marginTop: 12 }}>{error}</div>
+              )}
 
               <div className="divider" />
 

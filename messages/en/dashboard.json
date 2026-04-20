@@ -470,5 +470,37 @@
     "cancelError": "Failed to cancel subscription",
     "canceled": "CANCELED",
     "cancelsOn": "Cancels on {date}"
+  },
+  "passkeys": {
+    "title": "PASSKEYS",
+    "description": "Sign in with fingerprint, face, or security key instead of pasting your dashboard token.",
+    "registered": "registered",
+    "none": "None",
+    "defaultLabel": "Passkey",
+    "addedOn": "Added {date}",
+    "lastUsed": "Last used {date}",
+    "addPasskey": "Add passkey",
+    "labelPlaceholder": "Label (e.g. MacBook, YubiKey)",
+    "continue": "Continue",
+    "cancel": "Cancel",
+    "added": "Passkey registered",
+    "addFailed": "Failed to register passkey",
+    "remove": "Remove",
+    "removed": "Passkey removed",
+    "removeFailed": "Failed to remove passkey",
+    "lastTokenLogin": "Last token login: {date}",
+    "confirmAddTitle": "Confirm to add passkey",
+    "confirmRemoveTitle": "Confirm to remove passkey",
+    "waitingBrowser": "Complete the prompt in your browser...",
+    "reauthDesc": "Enter your dashboard token to continue.",
+    "reauthSubmit": "Confirm",
+    "reauthInvalid": "Token must start with cpay_dash_",
+    "reauthFailed": "Invalid token"
+  },
+  "passkeyPrompt": {
+    "title": "Upgrade your login",
+    "description": "Add a passkey for faster, phishing-resistant sign-in. Uses your fingerprint, face, or security key.",
+    "setup": "Set up",
+    "notNow": "Not now"
   }
 }

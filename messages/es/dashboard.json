@@ -470,5 +470,37 @@
     "cancelError": "Error al cancelar suscripción",
     "canceled": "CANCELADAS",
     "cancelsOn": "Se cancela el {date}"
+  },
+  "passkeys": {
+    "title": "PASSKEYS",
+    "description": "Inicia sesión con huella, cara o llave de seguridad en lugar de pegar tu token.",
+    "registered": "registradas",
+    "none": "Ninguna",
+    "defaultLabel": "Passkey",
+    "addedOn": "Agregada {date}",
+    "lastUsed": "Último uso {date}",
+    "addPasskey": "Agregar passkey",
+    "labelPlaceholder": "Nombre (ej. MacBook, YubiKey)",
+    "continue": "Continuar",
+    "cancel": "Cancelar",
+    "added": "Passkey registrada",
+    "addFailed": "Error al registrar passkey",
+    "remove": "Eliminar",
+    "removed": "Passkey eliminada",
+    "removeFailed": "Error al eliminar passkey",
+    "lastTokenLogin": "Último inicio con token: {date}",
+    "confirmAddTitle": "Confirma para agregar passkey",
+    "confirmRemoveTitle": "Confirma para eliminar passkey",
+    "waitingBrowser": "Completa el aviso en tu navegador...",
+    "reauthDesc": "Ingresa tu token del panel para continuar.",
+    "reauthSubmit": "Confirmar",
+    "reauthInvalid": "El token debe comenzar con cpay_dash_",
+    "reauthFailed": "Token inválido"
+  },
+  "passkeyPrompt": {
+    "title": "Mejora tu inicio de sesión",
+    "description": "Agrega una passkey para un acceso más rápido y resistente al phishing. Usa tu huella, cara o llave de seguridad.",
+    "setup": "Configurar",
+    "notNow": "Ahora no"
   }
 }

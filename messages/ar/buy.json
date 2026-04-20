@@ -1,0 +1,22 @@
+{
+  "tag": "الدفع",
+  "payWithZec": "ادفع بـ ZEC المحمي",
+  "payButton": "ادفع بـ ZEC",
+  "processing": "جارٍ المعالجة...",
+  "productNotFound": "المنتج غير موجود",
+  "refundTitle": "عنوان الاسترداد (اختياري)",
+  "refundDesc": "أدخل عنوان Zcash إذا كنت تريد خيار الاسترداد. بدونه، يتطلب الاسترداد تنسيقاً يدوياً.",
+  "refundPrivacyHint": "تقديم عنوان استرداد يكشفه للتاجر، مما يقلل من خصوصيتك.",
+  "getTickets": "احصل على تذاكر",
+  "selectTier": "اختر الفئة",
+  "buyTicket": "اشترِ تذكرة بـ ZEC",
+  "attendeeName": "اسمك",
+  "attendeeNamePlaceholder": "محمد أحمد",
+  "attendeeEmail": "بريدك الإلكتروني",
+  "attendeeEmailPlaceholder": "example@email.com",
+  "attendeeRequired": "مطلوب للتسجيل في فعالية Luma",
+  "emailRequired": "البريد الإلكتروني مطلوب للتسجيل في الفعالية",
+  "openOnLuma": "فتح في Luma",
+  "soldOut": "نفدت الكمية",
+  "soldOutHint": "وصلت فئة التذاكر هذه إلى سعتها القصوى. لا تتوفر تذاكر إضافية."
+}

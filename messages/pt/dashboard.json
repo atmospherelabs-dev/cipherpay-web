@@ -470,5 +470,37 @@
     "cancelError": "Falha ao cancelar assinatura",
     "canceled": "CANCELADAS",
     "cancelsOn": "Cancela em {date}"
+  },
+  "passkeys": {
+    "title": "PASSKEYS",
+    "description": "Entre com impressão digital, rosto ou chave de segurança em vez de colar seu token.",
+    "registered": "registradas",
+    "none": "Nenhuma",
+    "defaultLabel": "Passkey",
+    "addedOn": "Adicionada {date}",
+    "lastUsed": "Último uso {date}",
+    "addPasskey": "Adicionar passkey",
+    "labelPlaceholder": "Nome (ex. MacBook, YubiKey)",
+    "continue": "Continuar",
+    "cancel": "Cancelar",
+    "added": "Passkey registrada",
+    "addFailed": "Falha ao registrar passkey",
+    "remove": "Remover",
+    "removed": "Passkey removida",
+    "removeFailed": "Falha ao remover passkey",
+    "lastTokenLogin": "Último login com token: {date}",
+    "confirmAddTitle": "Confirme para adicionar passkey",
+    "confirmRemoveTitle": "Confirme para remover passkey",
+    "waitingBrowser": "Complete o aviso no seu navegador...",
+    "reauthDesc": "Digite seu token do painel para continuar.",
+    "reauthSubmit": "Confirmar",
+    "reauthInvalid": "O token deve começar com cpay_dash_",
+    "reauthFailed": "Token inválido"
+  },
+  "passkeyPrompt": {
+    "title": "Melhore seu login",
+    "description": "Adicione uma passkey para acesso mais rápido e resistente a phishing. Use sua impressão digital, rosto ou chave de segurança.",
+    "setup": "Configurar",
+    "notNow": "Agora não"
   }
 }

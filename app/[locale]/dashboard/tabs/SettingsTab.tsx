@@ -1,12 +1,14 @@
 'use client';
 
-import { memo, useState } from 'react';
+import { memo, useState, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import { api, type MerchantInfo } from '@/lib/api';
+import { api, type MerchantInfo, type PasskeyInfo } from '@/lib/api';
 import { CopyButton } from '@/components/CopyButton';
+import { Spinner } from '@/components/Spinner';
 import { validateEmail, validateWebhookUrl, validateLength } from '@/lib/validation';
 import { useToast } from '@/contexts/ToastContext';
 import { currencyLabel, SUPPORTED_CURRENCIES } from '@/lib/currency';
+import { supportsWebAuthn, bufferToBase64url, base64urlToBuffer } from '@/contexts/AuthContext';
 
 interface SettingsTabProps {
   merchant: MerchantInfo;
@@ -130,7 +132,12 @@ export const SettingsTab = memo(function SettingsTab({
 
         <div className="divider" />
 
-        {/* 2. Display Currency */}
+        {/* 2. Passkeys */}
+        <PasskeySettings merchant={merchant} reloadMerchant={reloadMerchant} />
+
+        <div className="divider" />
+
+        {/* 3. Display Currency */}
         <div className="section-title">{t('displayCurrency')}</div>
         <select
           value={displayCurrency}
@@ -279,6 +286,238 @@ export const SettingsTab = memo(function SettingsTab({
     </div>
   );
 });
+
+function PasskeySettings({ merchant, reloadMerchant }: { merchant: MerchantInfo; reloadMerchant: () => Promise<void> }) {
+  const tp = useTranslations('dashboard.passkeys');
+  const { showToast } = useToast();
+  const [passkeys, setPasskeys] = useState<PasskeyInfo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [adding, setAdding] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Single-step flow: token → browser dialog → done
+  const [step, setStep] = useState<'idle' | 'confirm' | 'registering'>('idle');
+  const [token, setToken] = useState('');
+  const [tokenError, setTokenError] = useState('');
+  const [confirmAction, setConfirmAction] = useState<{ type: 'add' } | { type: 'delete'; id: string } | null>(null);
+
+  const webauthnOk = typeof window !== 'undefined' && supportsWebAuthn();
+
+  const loadPasskeys = useCallback(async () => {
+    try {
+      const resp = await api.listPasskeys();
+      setPasskeys(resp.passkeys);
+    } catch { /* empty */ }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { loadPasskeys(); }, [loadPasskeys]);
+
+  const resetFlow = () => {
+    setStep('idle');
+    setToken('');
+    setTokenError('');
+    setConfirmAction(null);
+  };
+
+  const startAdd = () => {
+    setConfirmAction({ type: 'add' });
+    setStep('confirm');
+    setToken('');
+    setTokenError('');
+  };
+
+  const startDelete = (id: string) => {
+    setConfirmAction({ type: 'delete', id });
+    setStep('confirm');
+    setToken('');
+    setTokenError('');
+  };
+
+  const submitConfirm = async () => {
+    if (!token.startsWith('cpay_dash_')) {
+      setTokenError(tp('reauthInvalid'));
+      return;
+    }
+    try {
+      await api.passkeyReauth({ token });
+    } catch {
+      setTokenError(tp('reauthFailed'));
+      return;
+    }
+
+    if (confirmAction?.type === 'add') {
+      setStep('registering');
+      setAdding(true);
+      try {
+        const { challenge_id, options } = await api.passkeyRegisterBegin();
+
+        const publicKey: PublicKeyCredentialCreationOptions = {
+          challenge: base64urlToBuffer(options.publicKey.challenge),
+          rp: options.publicKey.rp,
+          user: {
+            ...options.publicKey.user,
+            id: base64urlToBuffer(options.publicKey.user.id),
+          },
+          pubKeyCredParams: options.publicKey.pubKeyCredParams,
+          timeout: options.publicKey.timeout,
+          attestation: options.publicKey.attestation || 'none',
+          excludeCredentials: (options.publicKey.excludeCredentials || []).map(
+            (c: { id: string; type: string; transports?: string[] }) => ({
+              id: base64urlToBuffer(c.id),
+              type: c.type,
+              transports: c.transports,
+            }),
+          ),
+          authenticatorSelection: options.publicKey.authenticatorSelection,
+        };
+
+        const credential = await navigator.credentials.create({ publicKey }) as PublicKeyCredential;
+        if (!credential) { setAdding(false); resetFlow(); return; }
+
+        const attestResp = credential.response as AuthenticatorAttestationResponse;
+        const serialized = {
+          id: credential.id,
+          rawId: bufferToBase64url(credential.rawId),
+          type: credential.type,
+          response: {
+            attestationObject: bufferToBase64url(attestResp.attestationObject),
+            clientDataJSON: bufferToBase64url(attestResp.clientDataJSON),
+          },
+        };
+
+        await api.passkeyRegisterComplete({ challenge_id, credential: serialized });
+        showToast(tp('added'));
+        await loadPasskeys();
+        await reloadMerchant();
+      } catch {
+        showToast(tp('addFailed'), true);
+      }
+      setAdding(false);
+      resetFlow();
+
+    } else if (confirmAction?.type === 'delete') {
+      setDeletingId(confirmAction.id);
+      try {
+        await api.deletePasskey(confirmAction.id);
+        showToast(tp('removed'));
+        await loadPasskeys();
+        await reloadMerchant();
+      } catch {
+        showToast(tp('removeFailed'), true);
+      }
+      setDeletingId(null);
+      resetFlow();
+    }
+  };
+
+  const formatDate = (iso: string) => {
+    try {
+      return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch { return iso; }
+  };
+
+  if (!webauthnOk) return null;
+
+  return (
+    <div>
+      <div className="section-title">{tp('title')}</div>
+      <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginBottom: 12, lineHeight: 1.5 }}>
+        {tp('description')}
+      </div>
+
+      {loading ? (
+        <div style={{ padding: 16, textAlign: 'center' }}><Spinner /></div>
+      ) : (
+        <>
+          {passkeys.map((pk) => (
+            <div key={pk.id} style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.04)',
+            }}>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--cp-text)' }}>
+                  {pk.label || tp('defaultLabel')}
+                </div>
+                <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 2 }}>
+                  {tp('addedOn', { date: formatDate(pk.created_at) })}
+                  {pk.last_used_at && ` · ${tp('lastUsed', { date: formatDate(pk.last_used_at) })}`}
+                </div>
+              </div>
+              <button
+                onClick={() => startDelete(pk.id)}
+                disabled={deletingId === pk.id || step !== 'idle'}
+                className="btn btn-small"
+                style={{ color: 'var(--cp-red)', borderColor: 'rgba(239,68,68,0.3)', fontSize: 9 }}
+              >
+                {deletingId === pk.id ? <Spinner size={10} /> : tp('remove')}
+              </button>
+            </div>
+          ))}
+
+          {/* Confirmation step: single input for token, then action proceeds automatically */}
+          {step === 'confirm' && (
+            <div style={{
+              background: 'rgba(255,255,255,0.02)', border: '1px solid var(--cp-border)',
+              borderRadius: 4, padding: 14, marginTop: 12,
+            }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--cp-text)', marginBottom: 6 }}>
+                {confirmAction?.type === 'add' ? tp('confirmAddTitle') : tp('confirmRemoveTitle')}
+              </div>
+              <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginBottom: 10 }}>
+                {tp('reauthDesc')}
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input
+                  type="password"
+                  value={token}
+                  onChange={(e) => { setToken(e.target.value); setTokenError(''); }}
+                  placeholder="cpay_dash_..."
+                  className="input"
+                  style={{ flex: 1, fontSize: 10 }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') submitConfirm(); }}
+                  autoFocus
+                />
+                <button onClick={submitConfirm} className="btn btn-small">
+                  {tp('reauthSubmit')}
+                </button>
+                <button onClick={resetFlow} className="btn btn-small btn-cancel">
+                  {tp('cancel')}
+                </button>
+              </div>
+              {tokenError && (
+                <div style={{ color: 'var(--cp-red)', fontSize: 9, marginTop: 6 }}>{tokenError}</div>
+              )}
+            </div>
+          )}
+
+          {step === 'registering' && (
+            <div style={{ padding: 16, textAlign: 'center', color: 'var(--cp-text-muted)', fontSize: 11 }}>
+              <Spinner /> <span style={{ marginLeft: 8 }}>{tp('waitingBrowser')}</span>
+            </div>
+          )}
+
+          {step === 'idle' && (
+            <button
+              onClick={startAdd}
+              disabled={adding}
+              className="btn"
+              style={{ marginTop: passkeys.length > 0 ? 12 : 0 }}
+            >
+              {tp('addPasskey')}
+            </button>
+          )}
+        </>
+      )}
+
+      {merchant.last_token_login_at && (
+        <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 12 }}>
+          {tp('lastTokenLogin', { date: formatDate(merchant.last_token_login_at) })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function LumaSettings({ merchant, reloadMerchant }: { merchant: MerchantInfo; reloadMerchant: () => Promise<void> }) {
   const tl = useTranslations('dashboard.luma');

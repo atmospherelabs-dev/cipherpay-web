@@ -1,0 +1,11 @@
+{
+  "selectAmount": "اختر المبلغ",
+  "custom": "مخصص",
+  "donate": "تبرّع",
+  "processing": "جارٍ المعالجة...",
+  "raised": "تم جمع",
+  "goalOf": "من",
+  "minAmount": "الحد الأدنى للتبرع هو {amount}",
+  "maxAmount": "الحد الأقصى للتبرع هو {amount}",
+  "poweredBy": "تبرعات خاصة مدعومة من CipherPay + Zcash"
+}

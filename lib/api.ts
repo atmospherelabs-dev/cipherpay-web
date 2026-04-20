@@ -9,6 +9,8 @@ export interface MerchantInfo {
   has_recovery_email: boolean;
   recovery_email_preview: string | null;
   has_luma_key?: boolean;
+  has_passkeys?: boolean;
+  last_token_login_at?: string | null;
   created_at: string;
   stats: {
     total_invoices: number;
@@ -16,6 +18,17 @@ export interface MerchantInfo {
     total_zec: number;
   };
 }
+
+export interface PasskeyInfo {
+  id: string;
+  label: string;
+  last_used_at: string | null;
+  created_at: string;
+}
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+type PublicKeyCredentialCreationOptionsJSON = any;
+type PublicKeyCredentialRequestOptionsJSON = any;
 
 export interface Invoice {
   id: string;
@@ -486,6 +499,37 @@ export const api = {
 
   regenerateWebhookSecret: () =>
     request<{ webhook_secret: string }>('/api/merchants/me/regenerate-webhook-secret', { method: 'POST' }),
+
+  // Passkeys
+  passkeyRegisterBegin: () =>
+    request<{ challenge_id: string; options: PublicKeyCredentialCreationOptionsJSON }>('/api/auth/passkey/register/begin', { method: 'POST' }),
+
+  passkeyRegisterComplete: (body: { challenge_id: string; credential: unknown; label?: string }) =>
+    request<{ status: string; credential_id: string; label: string }>('/api/auth/passkey/register/complete', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  passkeyLoginBegin: () =>
+    request<{ challenge_id: string; options: PublicKeyCredentialRequestOptionsJSON }>('/api/auth/passkey/login/begin', { method: 'POST' }),
+
+  passkeyLoginComplete: (body: { challenge_id: string; credential: unknown }) =>
+    request<{ merchant_id: string; auth_method: string }>('/api/auth/passkey/login/complete', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  passkeyReauth: (body: { token?: string; passkey_challenge_id?: string; passkey_credential?: unknown }) =>
+    request<{ status: string }>('/api/auth/passkey/reauth', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  listPasskeys: () =>
+    request<{ passkeys: PasskeyInfo[] }>('/api/auth/passkeys'),
+
+  deletePasskey: (id: string) =>
+    request<{ status: string }>(`/api/auth/passkeys/${id}`, { method: 'DELETE' }),
 
   // Public
   register: (data: RegisterRequest) =>

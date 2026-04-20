@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
 import { api, type MerchantInfo, type Product, type Invoice, type BillingSummary, type BillingCycle, type X402Verification, type ZecRates, type WebhookDelivery, type EventSummary, type AgentSession } from '@/lib/api';
@@ -184,6 +184,8 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
         />
       )}
 
+      <PasskeyPrompt merchant={merchant} setTab={setTab} />
+
       <div className="dash-container">
         <div className="grid-layout">
           <DashboardSidebar
@@ -307,5 +309,50 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
         </div>
       </div>
     </div>
+  );
+}
+
+function PasskeyPrompt({ merchant, setTab }: { merchant: MerchantInfo; setTab: (t: Tab) => void }) {
+  const t = useTranslations('dashboard.passkeyPrompt');
+  const [dismissed, setDismissed] = useState(false);
+
+  const show = useMemo(() => {
+    if (dismissed) return false;
+    if (merchant.has_passkeys) return false;
+    if (typeof window === 'undefined') return false;
+    if (!window.PublicKeyCredential) return false;
+    if (sessionStorage.getItem('cp_passkey_prompt_dismissed')) return false;
+    return true;
+  }, [merchant.has_passkeys, dismissed]);
+
+  if (!show) return null;
+
+  return (
+    <Banner
+      variant="info"
+      title={t('title')}
+      description={t('description')}
+      action={
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            onClick={() => setTab('settings')}
+            className="btn"
+            style={{ color: 'var(--cp-cyan)', borderColor: 'rgba(86,212,200,0.5)', fontSize: 10 }}
+          >
+            {t('setup')}
+          </button>
+          <button
+            onClick={() => {
+              setDismissed(true);
+              sessionStorage.setItem('cp_passkey_prompt_dismissed', '1');
+            }}
+            className="btn"
+            style={{ fontSize: 10, color: 'var(--cp-text-dim)' }}
+          >
+            {t('notNow')}
+          </button>
+        </div>
+      }
+    />
   );
 }
