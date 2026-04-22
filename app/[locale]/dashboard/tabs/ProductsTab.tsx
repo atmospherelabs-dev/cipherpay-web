@@ -479,7 +479,7 @@ export const ProductsTab = memo(function ProductsTab({
                     color: editPriceType === 'one_time' ? 'var(--cp-cyan)' : 'var(--cp-text-dim)',
                     border: '1px solid',
                     borderColor: editPriceType === 'one_time' ? 'var(--cp-cyan)' : 'var(--cp-border)',
-                    borderRadius: '4px 0 0 4px', cursor: 'pointer', transition: 'all 0.15s',
+                    borderStartStartRadius: 4, borderEndStartRadius: 4, cursor: 'pointer', transition: 'all 0.15s',
                     position: 'relative', zIndex: editPriceType === 'one_time' ? 1 : 0,
                   }}
                 >
@@ -494,7 +494,7 @@ export const ProductsTab = memo(function ProductsTab({
                     color: editPriceType === 'recurring' ? 'var(--cp-cyan)' : 'var(--cp-text-dim)',
                     border: '1px solid',
                     borderColor: editPriceType === 'recurring' ? 'var(--cp-cyan)' : 'var(--cp-border)',
-                    borderRadius: '0 4px 4px 0', marginLeft: -1, cursor: 'pointer', transition: 'all 0.15s',
+                    borderStartEndRadius: 4, borderEndEndRadius: 4, marginInlineStart: -1, cursor: 'pointer', transition: 'all 0.15s',
                     position: 'relative', zIndex: editPriceType === 'recurring' ? 1 : 0,
                   }}
                 >
@@ -560,7 +560,7 @@ export const ProductsTab = memo(function ProductsTab({
                       {SUPPORTED_CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                     <span style={{ fontSize: 9, color: 'var(--cp-cyan)', fontStyle: 'italic', flexShrink: 0 }}>{t('new')}</span>
-                    <div style={{ marginLeft: 'auto' }}>
+                    <div style={{ marginInlineStart: 'auto' }}>
                       <button
                         onClick={() => setPendingNewPrices(pendingNewPrices.filter((_, j) => j !== i))}
                         style={{ background: 'none', border: 'none', color: 'var(--cp-text-dim)', cursor: 'pointer', fontSize: 14, fontFamily: 'inherit', padding: '0 4px', opacity: 0.5, transition: 'opacity 0.15s', flexShrink: 0 }}
@@ -751,12 +751,12 @@ export const ProductsTab = memo(function ProductsTab({
           <div className="form-group">
             <label className="form-label">{t('slugLabel')}</label>
             <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
-              <span style={{ fontSize: 11, color: 'var(--cp-text-dim)', background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRight: 'none', borderRadius: '4px 0 0 4px', padding: '7px 8px', lineHeight: 1 }}>/</span>
+              <span style={{ fontSize: 11, color: 'var(--cp-text-dim)', background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderInlineEnd: 'none', borderStartStartRadius: 4, borderEndStartRadius: 4, padding: '7px 8px', lineHeight: 1 }}>/</span>
               <input
                 type="text" value={newSlug}
                 onChange={(e) => { setNewSlug(e.target.value); setSlugTouched(true); }}
                 placeholder={t('slugPlaceholder')} className="input"
-                style={{ borderRadius: '0 4px 4px 0', flex: 1, fontSize: 11 }}
+                style={{ borderStartEndRadius: 4, borderEndEndRadius: 4, flex: 1, fontSize: 11 }}
               />
             </div>
             <HelperText>{t('slugHelp')}</HelperText>
@@ -778,7 +778,7 @@ export const ProductsTab = memo(function ProductsTab({
                   color: newProductPriceType === 'one_time' ? 'var(--cp-cyan)' : 'var(--cp-text-dim)',
                   border: '1px solid',
                   borderColor: newProductPriceType === 'one_time' ? 'var(--cp-cyan)' : 'var(--cp-border)',
-                  borderRadius: '4px 0 0 4px', cursor: 'pointer', transition: 'all 0.15s',
+                  borderStartStartRadius: 4, borderEndStartRadius: 4, cursor: 'pointer', transition: 'all 0.15s',
                   position: 'relative', zIndex: newProductPriceType === 'one_time' ? 1 : 0,
                 }}
               >
@@ -793,7 +793,7 @@ export const ProductsTab = memo(function ProductsTab({
                   color: newProductPriceType === 'recurring' ? 'var(--cp-cyan)' : 'var(--cp-text-dim)',
                   border: '1px solid',
                   borderColor: newProductPriceType === 'recurring' ? 'var(--cp-cyan)' : 'var(--cp-border)',
-                  borderRadius: '0 4px 4px 0', marginLeft: -1, cursor: 'pointer', transition: 'all 0.15s',
+                  borderStartEndRadius: 4, borderEndEndRadius: 4, marginInlineStart: -1, cursor: 'pointer', transition: 'all 0.15s',
                   position: 'relative', zIndex: newProductPriceType === 'recurring' ? 1 : 0,
                 }}
               >
@@ -912,9 +912,9 @@ export const ProductsTab = memo(function ProductsTab({
                 {defaultPrice ? (
                   <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--cp-text)' }}>
                     {priceSym(defaultPrice.currency)}{defaultPrice.unit_amount.toFixed(2)}
-                    <span style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginLeft: 4 }}>{defaultPrice.currency}</span>
+                    <span style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginInlineStart: 4 }}>{defaultPrice.currency}</span>
                     {defaultPrice.price_type === 'recurring' && (
-                      <span style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginLeft: 2 }}>
+                      <span style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginInlineStart: 2 }}>
                         /{defaultPrice.billing_interval ?? 'mo'}
                       </span>
                     )}

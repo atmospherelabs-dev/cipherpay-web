@@ -214,7 +214,7 @@ export const InvoicesTab = memo(function InvoicesTab({
                           transition: 'all 0.15s',
                         }}
                       >
-                        {tf.label} <span style={{ opacity: 0.5, marginLeft: 2 }}>{count}</span>
+                        {tf.label} <span style={{ opacity: 0.5, marginInlineStart: 2 }}>{count}</span>
                       </button>
                     );
                   })}
@@ -237,7 +237,7 @@ export const InvoicesTab = memo(function InvoicesTab({
                         transition: 'all 0.15s',
                       }}
                     >
-                      {s.toUpperCase()} <span style={{ opacity: 0.5, marginLeft: 2 }}>{count}</span>
+                      {s.toUpperCase()} <span style={{ opacity: 0.5, marginInlineStart: 2 }}>{count}</span>
                     </button>
                   );
                 })}

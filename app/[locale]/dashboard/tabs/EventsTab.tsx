@@ -596,14 +596,14 @@ export const EventsTab = memo(function EventsTab({ events, loadingEvents, reload
                         {currencySymbol(tier.currency)}{tier.unit_amount.toFixed(2)} {tier.currency}
                       </div>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
+                    <div style={{ textAlign: 'end' }}>
                       <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--cp-cyan)' }}>
                         <SoldDisplay sold={tier.sold_count} capacity={tier.max_quantity} t={t} />
                       </div>
                       <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', letterSpacing: 0.5 }}>{t('tierSold')}</div>
                     </div>
                     {!event.luma_event_id && (
-                      <div style={{ textAlign: 'right' }}>
+                      <div style={{ textAlign: 'end' }}>
                         <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--cp-green)' }}>{tier.used_count}</div>
                         <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', letterSpacing: 0.5 }}>{t('tierCheckedIn')}</div>
                       </div>

@@ -36,7 +36,7 @@ export function WebhooksTab({ initialDeliveries, initialTotal, hasWebhookUrl, on
   useEffect(() => { fetchPage(page, filter); }, [page, filter, fetchPage]);
 
   const totalPages = Math.ceil(total / pageSize);
-  const thStyle = { textAlign: 'left' as const, padding: '10px 12px', fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', fontWeight: 500 };
+  const thStyle = { textAlign: 'start' as const, padding: '10px 12px', fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', fontWeight: 500 };
   const tdStyle = { padding: '10px 12px', fontSize: 11 };
 
   return (

@@ -135,7 +135,7 @@ export const BillingTab = memo(function BillingTab({
                   <div style={{
                     position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 4, zIndex: 10,
                     background: 'var(--cp-surface)', border: '1px solid var(--cp-border)', borderRadius: 4,
-                    padding: 10, textAlign: 'left', fontSize: 10, lineHeight: 1.6,
+                    padding: 10, textAlign: 'start', fontSize: 10, lineHeight: 1.6,
                   }}>
                     {(['new', 'standard', 'trusted'] as const).map(tier => {
                       const info = TIER_INFO[tier];
@@ -246,7 +246,7 @@ export const BillingTab = memo(function BillingTab({
                       <span style={{ color: 'var(--cp-text-muted)', fontSize: 11 }}>{t('graceUntil')}</span>
                       <span style={{ fontSize: 11, color: days <= 3 ? 'var(--cp-red)' : 'var(--cp-yellow)' }}>
                         {t('daysRemaining', { days })}
-                        <span style={{ color: 'var(--cp-text-dim)', marginLeft: 6, fontSize: 10 }}>
+                        <span style={{ color: 'var(--cp-text-dim)', marginInlineStart: 6, fontSize: 10 }}>
                           ({formatDateShort(billing.current_cycle!.grace_until!)})
                         </span>
                       </span>

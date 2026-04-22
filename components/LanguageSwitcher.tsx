@@ -68,7 +68,7 @@ export function LanguageSwitcher() {
         <span style={{
           position: 'absolute',
           bottom: 2,
-          right: 2,
+          insetInlineEnd: 2,
           fontSize: 7,
           fontWeight: 700,
           lineHeight: 1,
@@ -85,7 +85,7 @@ export function LanguageSwitcher() {
         <div style={{
           position: 'absolute',
           top: 'calc(100% + 6px)',
-          right: 0,
+          insetInlineEnd: 0,
           background: 'var(--cp-surface)',
           border: '1px solid var(--cp-border)',
           borderRadius: 8,
@@ -111,7 +111,7 @@ export function LanguageSwitcher() {
                 cursor: 'pointer',
                 fontSize: 13,
                 fontFamily: 'inherit',
-                textAlign: 'left',
+                textAlign: 'start',
                 transition: 'background 0.15s',
               }}
               onMouseEnter={(e) => {

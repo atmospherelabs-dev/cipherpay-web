@@ -134,7 +134,7 @@ export const POSTab = memo(function POSTab({ products, loadingProducts }: POSTab
                     {dp ? (
                       <>
                         {currencySymbol(dp.currency)}{dp.unit_amount.toFixed(2)}
-                        <span style={{ fontSize: 9, fontWeight: 400, color: 'var(--cp-text-dim)', marginLeft: 4 }}>{dp.currency}</span>
+                        <span style={{ fontSize: 9, fontWeight: 400, color: 'var(--cp-text-dim)', marginInlineStart: 4 }}>{dp.currency}</span>
                       </>
                     ) : '—'}
                   </div>

@@ -245,7 +245,7 @@ export default function DonateClient({ info, slug, locale }: DonateClientProps) 
                 {isCustom && (
                   <div style={{ flex: 1, position: 'relative' }}>
                     <span style={{
-                      position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)',
+                      position: 'absolute', insetInlineStart: 12, top: '50%', transform: 'translateY(-50%)',
                       color: 'var(--cp-text-muted)', fontSize: 14,
                     }}>
                       {sym}
@@ -259,7 +259,7 @@ export default function DonateClient({ info, slug, locale }: DonateClientProps) 
                       max={(maxCents / 100).toFixed(2)}
                       step="0.01"
                       style={{
-                        width: '100%', padding: '10px 12px 10px 28px', borderRadius: 6,
+                        width: '100%', padding: '10px 12px', paddingInlineStart: 28, borderRadius: 6,
                         border: '1px solid rgba(255,255,255,0.1)',
                         background: 'rgba(255,255,255,0.03)',
                         color: 'var(--cp-text)', fontSize: 14,

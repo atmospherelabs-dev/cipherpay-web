@@ -209,7 +209,7 @@ export default function BuyClient({ productId }: { productId: string }) {
             <div className="divider" />
 
             {isLuma && (
-              <div style={{ textAlign: 'left', marginBottom: 16 }}>
+              <div style={{ textAlign: 'start', marginBottom: 16 }}>
                 <div style={{ fontSize: 10, letterSpacing: 1, color: 'var(--cp-text-dim)', marginBottom: 6, lineHeight: 1.5 }}>
                   {t('attendeeRequired')}
                 </div>
@@ -239,7 +239,7 @@ export default function BuyClient({ productId }: { productId: string }) {
               </div>
             )}
 
-            <div style={{ textAlign: 'left' }}>
+            <div style={{ textAlign: 'start' }}>
               <div className="section-title">{t('refundTitle')}</div>
               <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginBottom: 4, lineHeight: 1.5 }}>
                 {t('refundDesc')}

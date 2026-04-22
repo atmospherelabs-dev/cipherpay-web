@@ -340,7 +340,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
                   </>
                 )}
                 <div style={{ fontSize: 32, fontWeight: 700, color: 'var(--cp-text)' }}>
-                  {primaryPrice}{secondaryPrice && <span style={{ fontSize: 16, color: 'var(--cp-text-muted)', fontWeight: 400, marginLeft: 8 }}>{secondaryPrice}</span>}
+                  {primaryPrice}{secondaryPrice && <span style={{ fontSize: 16, color: 'var(--cp-text-muted)', fontWeight: 400, marginInlineStart: 8 }}>{secondaryPrice}</span>}
                 </div>
                 <div style={{ fontSize: 13, color: 'var(--cp-cyan)', marginTop: 4 }}>≈ {invoice.price_zec.toFixed(8)} ZEC</div>
                 <div style={{ marginTop: 12, fontSize: 10, color: 'var(--cp-text-dim)', letterSpacing: 1 }}>
@@ -391,7 +391,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
               {showManual && (
                 <div style={{ marginTop: 20 }}>
                   {/* Payment Address */}
-                  <div style={{ textAlign: 'left', marginBottom: 16 }}>
+                  <div style={{ textAlign: 'start', marginBottom: 16 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                       <span style={{ fontSize: 10, color: 'var(--cp-text-muted)', letterSpacing: 1 }}>{t('paymentAddress')}</span>
                       <button
@@ -414,7 +414,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
                   </div>
 
                   {/* Refund address (hidden for donations) */}
-                  {!invoice.is_donation && <div style={{ borderTop: '1px solid var(--cp-border)', paddingTop: 16, marginBottom: 16, textAlign: 'left' }}>
+                  {!invoice.is_donation && <div style={{ borderTop: '1px solid var(--cp-border)', paddingTop: 16, marginBottom: 16, textAlign: 'start' }}>
                     <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', letterSpacing: 1, marginBottom: 4 }}>
                       {t('refundAddress')} <span style={{ fontWeight: 400 }}>({t('optional')})</span>
                     </div>
@@ -490,7 +490,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
               )}
 
               {/* Payment Address */}
-              <div style={{ textAlign: 'left', marginBottom: 16 }}>
+              <div style={{ textAlign: 'start', marginBottom: 16 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                   <span style={{ fontSize: 10, color: 'var(--cp-text-muted)', letterSpacing: 1 }}>{t('paymentAddress')}</span>
                   <button
@@ -678,7 +678,7 @@ function ReceiptDetails({ invoice, row, label, primaryPrice, secondaryPrice, t }
         )}
         <div style={row}>
           <span style={label}>{t('amount')}</span>
-          <span style={{ fontWeight: 700, fontSize: 14 }}>{primaryPrice}{secondaryPrice && <span style={{ fontWeight: 400, fontSize: 11, color: 'var(--cp-text-muted)', marginLeft: 6 }}>{secondaryPrice}</span>}</span>
+          <span style={{ fontWeight: 700, fontSize: 14 }}>{primaryPrice}{secondaryPrice && <span style={{ fontWeight: 400, fontSize: 11, color: 'var(--cp-text-muted)', marginInlineStart: 6 }}>{secondaryPrice}</span>}</span>
         </div>
         <div style={row}>
           <span style={label}>{t('zecPaid')}</span>

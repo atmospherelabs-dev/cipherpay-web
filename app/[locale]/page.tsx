@@ -261,7 +261,7 @@ export default async function LandingPage() {
                       <div style={{ fontWeight: 600, fontSize: 9, color: 'var(--cp-text)' }}>Premium T-Shirt</div>
                       <div style={{ fontSize: 7, color: 'var(--cp-text-dim)' }}>premium-t-shirt · one-time</div>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
+                    <div style={{ textAlign: 'end' }}>
                       <div style={{ fontSize: 9, color: 'var(--cp-cyan)' }}>$29.99</div>
                       <div style={{ fontSize: 7, color: 'var(--cp-text-dim)' }}>USD</div>
                     </div>
@@ -271,7 +271,7 @@ export default async function LandingPage() {
                       <div style={{ fontWeight: 600, fontSize: 9, color: 'var(--cp-text)' }}>Hoodie</div>
                       <div style={{ fontSize: 7, color: 'var(--cp-text-dim)' }}>hoodie · one-time</div>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
+                    <div style={{ textAlign: 'end' }}>
                       <div style={{ fontSize: 9, color: 'var(--cp-cyan)' }}>€59.99</div>
                       <div style={{ fontSize: 7, color: 'var(--cp-text-dim)' }}>EUR</div>
                     </div>
@@ -281,7 +281,7 @@ export default async function LandingPage() {
                       <div style={{ fontWeight: 600, fontSize: 9, color: 'var(--cp-text)' }}>API Access</div>
                       <div style={{ fontSize: 7, color: 'var(--cp-text-dim)' }}>api-access · recurring</div>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
+                    <div style={{ textAlign: 'end' }}>
                       <div style={{ fontSize: 9, color: 'var(--cp-cyan)' }}>€9.99</div>
                       <div style={{ fontSize: 7, color: 'var(--cp-text-dim)' }}>EUR/mo</div>
                     </div>
@@ -291,7 +291,7 @@ export default async function LandingPage() {
                       <div style={{ fontWeight: 600, fontSize: 9, color: 'var(--cp-text)' }}>VPN Monthly</div>
                       <div style={{ fontSize: 7, color: 'var(--cp-text-dim)' }}>vpn-monthly · recurring</div>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
+                    <div style={{ textAlign: 'end' }}>
                       <div style={{ fontSize: 9, color: 'var(--cp-cyan)' }}>$4.99</div>
                       <div style={{ fontSize: 7, color: 'var(--cp-text-dim)' }}>USD/mo</div>
                     </div>
@@ -301,7 +301,7 @@ export default async function LandingPage() {
                       <div style={{ fontWeight: 600, fontSize: 9, color: 'var(--cp-text)' }}>Donation</div>
                       <div style={{ fontSize: 7, color: 'var(--cp-text-dim)' }}>donation · one-time</div>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
+                    <div style={{ textAlign: 'end' }}>
                       <div style={{ fontSize: 9, color: 'var(--cp-cyan)' }}>$10.00</div>
                       <div style={{ fontSize: 7, color: 'var(--cp-text-dim)' }}>USD</div>
                     </div>

@@ -77,7 +77,7 @@ export const X402Tab = memo(function X402Tab({
         >
           VERIFICATIONS
           {x402Verifications.length > 0 && (
-            <span style={{ marginLeft: 6, fontSize: 9, opacity: 0.6 }}>({x402Verifications.length})</span>
+            <span style={{ marginInlineStart: 6, fontSize: 9, opacity: 0.6 }}>({x402Verifications.length})</span>
           )}
         </button>
         <button
@@ -99,7 +99,7 @@ export const X402Tab = memo(function X402Tab({
         >
           SESSIONS
           {sessions.length > 0 && (
-            <span style={{ marginLeft: 6, fontSize: 9, opacity: 0.6 }}>({sessions.length})</span>
+            <span style={{ marginInlineStart: 6, fontSize: 9, opacity: 0.6 }}>({sessions.length})</span>
           )}
         </button>
       </div>

@@ -91,17 +91,17 @@ export default function RegisterPage() {
                 </p>
 
                 <CredentialBlock label={t('apiKeyLabel')} value={result.api_key} />
-                <p style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: -8, marginBottom: 16, paddingLeft: 2 }}>
+                <p style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: -8, marginBottom: 16, paddingInlineStart: 2 }}>
                   {t('apiKeyHelp')}
                 </p>
 
                 <CredentialBlock label={t('dashTokenLabel')} value={result.dashboard_token} />
-                <p style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: -8, marginBottom: 16, paddingLeft: 2 }}>
+                <p style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: -8, marginBottom: 16, paddingInlineStart: 2 }}>
                   {t('dashTokenHelp')}
                 </p>
 
                 <CredentialBlock label={t('webhookSecretLabel')} value={result.webhook_secret} />
-                <p style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: -8, marginBottom: 16, paddingLeft: 2 }}>
+                <p style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: -8, marginBottom: 16, paddingInlineStart: 2 }}>
                   {t('webhookSecretHelp')}
                 </p>
 

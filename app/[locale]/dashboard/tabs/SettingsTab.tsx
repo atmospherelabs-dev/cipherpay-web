@@ -493,7 +493,7 @@ function PasskeySettings({ merchant, reloadMerchant }: { merchant: MerchantInfo;
 
           {step === 'registering' && (
             <div style={{ padding: 16, textAlign: 'center', color: 'var(--cp-text-muted)', fontSize: 11 }}>
-              <Spinner /> <span style={{ marginLeft: 8 }}>{tp('waitingBrowser')}</span>
+              <Spinner /> <span style={{ marginInlineStart: 8 }}>{tp('waitingBrowser')}</span>
             </div>
           )}
 

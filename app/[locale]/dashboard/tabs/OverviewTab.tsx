@@ -156,7 +156,7 @@ export const OverviewTab = memo(function OverviewTab({
               className="btn"
               style={{ fontSize: 10 }}
             >
-              {t('createEvent')} <span style={{ fontSize: 8, marginLeft: 2, opacity: 0.6 }}>▼</span>
+              {t('createEvent')} <span style={{ fontSize: 8, marginInlineStart: 2, opacity: 0.6 }}>▼</span>
             </button>
             {showEventMenu && (
               <div style={{
@@ -263,7 +263,7 @@ export const OverviewTab = memo(function OverviewTab({
                     {ev.event_location && ` · ${ev.event_location}`}
                   </span>
                 </div>
-                <div style={{ flexShrink: 0, textAlign: 'right' }}>
+                <div style={{ flexShrink: 0, textAlign: 'end' }}>
                   <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--cp-text)' }}>
                     {ev.total_capacity != null
                       ? `${ev.sold_count} / ${ev.total_capacity}`
