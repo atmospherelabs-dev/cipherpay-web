@@ -47,6 +47,18 @@ const themeScript = `
   })();
 `;
 
+const dirScript = `
+  (function() {
+    try {
+      var m = window.location.pathname.match(/^\\/([a-z]{2})(?:\\/|$)/);
+      if (m) {
+        document.documentElement.lang = m[1];
+        document.documentElement.dir = m[1] === 'ar' ? 'rtl' : 'ltr';
+      }
+    } catch (e) {}
+  })();
+`;
+
 export default function RootLayout({
   children,
 }: {
@@ -56,6 +68,7 @@ export default function RootLayout({
     <html suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script dangerouslySetInnerHTML={{ __html: dirScript }} />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <ThemeProvider>
