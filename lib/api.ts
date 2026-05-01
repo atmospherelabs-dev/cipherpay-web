@@ -26,6 +26,26 @@ export interface PasskeyInfo {
   created_at: string;
 }
 
+export type ApiKeyType = 'full' | 'restricted';
+
+export interface ApiKeySummary {
+  id: string;
+  label: string;
+  key_prefix: string;
+  key_type: ApiKeyType;
+  created_at: string;
+  last_used_at: string | null;
+}
+
+export interface CreatedApiKey {
+  id: string;
+  key: string;
+  key_prefix: string;
+  key_type: ApiKeyType;
+  label: string;
+  created_at: string;
+}
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type PublicKeyCredentialCreationOptionsJSON = any;
 type PublicKeyCredentialRequestOptionsJSON = any;
@@ -530,6 +550,19 @@ export const api = {
 
   deletePasskey: (id: string) =>
     request<{ status: string }>(`/api/auth/passkeys/${id}`, { method: 'DELETE' }),
+
+  // API keys (full + restricted)
+  listApiKeys: () =>
+    request<{ keys: ApiKeySummary[] }>('/api/merchants/me/keys'),
+
+  createApiKey: (data: { type: ApiKeyType; label: string }) =>
+    request<CreatedApiKey>('/api/merchants/me/keys', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  revokeApiKey: (id: string) =>
+    request<{ status: string }>(`/api/merchants/me/keys/${id}`, { method: 'DELETE' }),
 
   // Public
   register: (data: RegisterRequest) =>

@@ -114,6 +114,12 @@ export default function ApiRefSection() {
         { method: 'PATCH', path: '/api/merchants/me', auth: 'Session', desc: 'Update store name, email, webhook URL' },
         { method: 'POST', path: '/api/auth/session', auth: '—', desc: 'Log in (create a session)' },
         { method: 'POST', path: '/api/auth/logout', auth: '—', desc: 'Log out (clear session)' },
+        { method: 'POST', path: '/api/auth/passkey/register/begin', auth: 'Session', desc: 'Begin passkey registration (WebAuthn)' },
+        { method: 'POST', path: '/api/auth/passkey/register/complete', auth: 'Session', desc: 'Complete passkey registration' },
+        { method: 'POST', path: '/api/auth/passkey/login/begin', auth: '—', desc: 'Begin passkey login' },
+        { method: 'POST', path: '/api/auth/passkey/login/complete', auth: '—', desc: 'Complete passkey login' },
+        { method: 'GET', path: '/api/auth/passkeys', auth: 'Session', desc: 'List registered passkeys' },
+        { method: 'DELETE', path: '/api/auth/passkeys/{id}', auth: 'Session', desc: 'Delete a passkey' },
         { method: 'POST', path: '/api/merchants/me/regenerate-api-key', auth: 'Session', desc: 'Generate a new API key (invalidates old one)' },
         { method: 'POST', path: '/api/merchants/me/regenerate-dashboard-token', auth: 'Session', desc: 'Generate a new dashboard token' },
         { method: 'POST', path: '/api/merchants/me/regenerate-webhook-secret', auth: 'Session', desc: 'Generate a new webhook secret' },
@@ -126,10 +132,29 @@ export default function ApiRefSection() {
         { method: 'POST', path: '/api/merchants/me/billing/settle', auth: 'Session', desc: 'Create a settlement invoice to pay outstanding fees' },
       ]} />
 
+      <div style={{ fontSize: 12, color: 'var(--cp-text)', fontWeight: 600, marginBottom: 8, marginTop: 16 }}>API Keys</div>
+      <EndpointTable endpoints={[
+        { method: 'GET', path: '/api/merchants/me/keys', auth: 'Full / Session', desc: 'List your full and restricted API keys' },
+        { method: 'POST', path: '/api/merchants/me/keys', auth: 'Full / Session', desc: 'Mint a new key (full or restricted) — returns the raw key once' },
+        { method: 'DELETE', path: '/api/merchants/me/keys/{id}', auth: 'Full / Session', desc: 'Revoke a key immediately' },
+      ]} />
+
+      <div style={{ fontSize: 12, color: 'var(--cp-text)', fontWeight: 600, marginBottom: 8, marginTop: 16 }}>Sessions (MPP)</div>
+      <EndpointTable endpoints={[
+        { method: 'POST', path: '/api/sessions/prepare', auth: '—', desc: 'Prepare a session deposit' },
+        { method: 'POST', path: '/api/sessions/open', auth: '—', desc: 'Open a session after deposit confirmation' },
+        { method: 'GET', path: '/api/sessions/validate', auth: '—', desc: 'Validate a session token' },
+        { method: 'POST', path: '/api/sessions/deduct', auth: '—', desc: 'Deduct from session balance' },
+        { method: 'GET', path: '/api/sessions/{id}', auth: '—', desc: 'Get session status and balance' },
+        { method: 'POST', path: '/api/sessions/{id}/close', auth: '—', desc: 'Close a session' },
+        { method: 'GET', path: '/api/merchants/me/sessions', auth: 'Session', desc: 'Session history' },
+      ]} />
+
       <div style={{ fontSize: 12, color: 'var(--cp-text)', fontWeight: 600, marginBottom: 8, marginTop: 16 }}>Other</div>
       <EndpointTable endpoints={[
         { method: 'GET', path: '/api/rates', auth: '—', desc: 'Current ZEC exchange rates for all supported currencies' },
         { method: 'GET', path: '/api/health', auth: '—', desc: 'Server health check' },
+        { method: 'GET', path: '/.well-known/payment', auth: '—', desc: 'Agent payment discovery metadata' },
       ]} />
 
       <SectionDivider />

@@ -2,7 +2,7 @@
 
 import { memo, useState, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import { api, type MerchantInfo, type PasskeyInfo } from '@/lib/api';
+import { api, type MerchantInfo, type PasskeyInfo, type ApiKeySummary, type ApiKeyType } from '@/lib/api';
 import { CopyButton } from '@/components/CopyButton';
 import { Spinner } from '@/components/Spinner';
 import { validateEmail, validateWebhookUrl, validateLength } from '@/lib/validation';
@@ -254,6 +254,11 @@ export const SettingsTab = memo(function SettingsTab({
             <CopyButton text={revealedKey.value} label={t('copyLabel')} />
           </div>
         )}
+
+        <div className="divider" />
+
+        {/* 7b. Scoped API Keys (full + restricted) */}
+        <ScopedKeysSection />
 
         {/* Luma Integration */}
         <LumaSettings merchant={merchant} reloadMerchant={reloadMerchant} />
@@ -514,6 +519,205 @@ function PasskeySettings({ merchant, reloadMerchant }: { merchant: MerchantInfo;
         <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 12 }}>
           {tp('lastTokenLogin', { date: formatDate(merchant.last_token_login_at) })}
         </div>
+      )}
+    </div>
+  );
+}
+
+function ScopedKeysSection() {
+  const t = useTranslations('dashboard.settings');
+  const { showToast } = useToast();
+  const [keys, setKeys] = useState<ApiKeySummary[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
+  const [newLabel, setNewLabel] = useState('');
+  const [newType, setNewType] = useState<ApiKeyType>('restricted');
+  const [revealed, setRevealed] = useState<{ key: string; label: string; type: ApiKeyType } | null>(null);
+  const [revoking, setRevoking] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    try {
+      const resp = await api.listApiKeys();
+      setKeys(resp.keys);
+    } catch { /* empty */ }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const formatDate = (iso: string | null) => {
+    if (!iso) return null;
+    try {
+      return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch { return iso; }
+  };
+
+  const submitCreate = async () => {
+    const label = newLabel.trim();
+    if (!label) { showToast(t('scopedKeysToastLabelRequired'), true); return; }
+    setCreating(true);
+    try {
+      const resp = await api.createApiKey({ type: newType, label });
+      setRevealed({ key: resp.key, label: resp.label, type: resp.key_type });
+      setNewLabel('');
+      setShowCreate(false);
+      showToast(t('scopedKeysToastCreated'));
+      await load();
+    } catch {
+      showToast(t('scopedKeysToastFailed'), true);
+    }
+    setCreating(false);
+  };
+
+  const submitRevoke = async (id: string) => {
+    if (!confirm(t('scopedKeysConfirmRevoke'))) return;
+    setRevoking(id);
+    try {
+      await api.revokeApiKey(id);
+      showToast(t('scopedKeysToastRevoked'));
+      await load();
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : t('scopedKeysToastRevokeFailed');
+      showToast(msg, true);
+    }
+    setRevoking(null);
+  };
+
+  return (
+    <div>
+      <div className="section-title">{t('scopedKeys')}</div>
+      <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginBottom: 12, lineHeight: 1.5 }}>
+        {t('scopedKeysHelp')}
+      </div>
+
+      {loading ? (
+        <div style={{ padding: 16, textAlign: 'center' }}><Spinner /></div>
+      ) : (
+        <>
+          {keys.length === 0 && !showCreate && (
+            <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', padding: '8px 0' }}>
+              {t('scopedKeysEmpty')}
+            </div>
+          )}
+
+          {keys.map((k) => {
+            const isRestricted = k.key_type === 'restricted';
+            return (
+              <div key={k.id} style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12,
+                padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.04)',
+              }}>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                    <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--cp-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {k.label}
+                    </span>
+                    <span style={{
+                      fontSize: 8, fontWeight: 600, letterSpacing: 0.5,
+                      color: isRestricted ? 'var(--cp-warm)' : 'var(--cp-cyan)',
+                      background: isRestricted ? 'rgba(232,196,141,0.1)' : 'rgba(86,212,200,0.1)',
+                      padding: '1px 6px', borderRadius: 3, flexShrink: 0,
+                    }}>
+                      {isRestricted ? t('scopedKeysTypeBadgeRestricted') : t('scopedKeysTypeBadgeFull')}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', fontFamily: 'monospace' }}>
+                    {k.key_prefix}...
+                  </div>
+                  <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 2 }}>
+                    {t('scopedKeysCreated', { date: formatDate(k.created_at) || '' })}
+                    {' · '}
+                    {k.last_used_at
+                      ? t('scopedKeysLastUsed', { date: formatDate(k.last_used_at) || '' })
+                      : t('scopedKeysNeverUsed')}
+                  </div>
+                </div>
+                <button
+                  onClick={() => submitRevoke(k.id)}
+                  disabled={revoking === k.id}
+                  className="btn btn-small"
+                  style={{ color: 'var(--cp-red)', borderColor: 'rgba(239,68,68,0.3)', fontSize: 9, flexShrink: 0 }}
+                >
+                  {revoking === k.id ? <Spinner size={10} /> : t('scopedKeysRevoke')}
+                </button>
+              </div>
+            );
+          })}
+
+          {revealed && (
+            <div style={{ background: 'var(--cp-bg)', border: '1px solid var(--cp-cyan)', borderRadius: 4, padding: 12, marginTop: 12 }}>
+              <div style={{ fontSize: 10, letterSpacing: 1, color: 'var(--cp-cyan)', marginBottom: 6 }}>
+                {t('newKeyTitle', { type: (revealed.type === 'restricted' ? t('scopedKeysTypeBadgeRestricted') : t('scopedKeysTypeBadgeFull')) + ' KEY' })}
+              </div>
+              <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginBottom: 6 }}>
+                {revealed.label}
+              </div>
+              <div style={{ fontSize: 10, color: 'var(--cp-text)', wordBreak: 'break-all', fontFamily: 'monospace', marginBottom: 8 }}>
+                {revealed.key}
+              </div>
+              <CopyButton text={revealed.key} label={t('copyLabel')} />
+            </div>
+          )}
+
+          {showCreate ? (
+            <div style={{
+              background: 'rgba(255,255,255,0.02)', border: '1px solid var(--cp-border)',
+              borderRadius: 4, padding: 14, marginTop: 12,
+            }}>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                <input
+                  type="text"
+                  value={newLabel}
+                  onChange={(e) => setNewLabel(e.target.value)}
+                  placeholder={t('scopedKeysLabelPlaceholder')}
+                  className="input"
+                  style={{ flex: 1, fontSize: 11 }}
+                  maxLength={100}
+                  autoFocus
+                  onKeyDown={(e) => { if (e.key === 'Enter') submitCreate(); }}
+                />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10, color: 'var(--cp-text-muted)', cursor: 'pointer' }}>
+                  <input
+                    type="radio"
+                    checked={newType === 'restricted'}
+                    onChange={() => setNewType('restricted')}
+                  />
+                  {t('scopedKeysTypeRestricted')}
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10, color: 'var(--cp-text-muted)', cursor: 'pointer' }}>
+                  <input
+                    type="radio"
+                    checked={newType === 'full'}
+                    onChange={() => setNewType('full')}
+                  />
+                  {t('scopedKeysTypeFull')}
+                </label>
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={submitCreate} disabled={creating} className="btn btn-small">
+                  {creating ? <Spinner size={10} /> : t('scopedKeysCreateConfirm')}
+                </button>
+                <button
+                  onClick={() => { setShowCreate(false); setNewLabel(''); }}
+                  className="btn btn-small btn-cancel"
+                >
+                  {t('scopedKeysCreateCancel')}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => { setShowCreate(true); setRevealed(null); }}
+              className="btn"
+              style={{ marginTop: 12 }}
+            >
+              {t('scopedKeysCreate')}
+            </button>
+          )}
+        </>
       )}
     </div>
   );

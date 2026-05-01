@@ -23,6 +23,9 @@ import EventsSection from './sections/EventsSection';
 import MCPSection from './sections/MCPSection';
 import ZipherCliSection from './sections/ZipherCliSection';
 import DonationsSection from './sections/DonationsSection';
+import PaymentLinksSection from './sections/PaymentLinksSection';
+import CashOutSection from './sections/CashOutSection';
+import ApiKeysSection from './sections/ApiKeysSection';
 
 const SECTIONS = [
   { id: 'overview', title: 'Overview' },
@@ -32,12 +35,15 @@ const SECTIONS = [
   { id: 'woocommerce', title: 'WooCommerce' },
   { id: 'custom', title: 'Custom Integration' },
   { id: 'products', title: 'Product Pages' },
+  { id: 'payment-links', title: 'Payment Links' },
   { id: 'pos', title: 'In-Person POS' },
   { id: 'events', title: 'Events & Tickets' },
   { id: 'donations', title: 'Donations' },
   { id: 'webhooks', title: 'Webhooks' },
   { id: 'subscriptions', title: 'Subscriptions' },
   { id: 'billing', title: 'Billing & Fees' },
+  { id: 'cash-out', title: 'Cash Out (ZEC → Fiat)' },
+  { id: 'api-keys', title: 'API Keys' },
   { id: 'api-ref', title: 'API Reference' },
   { id: 'x402', title: 'Agentic Payments' },
   { id: 'zipher-cli', title: 'Zipher CLI' },
@@ -46,8 +52,8 @@ const SECTIONS = [
 
 const SIDEBAR_GROUPS = [
   { label: 'Getting Started', ids: ['overview', 'quickstart', 'sandbox'] },
-  { label: 'Guides', ids: ['shopify', 'woocommerce', 'custom', 'products', 'pos', 'events', 'donations'] },
-  { label: 'Reference', ids: ['webhooks', 'subscriptions', 'billing', 'api-ref'] },
+  { label: 'Guides', ids: ['shopify', 'woocommerce', 'custom', 'products', 'payment-links', 'pos', 'events', 'donations'] },
+  { label: 'Reference', ids: ['webhooks', 'subscriptions', 'billing', 'cash-out', 'api-keys', 'api-ref'] },
   { label: 'AI & Agents', ids: ['x402', 'zipher-cli', 'mcp'] },
 ];
 
@@ -60,12 +66,15 @@ function SectionContent({ id, onNavigate }: { id: string; onNavigate: (id: strin
     case 'woocommerce': return <WooCommerceSection />;
     case 'custom': return <CustomSection />;
     case 'products': return <ProductsSection />;
+    case 'payment-links': return <PaymentLinksSection />;
     case 'pos': return <POSSection />;
     case 'events': return <EventsSection />;
     case 'donations': return <DonationsSection />;
     case 'webhooks': return <WebhooksSection />;
     case 'subscriptions': return <SubscriptionsSection />;
     case 'billing': return <BillingSection />;
+    case 'cash-out': return <CashOutSection />;
+    case 'api-keys': return <ApiKeysSection />;
     case 'api-ref': return <ApiRefSection />;
     case 'x402': return <X402Section />;
     case 'zipher-cli': return <ZipherCliSection />;

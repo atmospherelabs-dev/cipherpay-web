@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { CopyButton } from '@/components/CopyButton';
 import type { MerchantInfo, BillingSummary } from '@/lib/api';
 
-export type Tab = 'overview' | 'products' | 'events' | 'invoices' | 'subscriptions' | 'pos' | 'links' | 'billing' | 'webhooks' | 'settings' | 'x402';
+export type Tab = 'overview' | 'products' | 'events' | 'invoices' | 'subscriptions' | 'pos' | 'links' | 'billing' | 'cashOut' | 'webhooks' | 'settings' | 'x402';
 
 interface DashboardSidebarProps {
   merchant: MerchantInfo;
@@ -93,6 +93,7 @@ export const DashboardSidebar = memo(function DashboardSidebar({
               }} />
             ) : undefined
           )}
+          {navButton('cashOut', t('cashOut'))}
           {navButton('settings', t('settings'))}
         </div>
 

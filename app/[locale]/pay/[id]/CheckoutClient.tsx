@@ -371,6 +371,30 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
                 </a>
               )}
 
+              {/* Pay with CLI */}
+              {invoice?.id && (
+                <div style={{ marginBottom: 24 }}>
+                  <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', letterSpacing: 1, marginBottom: 8, textAlign: 'center' }}>
+                    {t('payWithCli')}
+                  </div>
+                  <div
+                    onClick={() => copy(`zipher pay ${typeof window !== 'undefined' ? window.location.origin : ''}/pay/${invoice.id}`, 'Command')}
+                    style={{
+                      background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 6,
+                      padding: '10px 14px', cursor: 'pointer', fontSize: 10,
+                      fontFamily: 'var(--font-geist-mono), monospace',
+                      color: 'var(--cp-cyan)', display: 'flex', alignItems: 'center',
+                      justifyContent: 'space-between', gap: 8, transition: 'border-color 0.15s',
+                    }}
+                  >
+                    <code style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      zipher pay {typeof window !== 'undefined' ? window.location.origin : ''}/pay/{invoice.id}
+                    </code>
+                    <CopyIcon size={11} />
+                  </div>
+                </div>
+              )}
+
               {/* Manual payment toggle */}
               <button
                 type="button"

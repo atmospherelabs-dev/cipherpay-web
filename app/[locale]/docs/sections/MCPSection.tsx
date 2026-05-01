@@ -61,7 +61,10 @@ export default function MCPSection() {
 
       <Step n={1} title="Claude Desktop">
         <Paragraph>
-          Add to <Code>~/Library/Application Support/Claude/claude_desktop_config.json</Code>:
+          Add to <Code>~/Library/Application Support/Claude/claude_desktop_config.json</Code>.
+          We strongly recommend a <Strong>restricted key</Strong> (<Code>cpay_rk_...</Code>) here so
+          a misbehaving agent can&apos;t change account settings or revoke other keys.
+          Mint one from Dashboard → Settings → Scoped Keys.
         </Paragraph>
         <CodeBlock lang="json" code={`{
   "mcpServers": {
@@ -69,7 +72,7 @@ export default function MCPSection() {
       "command": "npx",
       "args": ["@cipherpay/mcp"],
       "env": {
-        "CIPHERPAY_API_KEY": "cpay_sk_your_api_key_here"
+        "CIPHERPAY_API_KEY": "cpay_rk_your_restricted_key_here"
       }
     }
   }
@@ -86,7 +89,7 @@ export default function MCPSection() {
       "command": "npx",
       "args": ["@cipherpay/mcp"],
       "env": {
-        "CIPHERPAY_API_KEY": "cpay_sk_your_api_key_here"
+        "CIPHERPAY_API_KEY": "cpay_rk_your_restricted_key_here"
       }
     }
   }
@@ -111,7 +114,7 @@ export default function MCPSection() {
           </thead>
           <tbody>
             {[
-              { var: 'CIPHERPAY_API_KEY', required: 'For invoices + payments', desc: 'Your CipherPay API key (cpay_sk_...)' },
+              { var: 'CIPHERPAY_API_KEY', required: 'For invoices + payments', desc: 'CipherPay API key — full (cpay_sk_...) or restricted (cpay_rk_..., recommended for agents)' },
               { var: 'CIPHERPAY_API_URL', required: 'No', desc: 'API URL (default: https://api.cipherpay.app)' },
             ].map(row => (
               <tr key={row.var} style={{ borderBottom: '1px solid var(--cp-border)' }}>

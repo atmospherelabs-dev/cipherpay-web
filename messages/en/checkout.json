@@ -8,6 +8,7 @@
   "scanWallet": "SCAN WITH YOUR ZCASH WALLET",
   "orSendManually": "or send manually using the details below",
   "openInWallet": "Open in Wallet",
+  "payWithCli": "OR PAY WITH ZIPHER CLI",
   "manualPayment": "MANUAL PAYMENT",
   "paymentAddress": "PAYMENT ADDRESS",
   "refundAddress": "REFUND ADDRESS",

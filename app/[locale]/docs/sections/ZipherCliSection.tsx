@@ -163,6 +163,36 @@ zipher-cli policy show`} />
 
       <SectionDivider />
 
+      <SectionTitle>CipherPay merchant tools</SectionTitle>
+      <Paragraph>
+        Agents can create and manage CipherPay invoices directly via MCP or CLI.
+        Set <Code>CIPHERPAY_API_KEY</Code> to your merchant API key.
+      </Paragraph>
+      <div style={{ overflowX: 'auto', marginBottom: 20 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+          <thead>
+            <tr style={{ borderBottom: '1px solid var(--cp-border)' }}>
+              <th style={{ textAlign: 'left', padding: '8px 12px', color: 'var(--cp-text-muted)', fontWeight: 600, fontSize: 10 }}>MCP TOOL</th>
+              <th style={{ textAlign: 'left', padding: '8px 12px', color: 'var(--cp-text-muted)', fontWeight: 600, fontSize: 10 }}>DESCRIPTION</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              { cmd: 'cipherpay_create_invoice', desc: 'Create an invoice (product name, amount, currency)' },
+              { cmd: 'cipherpay_check_invoice', desc: 'Check invoice status, received amount, txid' },
+              { cmd: 'cipherpay_balance', desc: 'Merchant stats: total ZEC received, confirmed count' },
+            ].map(c => (
+              <tr key={c.cmd} style={{ borderBottom: '1px solid var(--cp-border)' }}>
+                <td style={{ padding: '8px 12px' }}><Code>{c.cmd}</Code></td>
+                <td style={{ padding: '8px 12px', color: 'var(--cp-text-dim)' }}>{c.desc}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <SectionDivider />
+
       <SectionTitle>Links</SectionTitle>
       <div style={{ fontSize: 11, lineHeight: 2.2, color: 'var(--cp-text-dim)' }}>
         <a href="https://www.npmjs.com/package/@cipherpay/zipher-cli" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>@cipherpay/zipher-cli on npm</a><br />

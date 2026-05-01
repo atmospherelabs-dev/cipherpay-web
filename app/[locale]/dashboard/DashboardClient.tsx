@@ -22,6 +22,7 @@ import { X402Tab } from './tabs/X402Tab';
 import { WebhooksTab } from './tabs/WebhooksTab';
 import { PaymentLinksTab } from './tabs/PaymentLinksTab';
 import { SubscriptionsTab } from './tabs/SubscriptionsTab';
+import { CashOutTab } from './tabs/CashOutTab';
 
 
 export type TabAction = 'add-product' | 'create-paylink' | 'create-link' | 'create-donation-link' | 'create-event' | 'import-luma' | null;
@@ -282,6 +283,13 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                 displayCurrency={displayCurrency}
                 setDisplayCurrency={setDisplayCurrency}
                 reloadMerchant={refreshMerchant}
+              />
+            )}
+            {tab === 'cashOut' && (
+              <CashOutTab
+                merchant={merchant}
+                zecRates={zecRates}
+                displayCurrency={displayCurrency}
               />
             )}
             {tab === 'webhooks' && (

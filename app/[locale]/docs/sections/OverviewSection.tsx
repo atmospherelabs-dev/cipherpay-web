@@ -7,7 +7,9 @@ const USE_CASES = [
   { title: 'WooCommerce store', bestFor: 'WordPress merchants — install a plugin, no code', time: '~10 min', link: 'woocommerce' },
   { title: 'Custom website or app', bestFor: 'Developers integrating via REST API', time: '~30 min', link: 'custom' },
   { title: 'Product pages (no-code)', bestFor: 'Sell a few items — create a product, share a link', time: '~5 min', link: 'products' },
+  { title: 'Payment links', bestFor: 'Reusable checkout URLs — share anywhere, no code', time: '~2 min', link: 'payment-links' },
   { title: 'In-person POS', bestFor: 'Events, pop-ups, physical stores — phone or tablet', time: '~5 min', link: 'pos' },
+  { title: 'Cash out (ZEC → fiat)', bestFor: 'Convert received ZEC to USD/EUR via Zipher, Loofta, or Peer', time: '—', link: 'cash-out' },
   { title: 'Agentic payments', bestFor: 'AI agents paying for API access — x402, MPP, sessions', time: '~15 min', link: 'x402' },
   { title: 'MCP server', bestFor: 'AI assistants managing payments via tool calls', time: '~5 min', link: 'mcp' },
 ];
@@ -115,7 +117,7 @@ export default function OverviewSection({ onNavigate }: { onNavigate: (id: strin
         <div style={{ marginBottom: 8 }}>
           <Strong>1. A Zcash wallet</Strong><br />
           <span style={{ paddingLeft: 16, display: 'inline-block' }}>
-            Download <a href="https://zodl.com/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>Zodl</a> (mobile) or <a href="https://ywallet.app" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>YWallet</a> (desktop &amp; mobile).
+            Download <a href="https://zodl.com/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>Zodl</a> (mobile), <a href="https://ywallet.app" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>YWallet</a> (desktop &amp; mobile), or <a href="https://www.npmjs.com/package/@cipherpay/zipher-cli" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>Zipher CLI</a> (terminal / AI agents).
             This is where your payments will arrive. You control the private keys — CipherPay never has access to them.
           </span>
         </div>

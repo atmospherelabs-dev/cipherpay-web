@@ -228,6 +228,12 @@ if (result.valid) {
           If not, <a href="/dashboard/register" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>register here</a> with
           your UFVK. You&apos;ll get an API key (<Code>cpay_sk_...</Code>) to authenticate verification requests.
         </Paragraph>
+        <Paragraph>
+          For agent integrations, mint a <Strong>restricted key</Strong> (<Code>cpay_rk_...</Code>) from
+          Dashboard → Settings → Scoped Keys. Restricted keys can verify x402, manage sessions, and
+          create invoices but cannot change account settings or revoke other keys — much safer to hand
+          to an AI agent. See <Strong>Reference → API Keys</Strong>.
+        </Paragraph>
       </Step>
 
       <Step n={2} title="Return 402 from your server">
@@ -379,6 +385,20 @@ app.get('/api/premium/data', (req, res) => {
         Payment verification is free. CipherPay makes money from invoice-based payment processing — agentic payment
         verification is provided to drive Zcash adoption for AI and programmatic payments.
       </Callout>
+
+      <SectionDivider />
+
+      <SectionTitle>Agent discovery</SectionTitle>
+      <Paragraph>
+        CipherPay exposes a <Code>/.well-known/payment</Code> endpoint for agent discovery.
+        AI agents can query this URL to learn that a merchant supports Zcash payments via CipherPay,
+        and which protocols (x402, MPP) are available.
+      </Paragraph>
+      <CodeBlock lang="bash" code={`curl https://api.cipherpay.app/.well-known/payment`} />
+      <Paragraph>
+        This follows the emerging pattern of machine-readable payment metadata at well-known paths,
+        letting agents auto-discover payment capabilities without human configuration.
+      </Paragraph>
     </>
   );
 }

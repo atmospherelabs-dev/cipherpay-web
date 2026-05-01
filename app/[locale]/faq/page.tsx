@@ -13,13 +13,13 @@ const sectionDefs = [
   { id: 'privacy', key: 's1', count: 4 },
   { id: 'wallet', key: 's2', count: 4 },
   { id: 'how', key: 's3', count: 4 },
-  { id: 'security', key: 's4', count: 3 },
+  { id: 'security', key: 's4', count: 5 },
   { id: 'hosting', key: 's5', count: 4 },
   { id: 'x402', key: 's6', count: 5 },
   { id: 'integrations', key: 's7', count: 4 },
   { id: 'billing', key: 's8', count: 3 },
   { id: 'wallets', key: 's9', count: 3 },
-  { id: 'general', key: 's10', count: 4 },
+  { id: 'general', key: 's10', count: 5 },
 ];
 
 export default async function FAQPage() {

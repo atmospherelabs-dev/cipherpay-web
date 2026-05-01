@@ -8,6 +8,7 @@
   "scanWallet": "ESCANEA CON TU BILLETERA ZCASH",
   "orSendManually": "o envía manualmente usando los detalles a continuación",
   "openInWallet": "Abrir en Billetera",
+  "payWithCli": "O PAGAR CON ZIPHER CLI",
   "manualPayment": "PAGO MANUAL",
   "paymentAddress": "DIRECCIÓN DE PAGO",
   "refundAddress": "DIRECCIÓN DE REEMBOLSO",

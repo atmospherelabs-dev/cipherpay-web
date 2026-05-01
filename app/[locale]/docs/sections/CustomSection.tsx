@@ -201,6 +201,37 @@ window.location.href = \`https://cipherpay.app/pay/\${invoiceId}?return_url=\${r
         <Code>refunded</Code> — Merchant marked this invoice as refunded
       </div>
 
+      <Expandable title="Refund address (optional)">
+        <Paragraph>
+          Buyers can optionally provide a shielded Zcash address for refunds at checkout.
+          If they do, you can refund them directly from your wallet. The address is set via:
+        </Paragraph>
+        <CodeBlock lang="bash" code={`curl -X PATCH https://api.cipherpay.app/api/invoices/{id}/refund-address \\
+  -H "Content-Type: application/json" \\
+  -d '{"refund_address": "u1..."}'`} />
+        <Paragraph>
+          This is write-once — it can&apos;t be changed after it&apos;s set. After you refund manually from
+          your wallet, mark the invoice as refunded:
+        </Paragraph>
+        <CodeBlock lang="bash" code={`curl -X POST https://api.cipherpay.app/api/invoices/{id}/refund \\
+  -H "Cookie: session=..." \\
+  -H "Content-Type: application/json" \\
+  -d '{"refund_txid": "abc123..."}'`} />
+      </Expandable>
+
+      <Expandable title="Pay with Zipher CLI">
+        <Paragraph>
+          The hosted checkout page includes a <Code>zipher pay</Code> command that buyers with
+          the Zipher CLI can copy and run. This is automatic — no setup needed on your side.
+          The command pre-fills the checkout URL:
+        </Paragraph>
+        <CodeBlock lang="bash" code={`zipher pay https://cipherpay.app/pay/{invoice_id}`} />
+        <Paragraph>
+          Zipher auto-detects the payment address, amount, and protocol. Useful for AI agents
+          and developers who prefer the terminal.
+        </Paragraph>
+      </Expandable>
+
       <Expandable title="Real-time updates (SSE)">
         <Paragraph>
           Instead of polling, subscribe to a Server-Sent Events stream for live status updates.
