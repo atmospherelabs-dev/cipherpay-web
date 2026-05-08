@@ -491,7 +491,17 @@
     "canceledNow": "تم إلغاء الاشتراك",
     "cancelError": "فشل إلغاء الاشتراك",
     "canceled": "ملغى",
-    "cancelsOn": "يُلغى في {date}"
+    "cancelsOn": "يُلغى في {date}",
+    "statusPaused": "متوقف مؤقتاً",
+    "pausingAtEnd": "سيتوقف",
+    "pause": "إيقاف مؤقت",
+    "resume": "استئناف",
+    "undoPause": "إلغاء الإيقاف",
+    "pauseScheduled": "سيتم إيقاف الاشتراك مؤقتاً في نهاية الفترة",
+    "resumed": "تم استئناف الاشتراك",
+    "pauseError": "فشل في إيقاف الاشتراك مؤقتاً",
+    "resumeError": "فشل في استئناف الاشتراك",
+    "pausesOn": "يتوقف مؤقتاً في {date}"
   },
   "passkeys": {
     "title": "مفاتيح المرور",

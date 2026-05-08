@@ -491,7 +491,17 @@
     "canceledNow": "Assinatura cancelada",
     "cancelError": "Falha ao cancelar assinatura",
     "canceled": "CANCELADAS",
-    "cancelsOn": "Cancela em {date}"
+    "cancelsOn": "Cancela em {date}",
+    "statusPaused": "PAUSADA",
+    "pausingAtEnd": "PAUSANDO",
+    "pause": "Pausar",
+    "resume": "Retomar",
+    "undoPause": "Desfazer pausa",
+    "pauseScheduled": "A assinatura será pausada no final do período",
+    "resumed": "Assinatura retomada",
+    "pauseError": "Falha ao pausar a assinatura",
+    "resumeError": "Falha ao retomar a assinatura",
+    "pausesOn": "Pausa em {date}"
   },
   "passkeys": {
     "title": "PASSKEYS",

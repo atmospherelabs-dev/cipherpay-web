@@ -57,6 +57,8 @@ export default function WebhooksSection() {
               { event: 'expired', when: 'Invoice expired without (full) payment', action: 'Cancel the order or create a new invoice.' },
               { event: 'invoice.created', when: 'Draft invoice generated for a subscription renewal (T-3 days before due date)', action: 'Email the customer the payment link.' },
               { event: 'subscription.renewed', when: 'Subscription period advanced after confirmed payment', action: 'Update the customer\'s access.' },
+              { event: 'subscription.paused', when: 'Subscription paused at the end of a billing period', action: 'Suspend access until resumed.' },
+              { event: 'subscription.resumed', when: 'Paused subscription resumed with a fresh billing period', action: 'Restore the customer\'s access.' },
               { event: 'subscription.past_due', when: 'Billing period ended without confirmed payment', action: 'Notify customer, suspend access if desired.' },
               { event: 'subscription.canceled', when: 'Subscription canceled (by API or end-of-period)', action: 'Revoke access, send cancellation confirmation.' },
             ].map(row => (
@@ -125,6 +127,24 @@ export default function WebhooksSection() {
   "new_period_start": "2026-03-15T00:00:00Z",
   "new_period_end": "2026-04-15T00:00:00Z",
   "timestamp": "2026-03-14T14:30:00Z"
+}
+
+// subscription.paused — subscription stopped at period end
+{
+  "event": "subscription.paused",
+  "subscription_id": "sub_a1b2c3d4-...",
+  "price_id": "cprice_abc123",
+  "timestamp": "2026-04-15T00:00:00Z"
+}
+
+// subscription.resumed — paused subscription reactivated
+{
+  "event": "subscription.resumed",
+  "subscription_id": "sub_a1b2c3d4-...",
+  "price_id": "cprice_abc123",
+  "new_period_start": "2026-04-20T10:00:00Z",
+  "new_period_end": "2026-05-20T10:00:00Z",
+  "timestamp": "2026-04-20T10:00:00Z"
 }
 
 // subscription.canceled — immediate or end-of-period

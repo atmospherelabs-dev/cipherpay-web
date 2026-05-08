@@ -159,6 +159,7 @@ export interface Subscription {
   current_period_start: string;
   current_period_end: string;
   cancel_at_period_end: number;
+  pause_at_period_end: number;
   canceled_at: string | null;
   created_at: string;
   current_invoice_id: string | null;
@@ -719,6 +720,16 @@ export const api = {
     request<Subscription>(`/api/subscriptions/${id}/cancel`, {
       method: 'POST',
       body: JSON.stringify({ at_period_end: atPeriodEnd || false }),
+    }),
+
+  pauseSubscription: (id: string) =>
+    request<Subscription>(`/api/subscriptions/${id}/pause`, {
+      method: 'POST',
+    }),
+
+  resumeSubscription: (id: string) =>
+    request<Subscription>(`/api/subscriptions/${id}/resume`, {
+      method: 'POST',
     }),
 
   // Public checkout (buyer-driven)

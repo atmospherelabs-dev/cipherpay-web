@@ -104,7 +104,10 @@ export default function ApiRefSection() {
       <EndpointTable endpoints={[
         { method: 'POST', path: '/api/subscriptions', auth: 'API Key', desc: 'Create a subscription from a recurring price_id' },
         { method: 'GET', path: '/api/subscriptions', auth: 'API Key', desc: 'List all subscriptions' },
-        { method: 'POST', path: '/api/subscriptions/{id}/cancel', auth: 'API Key', desc: 'Cancel a subscription (at end of current period)' },
+        { method: 'GET', path: '/api/subscriptions/{id}/status', auth: 'API Key', desc: 'Check subscription status and active state' },
+        { method: 'POST', path: '/api/subscriptions/{id}/cancel', auth: 'API Key', desc: 'Cancel a subscription (immediately or at period end)' },
+        { method: 'POST', path: '/api/subscriptions/{id}/pause', auth: 'API Key', desc: 'Pause a subscription at the end of the current period' },
+        { method: 'POST', path: '/api/subscriptions/{id}/resume', auth: 'API Key', desc: 'Resume a paused subscription or cancel a pending pause' },
       ]} />
 
       <div style={{ fontSize: 12, color: 'var(--cp-text)', fontWeight: 600, marginBottom: 8, marginTop: 16 }}>Merchant &amp; Account</div>

@@ -491,7 +491,17 @@
     "canceledNow": "Subscription canceled",
     "cancelError": "Failed to cancel subscription",
     "canceled": "CANCELED",
-    "cancelsOn": "Cancels on {date}"
+    "cancelsOn": "Cancels on {date}",
+    "statusPaused": "PAUSED",
+    "pausingAtEnd": "PAUSING",
+    "pause": "Pause",
+    "resume": "Resume",
+    "undoPause": "Undo pause",
+    "pauseScheduled": "Subscription will pause at period end",
+    "resumed": "Subscription resumed",
+    "pauseError": "Failed to pause subscription",
+    "resumeError": "Failed to resume subscription",
+    "pausesOn": "Pauses on {date}"
   },
   "passkeys": {
     "title": "PASSKEYS",

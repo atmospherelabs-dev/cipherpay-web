@@ -491,7 +491,17 @@
     "canceledNow": "Suscripción cancelada",
     "cancelError": "Error al cancelar suscripción",
     "canceled": "CANCELADAS",
-    "cancelsOn": "Se cancela el {date}"
+    "cancelsOn": "Se cancela el {date}",
+    "statusPaused": "PAUSADA",
+    "pausingAtEnd": "PAUSANDO",
+    "pause": "Pausar",
+    "resume": "Reanudar",
+    "undoPause": "Deshacer pausa",
+    "pauseScheduled": "La suscripción se pausará al final del período",
+    "resumed": "Suscripción reanudada",
+    "pauseError": "Error al pausar la suscripción",
+    "resumeError": "Error al reanudar la suscripción",
+    "pausesOn": "Se pausa el {date}"
   },
   "passkeys": {
     "title": "PASSKEYS",

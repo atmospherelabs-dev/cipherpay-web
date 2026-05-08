@@ -21,6 +21,8 @@ export const SubscriptionsTab = memo(function SubscriptionsTab({
   const [loading, setLoading] = useState(true);
   const [cancelingId, setCancelingId] = useState<string | null>(null);
   const [confirmCancel, setConfirmCancel] = useState<{ id: string; atPeriodEnd: boolean } | null>(null);
+  const [pausingId, setPausingId] = useState<string | null>(null);
+  const [resumingId, setResumingId] = useState<string | null>(null);
 
   const loadSubs = useCallback(async () => {
     try {
@@ -62,12 +64,46 @@ export const SubscriptionsTab = memo(function SubscriptionsTab({
     }
   };
 
-  const statusBadge = (status: string, cancelAtEnd: number) => {
+  const handlePause = async (id: string) => {
+    setPausingId(id);
+    try {
+      await api.pauseSubscription(id);
+      showToast(t('pauseScheduled'));
+      await loadSubs();
+    } catch {
+      showToast(t('pauseError'), true);
+    } finally {
+      setPausingId(null);
+    }
+  };
+
+  const handleResume = async (id: string) => {
+    setResumingId(id);
+    try {
+      await api.resumeSubscription(id);
+      showToast(t('resumed'));
+      await loadSubs();
+    } catch {
+      showToast(t('resumeError'), true);
+    } finally {
+      setResumingId(null);
+    }
+  };
+
+  const statusBadge = (status: string, cancelAtEnd: number, pauseAtEnd: number = 0) => {
     let color = 'var(--cp-text-muted)';
     let bg = 'rgba(255,255,255,0.05)';
     let label = status.toUpperCase();
 
-    if (status === 'active' && cancelAtEnd) {
+    if (status === 'paused') {
+      color = 'var(--cp-yellow, #E8C48D)';
+      bg = 'rgba(232,196,141,0.1)';
+      label = t('statusPaused');
+    } else if (status === 'active' && pauseAtEnd) {
+      color = 'var(--cp-yellow, #E8C48D)';
+      bg = 'rgba(232,196,141,0.1)';
+      label = t('pausingAtEnd');
+    } else if (status === 'active' && cancelAtEnd) {
       color = 'var(--cp-yellow, #E8C48D)';
       bg = 'rgba(232,196,141,0.1)';
       label = t('cancelingAtEnd');
@@ -145,7 +181,7 @@ export const SubscriptionsTab = memo(function SubscriptionsTab({
                     <span style={{ fontWeight: 600, fontSize: 13 }}>
                       {sub.label || price?.productName || t('subscription')}
                     </span>
-                    {statusBadge(sub.status, sub.cancel_at_period_end)}
+                    {statusBadge(sub.status, sub.cancel_at_period_end, sub.pause_at_period_end)}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <span style={{ fontSize: 11, color: 'var(--cp-text-muted)', fontFamily: 'var(--font-geist-mono)' }}>
@@ -171,7 +207,44 @@ export const SubscriptionsTab = memo(function SubscriptionsTab({
                 </div>
 
                 {/* Actions */}
-                {sub.status !== 'canceled' && !sub.cancel_at_period_end && (
+                {sub.status === 'paused' && (
+                  <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
+                    <button
+                      className="btn"
+                      onClick={() => handleResume(sub.id)}
+                      disabled={resumingId === sub.id}
+                      style={{ fontSize: 10, padding: '4px 10px', color: 'var(--cp-cyan, #56D4C8)', borderColor: 'rgba(86,212,200,0.3)' }}
+                    >
+                      {resumingId === sub.id ? <Spinner size={10} /> : t('resume')}
+                    </button>
+                    <button
+                      className="btn"
+                      onClick={() => handleCancel(sub.id, false)}
+                      disabled={cancelingId === sub.id}
+                      style={{ fontSize: 10, padding: '4px 10px', color: 'var(--cp-text-muted)' }}
+                    >
+                      {cancelingId === sub.id ? <Spinner size={10} /> : t('cancel')}
+                    </button>
+                  </div>
+                )}
+
+                {sub.status === 'active' && sub.pause_at_period_end === 1 && (
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 2 }}>
+                    <div style={{ fontSize: 10, color: 'var(--cp-yellow, #E8C48D)', opacity: 0.8 }}>
+                      {t('pausesOn', { date: formatDate(sub.current_period_end) })}
+                    </div>
+                    <button
+                      className="btn"
+                      onClick={() => handleResume(sub.id)}
+                      disabled={resumingId === sub.id}
+                      style={{ fontSize: 10, padding: '4px 10px', color: 'var(--cp-cyan, #56D4C8)', borderColor: 'rgba(86,212,200,0.3)' }}
+                    >
+                      {resumingId === sub.id ? <Spinner size={10} /> : t('undoPause')}
+                    </button>
+                  </div>
+                )}
+
+                {sub.status === 'active' && !sub.cancel_at_period_end && !sub.pause_at_period_end && (
                   <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
                     {confirmCancel?.id === sub.id ? (
                       <>
@@ -200,13 +273,23 @@ export const SubscriptionsTab = memo(function SubscriptionsTab({
                         </button>
                       </>
                     ) : (
-                      <button
-                        className="btn"
-                        onClick={() => setConfirmCancel({ id: sub.id, atPeriodEnd: true })}
-                        style={{ fontSize: 10, padding: '4px 10px', color: 'var(--cp-text-muted)' }}
-                      >
-                        {t('cancel')}
-                      </button>
+                      <>
+                        <button
+                          className="btn"
+                          onClick={() => handlePause(sub.id)}
+                          disabled={pausingId === sub.id}
+                          style={{ fontSize: 10, padding: '4px 10px', color: 'var(--cp-text-muted)' }}
+                        >
+                          {pausingId === sub.id ? <Spinner size={10} /> : t('pause')}
+                        </button>
+                        <button
+                          className="btn"
+                          onClick={() => setConfirmCancel({ id: sub.id, atPeriodEnd: true })}
+                          style={{ fontSize: 10, padding: '4px 10px', color: 'var(--cp-text-muted)' }}
+                        >
+                          {t('cancel')}
+                        </button>
+                      </>
                     )}
                   </div>
                 )}

@@ -123,6 +123,35 @@ curl -X POST https://api.cipherpay.app/api/subscriptions/{id}/cancel \\
 
       <SectionDivider />
 
+      <SectionTitle>Pausing and resuming</SectionTitle>
+      <Paragraph>
+        Temporarily pause a subscription without canceling it. The current billing period completes normally,
+        then the subscription enters a <Code>paused</Code> state. No further invoices are generated until resumed.
+      </Paragraph>
+      <CodeBlock lang="bash" code={`# Pause at period end
+curl -X POST https://api.cipherpay.app/api/subscriptions/{id}/pause \\
+  -H "Authorization: Bearer cpay_sk_YOUR_KEY"
+
+# Resume (starts a fresh billing period)
+curl -X POST https://api.cipherpay.app/api/subscriptions/{id}/resume \\
+  -H "Authorization: Bearer cpay_sk_YOUR_KEY"`} />
+      <Paragraph>
+        <Strong>Pause</Strong> schedules the subscription to stop at the end of the current period.
+        The <Code>subscription.paused</Code> webhook fires when the period actually ends and the subscription
+        transitions to <Code>paused</Code>. If a renewal invoice was already created, it is automatically voided.
+      </Paragraph>
+      <Paragraph>
+        <Strong>Resume</Strong> from <Code>paused</Code> starts a fresh billing period from now and
+        fires <Code>subscription.resumed</Code>. If the subscription hasn&apos;t paused yet (still active with
+        a pending pause), resuming simply cancels the scheduled pause — no webhook is fired.
+      </Paragraph>
+      <Callout type="info">
+        Pause and cancel are mutually exclusive. You cannot pause a subscription that is already scheduled
+        for cancellation. You can cancel a paused subscription directly.
+      </Callout>
+
+      <SectionDivider />
+
       <SectionTitle>Checking subscription status</SectionTitle>
       <Paragraph>
         Verify a subscription&apos;s current status programmatically. The response includes
@@ -138,7 +167,8 @@ curl -X POST https://api.cipherpay.app/api/subscriptions/{id}/cancel \\
   "active": true,
   "status": "active",
   "current_period_end": "2026-05-13T00:00:00Z",
-  "cancel_at_period_end": false
+  "cancel_at_period_end": false,
+  "pause_at_period_end": false
 }`} />
       <Paragraph>
         Use this to gate access in your application. The <Code>active</Code> field is <Code>true</Code> only when the
@@ -153,10 +183,11 @@ curl -X POST https://api.cipherpay.app/api/subscriptions/{id}/cancel \\
         From here you can:
       </Paragraph>
       <div style={{ fontSize: 11, color: 'var(--cp-text-dim)', lineHeight: 2.2, marginBottom: 16 }}>
-        1. View all active and past-due subscriptions with status badges<br />
+        1. View all active, paused, and past-due subscriptions with status badges<br />
         2. See pricing, billing period, and creation date for each subscription<br />
-        3. Cancel subscriptions immediately or at the end of the current period<br />
-        4. View canceled subscriptions separately for reference
+        3. Pause subscriptions at the end of the current period, or resume paused ones<br />
+        4. Cancel subscriptions immediately or at the end of the current period<br />
+        5. View canceled subscriptions separately for reference
       </div>
       <Callout type="info">
         Subscriptions are currently created via the API. The dashboard is for monitoring and management.
@@ -219,7 +250,8 @@ curl -X POST https://api.cipherpay.app/api/subscriptions/{id}/cancel \\
           </thead>
           <tbody>
             {[
-              { status: 'active', meaning: 'Subscription is current. The customer has paid for this period.', transitions: 'past_due, canceled' },
+              { status: 'active', meaning: 'Subscription is current. The customer has paid for this period.', transitions: 'paused, past_due, canceled' },
+              { status: 'paused', meaning: 'Subscription is temporarily paused. No invoices are generated until resumed.', transitions: 'active (on resume), canceled' },
               { status: 'past_due', meaning: 'Billing period ended without confirmed payment. Service may be suspended.', transitions: 'active (if paid), canceled' },
               { status: 'canceled', meaning: 'Subscription has been permanently canceled. No further invoices will be generated.', transitions: '—' },
             ].map(row => (
@@ -243,6 +275,8 @@ curl -X POST https://api.cipherpay.app/api/subscriptions/{id}/cancel \\
       <div style={{ fontSize: 11, color: 'var(--cp-text-dim)', lineHeight: 2.2, marginBottom: 16 }}>
         <Code>invoice.created</Code> — Draft invoice generated T-3 days before due date. Use the <Code>hosted_invoice_url</Code> to notify the customer.<br />
         <Code>subscription.renewed</Code> — Payment confirmed, period advanced. Update the customer&apos;s access.<br />
+        <Code>subscription.paused</Code> — Subscription paused at period end. No further invoices until resumed.<br />
+        <Code>subscription.resumed</Code> — Subscription resumed with a fresh billing period. Restore access.<br />
         <Code>subscription.past_due</Code> — Period ended without payment. Consider suspending access.<br />
         <Code>subscription.canceled</Code> — Subscription permanently canceled. Revoke access.
       </div>
@@ -262,7 +296,8 @@ curl -X POST https://api.cipherpay.app/api/subscriptions/{id}/cancel \\
         3. Create a subscription via <Code>POST /api/subscriptions</Code> with the price ID<br />
         4. Handle the <Code>invoice.created</Code> webhook — send the <Code>hosted_invoice_url</Code> to your customer<br />
         5. Handle <Code>subscription.renewed</Code> to confirm access<br />
-        6. Handle <Code>subscription.past_due</Code> and <Code>subscription.canceled</Code> to suspend or revoke access<br />
+        6. Handle <Code>subscription.paused</Code> and <Code>subscription.resumed</Code> to suspend and restore access<br />
+        7. Handle <Code>subscription.past_due</Code> and <Code>subscription.canceled</Code> to suspend or revoke access<br />
         7. Use <Code>GET /api/subscriptions/&#123;id&#125;/status</Code> for real-time access gating
       </div>
     </>
