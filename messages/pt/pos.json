@@ -22,6 +22,12 @@
     "favorite": "Adicionar aos favoritos",
     "unfavorite": "Remover dos favoritos"
   },
+  "handoff": {
+    "title": "Entregue o dispositivo ao cliente",
+    "subtitle": "O cliente escolherá a gorjeta",
+    "ready": "PRONTO",
+    "cancel": "Cancelar"
+  },
   "tip": {
     "addTip": "Adicionar gorjeta?",
     "subtotal": "Subtotal",
@@ -29,7 +35,8 @@
     "noTip": "Sem gorjeta",
     "total": "Total",
     "continue": "CONTINUAR",
-    "creating": "CRIANDO..."
+    "creating": "CRIANDO...",
+    "cancel": "Cancelar"
   },
   "keypad": {
     "title": "Valor personalizado",

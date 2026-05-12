@@ -8,12 +8,12 @@ interface TipScreenProps {
   subtotal: number;
   currency: string;
   onDone: (tipAmount: number) => void;
-  onBack: () => void;
+  onCancel: () => void;
 }
 
 const TIP_PRESETS = [10, 15, 20];
 
-export function TipScreen({ subtotal, currency, onDone, onBack }: TipScreenProps) {
+export function TipScreen({ subtotal, currency, onDone, onCancel }: TipScreenProps) {
   const t = useTranslations('pos.tip');
   const [selected, setSelected] = useState<number | 'custom' | 'none' | null>(null);
   const [customValue, setCustomValue] = useState('');
@@ -38,11 +38,6 @@ export function TipScreen({ subtotal, currency, onDone, onBack }: TipScreenProps
     <div className="pos-tip-screen">
       <div className="pos-tip-container">
         <div className="pos-tip-header">
-          <button className="pos-back-btn" onClick={onBack}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-          </button>
           <span className="pos-tip-title">{t('addTip')}</span>
         </div>
 
@@ -106,6 +101,10 @@ export function TipScreen({ subtotal, currency, onDone, onBack }: TipScreenProps
           onClick={handleContinue}
         >
           {submitting ? t('creating') : t('continue')}
+        </button>
+
+        <button className="pos-tip-cancel" onClick={onCancel}>
+          {t('cancel')}
         </button>
       </div>
     </div>

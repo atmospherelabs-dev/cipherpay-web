@@ -22,6 +22,12 @@
     "favorite": "Add to favorites",
     "unfavorite": "Remove from favorites"
   },
+  "handoff": {
+    "title": "Hand device to customer",
+    "subtitle": "Customer will choose their tip",
+    "ready": "READY",
+    "cancel": "Cancel"
+  },
   "tip": {
     "addTip": "Add a tip?",
     "subtotal": "Subtotal",
@@ -29,7 +35,8 @@
     "noTip": "No Tip",
     "total": "Total",
     "continue": "CONTINUE",
-    "creating": "CREATING..."
+    "creating": "CREATING...",
+    "cancel": "Cancel"
   },
   "keypad": {
     "title": "Custom Amount",

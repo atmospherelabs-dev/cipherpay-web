@@ -4,6 +4,7 @@ import { memo, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import type { Product, Price } from '@/lib/api';
 import { currencySymbol } from '@/lib/currency';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import type { CartItem } from './page';
 
 interface CatalogProps {
@@ -124,13 +125,18 @@ export const Catalog = memo(function Catalog({
           <img src="/logo-mark.png" alt="" className="pos-header-logo" />
           <span className="pos-header-name">{merchantName || 'CipherPay POS'}</span>
         </div>
-        <button className="pos-lock-btn" onClick={onLock}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-          </svg>
-          <span>{t('lock')}</span>
-        </button>
+        <div className="pos-header-actions">
+          <div className="pos-lang-switcher">
+            <LanguageSwitcher />
+          </div>
+          <button className="pos-lock-btn" onClick={onLock}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            <span>{t('lock')}</span>
+          </button>
+        </div>
       </div>
 
       <div className="pos-main">

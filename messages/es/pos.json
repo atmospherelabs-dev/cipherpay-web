@@ -22,6 +22,12 @@
     "favorite": "Agregar a favoritos",
     "unfavorite": "Quitar de favoritos"
   },
+  "handoff": {
+    "title": "Entregue el dispositivo al cliente",
+    "subtitle": "El cliente elegirá su propina",
+    "ready": "LISTO",
+    "cancel": "Cancelar"
+  },
   "tip": {
     "addTip": "¿Agregar propina?",
     "subtotal": "Subtotal",
@@ -29,7 +35,8 @@
     "noTip": "Sin propina",
     "total": "Total",
     "continue": "CONTINUAR",
-    "creating": "CREANDO..."
+    "creating": "CREANDO...",
+    "cancel": "Cancelar"
   },
   "keypad": {
     "title": "Monto personalizado",

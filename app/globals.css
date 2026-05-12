@@ -1644,6 +1644,28 @@ body {
 
 .pos-lock-btn:hover { border-color: #94a3b8; color: #334155; }
 
+.pos-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pos-lang-switcher button {
+  border-color: #e2e8f0;
+  background: transparent;
+  color: #64748b;
+}
+
+.pos-lang-switcher button:hover {
+  border-color: #94a3b8;
+}
+
+.pos-lang-switcher [style*="position: absolute"] {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08) !important;
+}
+
 /* ── Catalog Screen (split layout) ── */
 
 .pos-catalog-screen {
@@ -1994,13 +2016,14 @@ body {
 .pos-tip-header {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
 }
 
 .pos-tip-title {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   color: #0f172a;
+  text-align: center;
 }
 
 .pos-tip-subtotal {
@@ -2076,6 +2099,82 @@ body {
 }
 
 .pos-tip-total-amount { font-size: 20px; font-weight: 700; }
+
+.pos-tip-cancel {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 8px;
+  align-self: center;
+}
+
+/* ── Handoff Screen ── */
+
+.pos-handoff-screen {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+}
+
+.pos-handoff-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 32px 24px;
+  text-align: center;
+  animation: pos-handoff-fade-in 0.3s ease;
+}
+
+@keyframes pos-handoff-fade-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.pos-handoff-icon {
+  color: #06b2d4;
+  animation: pos-handoff-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pos-handoff-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); }
+}
+
+.pos-handoff-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.pos-handoff-subtitle {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+.pos-handoff-countdown {
+  font-size: 48px;
+  font-weight: 800;
+  color: #06b2d4;
+  font-variant-numeric: tabular-nums;
+}
+
+.pos-handoff-cancel {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 8px;
+  margin-top: 8px;
+}
 
 /* ── Custom Keypad ── */
 

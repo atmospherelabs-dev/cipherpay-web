@@ -7,12 +7,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { API_URL } from '@/lib/config';
 import { PinLock } from './PinLock';
 import { Catalog } from './Catalog';
+import { HandoffScreen } from './HandoffScreen';
 import { TipScreen } from './TipScreen';
 import { CustomKeypad } from './CustomKeypad';
 import { QRCheckout } from './QRCheckout';
 import { ReceiptScreen } from './ReceiptScreen';
 
-export type POSScreen = 'pin' | 'catalog' | 'keypad' | 'tip' | 'qr' | 'receipt';
+export type POSScreen = 'pin' | 'catalog' | 'keypad' | 'handoff' | 'tip' | 'qr' | 'receipt';
 
 export interface CartItem {
   productId: string;
@@ -71,7 +72,7 @@ export default function POSPage() {
   const handleCheckout = () => {
     if (cart.length === 0) return;
     setTipAmount(0);
-    setScreen('tip');
+    setScreen('handoff');
   };
 
   const handleTipDone = async (tip: number) => {
@@ -95,7 +96,7 @@ export default function POSPage() {
   const handleCustomAmount = async (amount: number, currency: string, note: string) => {
     setTipAmount(0);
     setCart([{ productId: '__custom', name: note || t('customSale'), price: amount, currency, qty: 1 }]);
-    setScreen('tip');
+    setScreen('handoff');
   };
 
   const startSSE = useCallback((invoiceId: string) => {
@@ -167,12 +168,15 @@ export default function POSPage() {
           onBack={() => setScreen('catalog')}
         />
       )}
+      {screen === 'handoff' && (
+        <HandoffScreen onReady={() => setScreen('tip')} onCancel={() => setScreen('catalog')} />
+      )}
       {screen === 'tip' && (
         <TipScreen
           subtotal={cartTotal}
           currency={cartCurrency}
           onDone={handleTipDone}
-          onBack={() => setScreen('catalog')}
+          onCancel={() => { setScreen('catalog'); }}
         />
       )}
       {screen === 'qr' && invoiceData && (
