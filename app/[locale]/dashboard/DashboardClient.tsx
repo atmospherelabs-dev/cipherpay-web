@@ -248,6 +248,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
               <POSTab
                 products={products}
                 loadingProducts={loadingProducts}
+                onGoToSettings={() => setTab('settings')}
               />
             )}
             {tab === 'subscriptions' && (

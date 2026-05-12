@@ -7,9 +7,10 @@ import { api } from '@/lib/api';
 interface POSTabProps {
   products: { id: string; active?: number }[];
   loadingProducts: boolean;
+  onGoToSettings?: () => void;
 }
 
-export const POSTab = memo(function POSTab({ products }: POSTabProps) {
+export const POSTab = memo(function POSTab({ products, onGoToSettings }: POSTabProps) {
   const t = useTranslations('dashboard.pos');
   const [hasPin, setHasPin] = useState<boolean | null>(null);
 
@@ -57,12 +58,9 @@ export const POSTab = memo(function POSTab({ products }: POSTabProps) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ width: 8, height: 8, borderRadius: '50%', background: hasPin ? 'var(--cp-green)' : 'var(--cp-yellow)' }} />
             {hasPin ? t('pinSet') : t('pinNotSet')}
-            {!hasPin && (
+            {!hasPin && onGoToSettings && (
               <span
-                onClick={() => {
-                  const el = document.getElementById('pos-pin-settings');
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
-                }}
+                onClick={onGoToSettings}
                 style={{ color: 'var(--cp-cyan)', cursor: 'pointer', textDecoration: 'underline' }}
               >
                 {t('setupPin')}
