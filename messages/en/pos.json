@@ -1,0 +1,75 @@
+{
+  "customSale": "Custom sale",
+  "pin": {
+    "enterPin": "Enter POS PIN",
+    "wrong": "Wrong PIN. Try again.",
+    "locked": "Too many attempts. Locked for 30 seconds.",
+    "notConfigured": "POS PIN not set. Log in via dashboard.",
+    "networkError": "Connection error. Try again."
+  },
+  "catalog": {
+    "lock": "LOCK",
+    "all": "All",
+    "favorites": "Favorites",
+    "noProducts": "No products. Add products in the dashboard.",
+    "currentSale": "CURRENT SALE",
+    "emptyCart": "Tap a product to add it",
+    "addItems": "ADD ITEMS TO CHARGE",
+    "charge": "CHARGE {amount}",
+    "customAmount": "Custom Amount",
+    "clearCart": "Clear cart",
+    "favorite": "Add to favorites",
+    "unfavorite": "Remove from favorites"
+  },
+  "tip": {
+    "addTip": "Add a tip?",
+    "subtotal": "Subtotal",
+    "custom": "Custom",
+    "noTip": "No Tip",
+    "total": "Total",
+    "continue": "CONTINUE",
+    "creating": "CREATING..."
+  },
+  "keypad": {
+    "title": "Custom Amount",
+    "notePlaceholder": "Note (optional)",
+    "charge": "CHARGE {amount}"
+  },
+  "qr": {
+    "waitingPayment": "WAITING FOR PAYMENT",
+    "detected": "PAYMENT DETECTED",
+    "confirmed": "CONFIRMED",
+    "expired": "EXPIRED",
+    "includesTip": "Includes {amount} tip",
+    "cancel": "CANCEL"
+  },
+  "receipt": {
+    "paymentReceived": "PAYMENT RECEIVED",
+    "subtotal": "Subtotal",
+    "tip": "Tip",
+    "total": "Total",
+    "invoice": "Invoice",
+    "print": "Print",
+    "newSale": "NEW SALE",
+    "autoReturn": "Next sale in {seconds}s"
+  },
+  "settings": {
+    "title": "POS PIN",
+    "description": "Set a 4-digit PIN for employee access to the POS register. Employees can ring up sales but cannot access dashboard settings, API keys, or billing.",
+    "currentPin": "PIN is set",
+    "noPin": "No PIN configured",
+    "setPin": "SET PIN",
+    "changePin": "CHANGE PIN",
+    "removePin": "REMOVE",
+    "newPinLabel": "New 4-digit PIN",
+    "confirmLabel": "Confirm PIN",
+    "mismatch": "PINs do not match",
+    "tooShort": "PIN must be 4 digits",
+    "save": "SAVE",
+    "saving": "SAVING...",
+    "saved": "POS PIN saved",
+    "removed": "POS PIN removed",
+    "failed": "Failed to save PIN",
+    "openPos": "OPEN POS"
+  }
+}

@@ -20,6 +20,7 @@ export const metadata: Metadata = {
   title: 'CipherPay — Private Payments for the Internet',
   description:
     'Accept Zcash in minutes. Non-custodial. Zero buyer data. No middleman.',
+  manifest: '/manifest.json',
   icons: {
     icon: [
       { url: '/favicon-32.png', sizes: '32x32', type: 'image/png' },

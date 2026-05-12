@@ -1,223 +1,95 @@
 'use client';
 
-import { memo, useState } from 'react';
+import { memo, useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { useRouter } from '@/i18n/navigation';
-import { api, type Product } from '@/lib/api';
-import { useToast } from '@/contexts/ToastContext';
-import { Spinner } from '@/components/Spinner';
-import { currencySymbol } from '@/lib/currency';
+import { api } from '@/lib/api';
 
 interface POSTabProps {
-  products: Product[];
+  products: { id: string; active?: number }[];
   loadingProducts: boolean;
 }
 
-function getDefaultPrice(product: Product) {
-  const activePrices = (product.prices || []).filter(p => p.active === 1);
-  if (product.default_price_id) {
-    const dp = activePrices.find(p => p.id === product.default_price_id);
-    if (dp) return dp;
-  }
-  return activePrices[0] || null;
-}
-
-export const POSTab = memo(function POSTab({ products, loadingProducts }: POSTabProps) {
-  const { showToast } = useToast();
-  const router = useRouter();
+export const POSTab = memo(function POSTab({ products }: POSTabProps) {
   const t = useTranslations('dashboard.pos');
-  const tc = useTranslations('common');
+  const [hasPin, setHasPin] = useState<boolean | null>(null);
 
-  const [cart, setCart] = useState<Record<string, number>>({});
-  const [checkingOut, setCheckingOut] = useState(false);
+  useEffect(() => {
+    api.hasPosPin()
+      .then(r => setHasPin(r.has_pin))
+      .catch(() => setHasPin(null));
+  }, []);
 
-  const cartAdd = (productId: string) => {
-    setCart(prev => ({ ...prev, [productId]: (prev[productId] || 0) + 1 }));
-  };
-  const cartRemove = (productId: string) => {
-    setCart(prev => {
-      const qty = (prev[productId] || 0) - 1;
-      if (qty <= 0) { const { [productId]: _, ...rest } = prev; return rest; }
-      return { ...prev, [productId]: qty };
-    });
-  };
-
-  const cartTotal = Object.entries(cart).reduce((sum, [pid, qty]) => {
-    const product = products.find(p => p.id === pid);
-    const dp = product ? getDefaultPrice(product) : null;
-    return sum + (dp ? dp.unit_amount * qty : 0);
-  }, 0);
-  const cartItemCount = Object.values(cart).reduce((a, b) => a + b, 0);
-  const cartCurrencies = [...new Set(Object.keys(cart).map(pid => {
-    const p = products.find(pr => pr.id === pid);
-    const dp = p ? getDefaultPrice(p) : null;
-    return dp?.currency || 'EUR';
-  }))];
-  const cartCurrency = cartCurrencies.length === 1 ? cartCurrencies[0] : 'EUR';
-  const cartMixedCurrency = cartCurrencies.length > 1;
-  const cartSymbol = currencySymbol(cartCurrency);
-  const cartSummary = Object.entries(cart)
-    .map(([pid, qty]) => {
-      const product = products.find(p => p.id === pid);
-      return product ? `${qty}x ${product.name}` : '';
-    })
-    .filter(Boolean)
-    .join(', ');
-
-  const posCartCheckout = async () => {
-    if (cartTotal <= 0 || cartMixedCurrency) return;
-    setCheckingOut(true);
-    try {
-      const resp = await api.createInvoice({
-        product_name: cartSummary,
-        amount: Math.round(cartTotal * 100) / 100,
-        currency: cartCurrency,
-      });
-      setCart({});
-      router.push(`/pay/${resp.invoice_id}`);
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : t('toastCheckoutFailed'), true);
-    }
-    setCheckingOut(false);
-  };
-
-  const activeProducts = products.filter(p =>
-    p.active === 1 &&
-    !(p.prices || []).every(pr => pr.price_type === 'recurring')
-  );
+  const productCount = products.filter(p => p.active === 1).length;
 
   return (
     <div className="panel">
       <div className="panel-header">
         <span className="panel-title">{t('title')}</span>
-        {cartItemCount > 0 && (
-          <button onClick={() => setCart({})} className="btn btn-small btn-cancel">{t('clear')}</button>
-        )}
-      </div>
-      <div className="panel-subtitle">
-        {t('subtitle')}
       </div>
 
-      {loadingProducts ? (
-        <div className="empty-state">
-          <Spinner />
+      <div style={{ padding: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, textAlign: 'center' }}>
+        {/* POS icon */}
+        <div style={{ width: 64, height: 64, borderRadius: 16, background: 'rgba(0,212,255,0.08)', border: '1px solid rgba(0,212,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--cp-cyan)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+            <line x1="8" y1="21" x2="16" y2="21" />
+            <line x1="12" y1="17" x2="12" y2="21" />
+          </svg>
         </div>
-      ) : activeProducts.length === 0 ? (
-        <div className="empty-state">
-          <div className="icon">&#9744;</div>
-          <div>{t('addProductsFirst')}</div>
-        </div>
-      ) : (
-        <>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 8, padding: 16 }}>
-            {activeProducts.map((product) => {
-              const qty = cart[product.id] || 0;
-              const dp = getDefaultPrice(product);
-              return (
-                <div
-                  key={product.id}
-                  className="pos-card"
-                  style={{
-                    border: `1px solid ${qty > 0 ? 'var(--cp-cyan)' : 'var(--cp-border)'}`,
-                    borderRadius: 4,
-                    padding: 12,
-                    background: qty > 0 ? 'rgba(6, 182, 212, 0.05)' : 'transparent',
-                    transition: 'all 0.15s',
-                    cursor: qty === 0 ? 'pointer' : 'default',
-                  }}
-                  onClick={() => { if (qty === 0) cartAdd(product.id); }}
-                >
-                  <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, color: 'var(--cp-text)' }}>
-                    {product.name}
-                  </div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--cp-text)', marginBottom: 8 }}>
-                    {dp ? (
-                      <>
-                        {currencySymbol(dp.currency)}{dp.unit_amount.toFixed(2)}
-                        <span style={{ fontSize: 9, fontWeight: 400, color: 'var(--cp-text-dim)', marginInlineStart: 4 }}>{dp.currency}</span>
-                      </>
-                    ) : '—'}
-                  </div>
-                  {qty > 0 ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} onClick={(e) => e.stopPropagation()}>
-                      <button
-                        onClick={() => cartRemove(product.id)}
-                        style={{
-                          width: 36, height: 36, border: '1px solid var(--cp-border)',
-                          borderRadius: 4, background: 'transparent', color: 'var(--cp-text)',
-                          fontSize: 18, cursor: 'pointer', fontFamily: 'inherit',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        }}
-                      >
-                        −
-                      </button>
-                      <span style={{ fontSize: 14, fontWeight: 700, minWidth: 24, textAlign: 'center', color: 'var(--cp-cyan)' }}>
-                        {qty}
-                      </span>
-                      <button
-                        onClick={() => cartAdd(product.id)}
-                        style={{
-                          width: 36, height: 36, border: '1px solid var(--cp-cyan)',
-                          borderRadius: 4, background: 'transparent', color: 'var(--cp-cyan)',
-                          fontSize: 18, cursor: 'pointer', fontFamily: 'inherit',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        }}
-                      >
-                        +
-                      </button>
-                    </div>
-                  ) : (
-                    <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', letterSpacing: 0.5 }}>
-                      {t('tapToAdd')}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
 
-          {/* Cart summary + checkout */}
-          <div style={{ padding: '16px', borderTop: '1px solid var(--cp-border)' }}>
-            {cartItemCount > 0 && (
-              <div style={{ marginBottom: 12 }}>
-                <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', letterSpacing: 1, marginBottom: 6 }}>{t('orderSummary')}</div>
-                {Object.entries(cart).map(([pid, qty]) => {
-                  const product = products.find(p => p.id === pid);
-                  if (!product) return null;
-                  const dp = getDefaultPrice(product);
-                  const price = dp ? dp.unit_amount : 0;
-                  return (
-                    <div key={pid} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '3px 0', color: 'var(--cp-text-muted)' }}>
-                      <span>{qty}x {product.name}</span>
-                      <span>{dp ? currencySymbol(dp.currency) : ''}{(price * qty).toFixed(2)}</span>
-                    </div>
-                  );
-                })}
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, fontWeight: 700, marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--cp-border)' }}>
-                  <span>{tc('total')}</span>
-                  <span>{cartSymbol}{cartTotal.toFixed(2)}</span>
-                </div>
-                {cartMixedCurrency && (
-                  <div style={{ fontSize: 10, color: 'var(--cp-yellow)', marginTop: 6 }}>
-                    {t('mixedCurrency')}
-                  </div>
-                )}
-              </div>
-            )}
-            <button
-              onClick={posCartCheckout}
-              disabled={cartItemCount === 0 || checkingOut || cartMixedCurrency}
-              className="btn-primary"
-              style={{
-                width: '100%', padding: '14px 0', fontSize: 13, letterSpacing: 2,
-                opacity: cartItemCount === 0 || checkingOut || cartMixedCurrency ? 0.4 : 1,
-              }}
-            >
-              {checkingOut ? t('creatingInvoice') : cartItemCount === 0 ? t('addItemsToCheckout') : t('checkout', { symbol: cartSymbol, total: cartTotal.toFixed(2) })}
-            </button>
+        <div>
+          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--cp-text)', marginBottom: 6 }}>
+            {t('launcherTitle')}
           </div>
-        </>
-      )}
+          <div style={{ fontSize: 11, color: 'var(--cp-text-dim)', lineHeight: 1.6, maxWidth: 400 }}>
+            {t('launcherDesc')}
+          </div>
+        </div>
+
+        {/* Status indicators */}
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--cp-text-muted)' }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: productCount > 0 ? 'var(--cp-green)' : 'var(--cp-yellow)' }} />
+            {t('productCount', { count: productCount })}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--cp-text-muted)' }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: hasPin ? 'var(--cp-green)' : 'var(--cp-text-dim)' }} />
+            {hasPin ? t('pinSet') : t('pinNotSet')}
+          </div>
+        </div>
+
+        {/* Open POS button */}
+        <a
+          href="/pos"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn-primary"
+          style={{
+            padding: '14px 40px',
+            fontSize: 13,
+            letterSpacing: 2,
+            textDecoration: 'none',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+          }}
+        >
+          {t('openPos')}
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+            <polyline points="15 3 21 3 21 9" />
+            <line x1="10" y1="14" x2="21" y2="3" />
+          </svg>
+        </a>
+
+        {/* Quick links */}
+        <div style={{ display: 'flex', gap: 12, fontSize: 10, color: 'var(--cp-text-dim)' }}>
+          <span style={{ cursor: 'default' }}>{t('features')}</span>
+        </div>
+        <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', lineHeight: 2, maxWidth: 320 }}>
+          {t('featureList')}
+        </div>
+      </div>
     </div>
   );
 });

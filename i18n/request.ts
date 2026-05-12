@@ -20,6 +20,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
     recoverConfirm,
     languageSwitcher,
     donate,
+    pos,
   ] = await Promise.all([
     import(`../messages/${locale}/common.json`),
     import(`../messages/${locale}/nav.json`),
@@ -32,6 +33,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
     import(`../messages/${locale}/recoverConfirm.json`),
     import(`../messages/${locale}/languageSwitcher.json`),
     import(`../messages/${locale}/donate.json`),
+    import(`../messages/${locale}/pos.json`),
   ]);
 
   return {
@@ -48,6 +50,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
       recoverConfirm: recoverConfirm.default,
       languageSwitcher: languageSwitcher.default,
       donate: donate.default,
+      pos: pos.default,
     },
   };
 });

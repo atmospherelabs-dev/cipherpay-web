@@ -1,69 +1,122 @@
 'use client';
 
-import { Step, Callout, SectionDivider, Paragraph, SectionTitle, Strong } from '../components/DocComponents';
+import { Step, Callout, SectionDivider, Paragraph, SectionTitle, Strong, CodeBlock } from '../components/DocComponents';
 
 export default function POSSection() {
   return (
     <>
       <Paragraph>
         Accept Zcash at a physical store, market stall, conference, or pop-up event.
-        You don&apos;t need special hardware — a phone, tablet, or laptop with a browser is all it takes.
-        Your CipherPay dashboard doubles as a point-of-sale terminal.
+        No special hardware needed — a phone, tablet, or laptop with a browser is all it takes.
+        CipherPay includes a dedicated POS mode that&apos;s installable as a Progressive Web App.
       </Paragraph>
 
-      <SectionTitle>How it works</SectionTitle>
+      <SectionTitle>Dedicated POS mode</SectionTitle>
       <Paragraph>
-        The POS flow is designed for in-person transactions where speed matters:
+        CipherPay&apos;s POS is a standalone fullscreen experience at <Strong>/pos</Strong> — separate from the dashboard.
+        It&apos;s designed for tablets and phones at the counter: no sidebar, no navigation, just a product grid, cart, and payment screen.
       </Paragraph>
       <div style={{ fontSize: 11, color: 'var(--cp-text-dim)', lineHeight: 2.2, marginBottom: 20 }}>
-        1. Open your dashboard on a tablet or phone<br />
-        2. Switch to the <Strong>POS</Strong> tab<br />
-        3. Select items from your product catalog (you can add multiple items to a cart)<br />
-        4. Tap <Strong>Checkout</Strong> — a QR code appears on screen<br />
-        5. The customer scans the QR code with their Zcash wallet and pays<br />
-        6. The screen updates in real-time: &quot;Detected&quot; (mempool) → &quot;Confirmed&quot; (block)
+        • <Strong>Split-screen layout</Strong>: product catalog on the left, live cart on the right<br />
+        • <Strong>Category tabs</Strong>: group products by category using the metadata field<br />
+        • <Strong>Favorites</Strong>: star frequently sold items for quick access<br />
+        • <Strong>Custom amount</Strong>: enter a one-off amount with a large numeric keypad<br />
+        • <Strong>Tipping</Strong>: 10%, 15%, 20%, custom, or no tip — added before payment<br />
+        • <Strong>Fullscreen QR</Strong>: large, high-contrast QR code with real-time status<br />
+        • <Strong>Receipt screen</Strong>: print-ready receipt with auto-reset for the next customer
       </div>
+
+      <SectionDivider />
+
+      <SectionTitle>Employee access with POS PIN</SectionTitle>
+      <Paragraph>
+        You can hand a device to an employee without exposing your dashboard, API keys, or billing.
+        Set a <Strong>4-digit POS PIN</Strong> in Dashboard → Settings. Employees enter the PIN to unlock the POS.
+      </Paragraph>
+      <div style={{ fontSize: 11, color: 'var(--cp-text-dim)', lineHeight: 2.2, marginBottom: 20 }}>
+        <Strong>POS sessions can:</Strong> view product catalog, add to cart, create invoices, accept tips, view receipts<br />
+        <Strong>POS sessions cannot:</Strong> edit products, access settings, view API keys, manage billing, issue refunds
+      </div>
+
+      <Callout type="tip">
+        POS sessions last 4 hours. The &quot;Lock&quot; button returns to the PIN screen without logging out — useful for staff handoffs.
+        Three wrong PIN attempts locks the device for 30 seconds.
+      </Callout>
+
+      <SectionDivider />
+
+      <SectionTitle>Install as a PWA</SectionTitle>
+      <Paragraph>
+        CipherPay is a Progressive Web App. When you visit <Strong>/pos</Strong> in Chrome or Safari, you&apos;ll see an
+        &quot;Install&quot; or &quot;Add to Home Screen&quot; prompt. Once installed, it runs in standalone mode — no browser chrome,
+        no address bar. It looks and feels like a native app.
+      </Paragraph>
+      <div style={{ fontSize: 11, color: 'var(--cp-text-dim)', lineHeight: 2.2, marginBottom: 20 }}>
+        1. Open <Strong>cipherpay.app/pos</Strong> on your tablet or phone<br />
+        2. Tap the browser menu → <Strong>Install app</Strong> (Chrome) or <Strong>Add to Home Screen</Strong> (Safari)<br />
+        3. The app icon appears on your home screen<br />
+        4. Open it — fullscreen POS mode, no browser chrome
+      </div>
+
+      <Callout type="info">
+        The PWA caches your product catalog for offline access. If the network drops briefly, your products still load from cache.
+        Invoice creation requires an active connection.
+      </Callout>
 
       <SectionDivider />
 
       <Step n={1} title="Set up your product catalog">
         <Paragraph>
-          Before using POS mode, add your items in the dashboard → Products.
-          Set a name and price for each item. For a coffee shop, you might have:
+          Before using POS mode, add items in Dashboard → Products. Set a name and price for each item.
+          Optionally, add a <Strong>category</Strong> via the metadata field to organize items in the POS grid:
         </Paragraph>
-        <div style={{ fontSize: 11, color: 'var(--cp-text-dim)', lineHeight: 2.2, marginBottom: 12 }}>
-          • Espresso — €3.50<br />
-          • Flat White — €4.50<br />
-          • Avocado Toast — €8.00<br />
-        </div>
+        <CodeBlock lang="json" code={`{
+  "category": "Drinks"
+}`} />
       </Step>
 
-      <Step n={2} title="Use the POS tab at the counter">
+      <Step n={2} title="Set a POS PIN">
         <Paragraph>
-          Open your CipherPay dashboard on any device. Go to the <Strong>POS</Strong> tab.
-          Tap products to add them to the cart. Tap <Strong>Checkout</Strong> when the customer is ready.
-        </Paragraph>
-        <Paragraph>
-          A QR code and payment details appear on screen. Hand the device to the customer or point it at them.
+          Go to Dashboard → Settings → <Strong>POS PIN</Strong>. Set a 4-digit PIN.
+          This is what your employees will enter to access the POS — it&apos;s not your dashboard token.
         </Paragraph>
       </Step>
 
-      <Step n={3} title="Wait for confirmation">
+      <Step n={3} title="Open the POS">
         <Paragraph>
-          The payment is typically detected in the mempool within <Strong>5-10 seconds</Strong>.
-          For low-value items (coffee, food), mempool detection is usually sufficient — the risk of a double-spend on Zcash is extremely low.
-          For higher-value items, wait for a block confirmation (~75 seconds).
+          Navigate to <Strong>/pos</Strong> or click &quot;Open POS&quot; in the dashboard sidebar.
+          Enter the PIN, then start ringing up sales.
         </Paragraph>
       </Step>
+
+      <Step n={4} title="Ring up a sale">
+        <Paragraph>
+          Tap products to add them to the cart. Adjust quantities with +/- buttons.
+          When ready, tap <Strong>Charge</Strong>. Choose a tip amount (or skip). A fullscreen QR code appears.
+          The customer scans and pays. The screen shows <Strong>Detected</Strong> (mempool, ~5-10 seconds) then <Strong>Confirmed</Strong> (block, ~75 seconds).
+        </Paragraph>
+      </Step>
+
+      <Step n={5} title="Receipt and next customer">
+        <Paragraph>
+          After payment, a receipt screen appears with the amount, ZEC equivalent, and invoice code.
+          Tap <Strong>Print</Strong> to print via a connected receipt printer, or tap <Strong>New Sale</Strong> to start over.
+          The screen auto-resets after 10 seconds of inactivity.
+        </Paragraph>
+      </Step>
+
+      <SectionDivider />
+
+      <SectionTitle>API reference</SectionTitle>
+      <div style={{ fontSize: 11, color: 'var(--cp-text-dim)', lineHeight: 2.2, marginBottom: 20 }}>
+        <Strong>PUT /api/merchants/me/pos-pin</Strong> — set or remove the POS PIN (requires dashboard auth)<br />
+        <Strong>GET /api/merchants/me/pos-pin</Strong> — check if a POS PIN is configured<br />
+        <Strong>POST /api/auth/pos-session</Strong> — verify PIN and create a scoped POS session (4h TTL)
+      </div>
 
       <Callout type="tip">
-        At conferences and events, you can set up a tablet running the CipherPay dashboard as your &quot;register.&quot;
-        Multiple staff members can use the same account simultaneously from different devices.
-      </Callout>
-
-      <Callout type="info">
-        The POS mode supports multi-item carts — you can select multiple products and create a single invoice for the total.
-        This is especially useful for restaurants, cafes, and retail.
+        At conferences and events, install the PWA on a tablet, set the POS PIN, and hand it to your team.
+        Multiple devices can run the POS simultaneously against the same merchant account.
       </Callout>
     </>
   );

@@ -7,3 +7,7 @@ out/
 next-env.d.ts
 .DS_Store
 
+
+# Cursor IDE
+.cursor/
+.agents/

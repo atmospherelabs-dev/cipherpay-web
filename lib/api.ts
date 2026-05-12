@@ -820,6 +820,22 @@ export const api = {
   getLumaPass: (invoiceId: string) =>
     request<LumaPassData>(`/api/invoices/${invoiceId}/luma-pass`),
 
+  // POS PIN
+  hasPosPin: () =>
+    request<{ has_pin: boolean }>('/api/merchants/me/pos-pin'),
+
+  setPosPin: (pin: string) =>
+    request<{ status: string }>('/api/merchants/me/pos-pin', {
+      method: 'PUT',
+      body: JSON.stringify({ pin }),
+    }),
+
+  removePosPin: () =>
+    request<{ status: string }>('/api/merchants/me/pos-pin', {
+      method: 'PUT',
+      body: JSON.stringify({ pin: '' }),
+    }),
+
   // Account
   deleteAccount: () =>
     request<{ status: string; message: string }>('/api/merchants/me/delete', { method: 'POST' }),

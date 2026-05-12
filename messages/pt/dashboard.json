@@ -24,7 +24,8 @@
     "billing": "FATURAMENTO",
     "settings": "CONFIGURAÇÕES",
     "cashOut": "SACAR",
-    "docs": "DOCS"
+    "docs": "DOCS",
+    "openPos": "ABRIR POS"
   },
   "navbar": {
     "testnet": "TESTNET",
@@ -342,16 +343,14 @@
   },
   "pos": {
     "title": "PDV // Ponto de Venda",
-    "subtitle": "Crie faturas presencialmente. Selecione produtos, defina quantidades e gere um checkout.",
-    "clear": "LIMPAR",
-    "addProductsFirst": "Adicione produtos primeiro para usar o PDV.",
-    "orderSummary": "RESUMO DO PEDIDO",
-    "mixedCurrency": "Moedas mistas no carrinho. Remova itens até que todos sejam da mesma moeda.",
-    "creatingInvoice": "CRIANDO FATURA...",
-    "addItemsToCheckout": "ADICIONAR ITENS AO CHECKOUT",
-    "checkout": "CHECKOUT — {symbol}{total}",
-    "toastCheckoutFailed": "Checkout falhou",
-    "tapToAdd": "Toque para adicionar"
+    "launcherTitle": "CipherPay PDV",
+    "launcherDesc": "Uma experiência de caixa dedicada — tela cheia, instalável como PWA, com PIN para funcionários, gorjetas, categorias e impressão de recibos.",
+    "openPos": "ABRIR PDV",
+    "productCount": "{count} produtos ativos",
+    "pinSet": "PIN do PDV configurado",
+    "pinNotSet": "Sem PIN do PDV",
+    "features": "Inclui:",
+    "featureList": "Catálogo + carrinho · Abas de categorias · Favoritos · Valores personalizados · Gorjetas (10/15/20/personalizada) · QR em tela cheia · Status de pagamento em tempo real · Recibos imprimíveis · Instalável como PWA"
   },
   "events": {
     "title": "Eventos",

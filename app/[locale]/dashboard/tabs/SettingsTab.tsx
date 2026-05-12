@@ -263,6 +263,9 @@ export const SettingsTab = memo(function SettingsTab({
         {/* Luma Integration */}
         <LumaSettings merchant={merchant} reloadMerchant={reloadMerchant} />
 
+        {/* POS PIN */}
+        <POSPinSettings />
+
         {/* 8. Danger Zone */}
         <div style={{ marginTop: 32, paddingTop: 20, borderTop: '1px solid rgba(239,68,68,0.2)' }}>
           <div style={{ fontSize: 10, letterSpacing: 2, color: 'var(--cp-red)', fontWeight: 600, marginBottom: 12 }}>{t('dangerZone')}</div>
@@ -718,6 +721,134 @@ function ScopedKeysSection() {
             </button>
           )}
         </>
+      )}
+    </div>
+  );
+}
+
+function POSPinSettings() {
+  const tp = useTranslations('pos.settings');
+  const { showToast } = useToast();
+  const [hasPin, setHasPin] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [newPin, setNewPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    api.hasPosPin()
+      .then(r => setHasPin(r.has_pin))
+      .catch(() => {})
+      .finally(() => setLoaded(true));
+  }, []);
+
+  const handleSave = async () => {
+    if (newPin.length !== 4 || !/^\d{4}$/.test(newPin)) {
+      showToast(tp('tooShort'), true);
+      return;
+    }
+    if (newPin !== confirmPin) {
+      showToast(tp('mismatch'), true);
+      return;
+    }
+    setSaving(true);
+    try {
+      await api.setPosPin(newPin);
+      setHasPin(true);
+      setEditing(false);
+      setNewPin('');
+      setConfirmPin('');
+      showToast(tp('saved'));
+    } catch {
+      showToast(tp('failed'), true);
+    }
+    setSaving(false);
+  };
+
+  const handleRemove = async () => {
+    setSaving(true);
+    try {
+      await api.removePosPin();
+      setHasPin(false);
+      showToast(tp('removed'));
+    } catch {
+      showToast(tp('failed'), true);
+    }
+    setSaving(false);
+  };
+
+  if (!loaded) return null;
+
+  return (
+    <div style={{ marginTop: 32, paddingTop: 20, borderTop: '1px solid var(--cp-border)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+        <div style={{ fontSize: 10, letterSpacing: 2, fontWeight: 600, color: 'var(--cp-cyan)' }}>{tp('title')}</div>
+        <span className={`status-badge ${hasPin ? 'status-confirmed' : 'status-pending'}`} style={{ fontSize: 8 }}>
+          {hasPin ? tp('currentPin') : tp('noPin')}
+        </span>
+      </div>
+      <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', lineHeight: 1.5, marginBottom: 12 }}>
+        {tp('description')}
+      </div>
+
+      {editing ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 300 }}>
+          <label style={{ fontSize: 10, color: 'var(--cp-text-muted)' }}>{tp('newPinLabel')}</label>
+          <input
+            type="password"
+            inputMode="numeric"
+            maxLength={4}
+            value={newPin}
+            onChange={e => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+            className="input"
+            style={{ fontSize: 18, letterSpacing: 12, textAlign: 'center', maxWidth: 160 }}
+            autoFocus
+          />
+          <label style={{ fontSize: 10, color: 'var(--cp-text-muted)' }}>{tp('confirmLabel')}</label>
+          <input
+            type="password"
+            inputMode="numeric"
+            maxLength={4}
+            value={confirmPin}
+            onChange={e => setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+            className="input"
+            style={{ fontSize: 18, letterSpacing: 12, textAlign: 'center', maxWidth: 160 }}
+          />
+          <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+            <button className="btn btn-small" disabled={saving} onClick={handleSave}>
+              {saving ? tp('saving') : tp('save')}
+            </button>
+            <button className="btn btn-small" onClick={() => { setEditing(false); setNewPin(''); setConfirmPin(''); }}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button className="btn btn-small" onClick={() => setEditing(true)}>
+            {hasPin ? tp('changePin') : tp('setPin')}
+          </button>
+          {hasPin && (
+            <button
+              className="btn btn-small"
+              style={{ color: 'var(--cp-red)', borderColor: 'rgba(239,68,68,0.3)' }}
+              onClick={handleRemove}
+              disabled={saving}
+            >
+              {tp('removePin')}
+            </button>
+          )}
+          <a
+            href="/pos"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-small"
+            style={{ color: 'var(--cp-cyan)', borderColor: 'rgba(0,212,255,0.3)' }}
+          >
+            {tp('openPos')} ↗
+          </a>
+        </div>
       )}
     </div>
   );

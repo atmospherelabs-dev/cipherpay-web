@@ -1,0 +1,75 @@
+{
+  "customSale": "Venda personalizada",
+  "pin": {
+    "enterPin": "Digite o PIN do POS",
+    "wrong": "PIN incorreto. Tente novamente.",
+    "locked": "Muitas tentativas. Bloqueado por 30 segundos.",
+    "notConfigured": "PIN do POS não configurado. Faça login pelo painel.",
+    "networkError": "Erro de conexão. Tente novamente."
+  },
+  "catalog": {
+    "lock": "BLOQUEAR",
+    "all": "Todos",
+    "favorites": "Favoritos",
+    "noProducts": "Sem produtos. Adicione produtos no painel.",
+    "currentSale": "VENDA ATUAL",
+    "emptyCart": "Toque em um produto para adicionar",
+    "addItems": "ADICIONAR ITENS",
+    "charge": "COBRAR {amount}",
+    "customAmount": "Valor personalizado",
+    "clearCart": "Limpar carrinho",
+    "favorite": "Adicionar aos favoritos",
+    "unfavorite": "Remover dos favoritos"
+  },
+  "tip": {
+    "addTip": "Adicionar gorjeta?",
+    "subtotal": "Subtotal",
+    "custom": "Outro",
+    "noTip": "Sem gorjeta",
+    "total": "Total",
+    "continue": "CONTINUAR",
+    "creating": "CRIANDO..."
+  },
+  "keypad": {
+    "title": "Valor personalizado",
+    "notePlaceholder": "Nota (opcional)",
+    "charge": "COBRAR {amount}"
+  },
+  "qr": {
+    "waitingPayment": "AGUARDANDO PAGAMENTO",
+    "detected": "PAGAMENTO DETECTADO",
+    "confirmed": "CONFIRMADO",
+    "expired": "EXPIRADO",
+    "includesTip": "Inclui gorjeta de {amount}",
+    "cancel": "CANCELAR"
+  },
+  "receipt": {
+    "paymentReceived": "PAGAMENTO RECEBIDO",
+    "subtotal": "Subtotal",
+    "tip": "Gorjeta",
+    "total": "Total",
+    "invoice": "Fatura",
+    "print": "Imprimir",
+    "newSale": "NOVA VENDA",
+    "autoReturn": "Nova venda em {seconds}s"
+  },
+  "settings": {
+    "title": "PIN do POS",
+    "description": "Configure um PIN de 4 dígitos para acesso dos funcionários ao POS. Funcionários podem cobrar mas não acessam configurações, chaves API ou faturamento.",
+    "currentPin": "PIN configurado",
+    "noPin": "PIN não configurado",
+    "setPin": "DEFINIR PIN",
+    "changePin": "ALTERAR PIN",
+    "removePin": "REMOVER",
+    "newPinLabel": "Novo PIN de 4 dígitos",
+    "confirmLabel": "Confirmar PIN",
+    "mismatch": "Os PINs não coincidem",
+    "tooShort": "O PIN deve ter 4 dígitos",
+    "save": "SALVAR",
+    "saving": "SALVANDO...",
+    "saved": "PIN do POS salvo",
+    "removed": "PIN do POS removido",
+    "failed": "Erro ao salvar o PIN",
+    "openPos": "ABRIR POS"
+  }
+}

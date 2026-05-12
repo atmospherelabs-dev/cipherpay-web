@@ -1,0 +1,75 @@
+{
+  "customSale": "بيع مخصص",
+  "pin": {
+    "enterPin": "أدخل رمز PIN لنقاط البيع",
+    "wrong": "رمز PIN خاطئ. حاول مرة أخرى.",
+    "locked": "محاولات كثيرة. مقفل لمدة 30 ثانية.",
+    "notConfigured": "لم يتم تكوين رمز PIN. سجل الدخول من لوحة التحكم.",
+    "networkError": "خطأ في الاتصال. حاول مرة أخرى."
+  },
+  "catalog": {
+    "lock": "قفل",
+    "all": "الكل",
+    "favorites": "المفضلة",
+    "noProducts": "لا توجد منتجات. أضف منتجات من لوحة التحكم.",
+    "currentSale": "البيع الحالي",
+    "emptyCart": "انقر على منتج لإضافته",
+    "addItems": "أضف منتجات",
+    "charge": "تحصيل {amount}",
+    "customAmount": "مبلغ مخصص",
+    "clearCart": "مسح السلة",
+    "favorite": "إضافة إلى المفضلة",
+    "unfavorite": "إزالة من المفضلة"
+  },
+  "tip": {
+    "addTip": "إضافة إكرامية؟",
+    "subtotal": "المجموع الفرعي",
+    "custom": "مخصص",
+    "noTip": "بدون إكرامية",
+    "total": "المجموع",
+    "continue": "متابعة",
+    "creating": "جاري الإنشاء..."
+  },
+  "keypad": {
+    "title": "مبلغ مخصص",
+    "notePlaceholder": "ملاحظة (اختياري)",
+    "charge": "تحصيل {amount}"
+  },
+  "qr": {
+    "waitingPayment": "في انتظار الدفع",
+    "detected": "تم اكتشاف الدفع",
+    "confirmed": "تم التأكيد",
+    "expired": "منتهي الصلاحية",
+    "includesTip": "يشمل إكرامية {amount}",
+    "cancel": "إلغاء"
+  },
+  "receipt": {
+    "paymentReceived": "تم استلام الدفع",
+    "subtotal": "المجموع الفرعي",
+    "tip": "الإكرامية",
+    "total": "المجموع",
+    "invoice": "الفاتورة",
+    "print": "طباعة",
+    "newSale": "بيع جديد",
+    "autoReturn": "بيع جديد خلال {seconds} ثانية"
+  },
+  "settings": {
+    "title": "رمز PIN لنقاط البيع",
+    "description": "قم بتعيين رمز PIN مكون من 4 أرقام لوصول الموظفين إلى نقاط البيع. يمكن للموظفين إجراء المبيعات لكن لا يمكنهم الوصول إلى الإعدادات أو مفاتيح API أو الفوترة.",
+    "currentPin": "تم تعيين رمز PIN",
+    "noPin": "لم يتم تكوين رمز PIN",
+    "setPin": "تعيين PIN",
+    "changePin": "تغيير PIN",
+    "removePin": "إزالة",
+    "newPinLabel": "رمز PIN جديد مكون من 4 أرقام",
+    "confirmLabel": "تأكيد رمز PIN",
+    "mismatch": "رموز PIN غير متطابقة",
+    "tooShort": "يجب أن يكون رمز PIN 4 أرقام",
+    "save": "حفظ",
+    "saving": "جاري الحفظ...",
+    "saved": "تم حفظ رمز PIN",
+    "removed": "تم إزالة رمز PIN",
+    "failed": "فشل حفظ رمز PIN",
+    "openPos": "فتح نقاط البيع"
+  }
+}

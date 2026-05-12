@@ -24,7 +24,8 @@
     "billing": "BILLING",
     "settings": "SETTINGS",
     "cashOut": "CASH OUT",
-    "docs": "DOCS"
+    "docs": "DOCS",
+    "openPos": "OPEN POS"
   },
   "navbar": {
     "testnet": "TESTNET",
@@ -342,16 +343,14 @@
   },
   "pos": {
     "title": "POS // Point of Sale",
-    "subtitle": "Create invoices in-person. Select products, set quantities, and generate a checkout.",
-    "clear": "CLEAR",
-    "addProductsFirst": "Add products first to use POS.",
-    "orderSummary": "ORDER SUMMARY",
-    "mixedCurrency": "Mixed currencies in cart. Remove items until all are the same currency.",
-    "creatingInvoice": "CREATING INVOICE...",
-    "addItemsToCheckout": "ADD ITEMS TO CHECKOUT",
-    "checkout": "CHECKOUT — {symbol}{total}",
-    "toastCheckoutFailed": "Checkout failed",
-    "tapToAdd": "Tap to add"
+    "launcherTitle": "CipherPay POS",
+    "launcherDesc": "A dedicated register experience — fullscreen, installable as a PWA, with employee PIN lock, tipping, categories, and receipt printing.",
+    "openPos": "OPEN POS",
+    "productCount": "{count} active products",
+    "pinSet": "POS PIN configured",
+    "pinNotSet": "No POS PIN set",
+    "features": "What\u2019s included:",
+    "featureList": "Split-screen catalog + cart \u00B7 Category tabs \u00B7 Favorites \u00B7 Custom amounts \u00B7 Tipping (10/15/20/custom) \u00B7 Fullscreen QR checkout \u00B7 Real-time payment status \u00B7 Print-ready receipts \u00B7 PWA installable"
   },
   "events": {
     "title": "Events",
