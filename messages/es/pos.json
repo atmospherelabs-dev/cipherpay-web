@@ -4,7 +4,8 @@
     "enterPin": "Ingrese PIN del POS",
     "wrong": "PIN incorrecto. Intente de nuevo.",
     "locked": "Demasiados intentos. Bloqueado por 30 segundos.",
-    "notConfigured": "PIN del POS no configurado. Inicie sesión desde el panel.",
+    "notConfigured": "PIN del POS no configurado.",
+    "openSettings": "Configurar en el Panel",
     "networkError": "Error de conexión. Intente de nuevo."
   },
   "catalog": {

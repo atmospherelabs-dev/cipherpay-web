@@ -43,7 +43,7 @@ export function PinLock({ merchantName, onSuccess, onDashboardAuth }: PinLockPro
       const body = await res.json().catch(() => ({}));
       if (body.error === 'pos_pin_not_set') {
         if (onDashboardAuth) { onDashboardAuth(); return; }
-        setError(t('notConfigured'));
+        setError('__not_configured__');
       } else {
         const next = attempts + 1;
         setAttempts(next);
@@ -103,7 +103,21 @@ export function PinLock({ merchantName, onSuccess, onDashboardAuth }: PinLockPro
           ))}
         </div>
 
-        {error && <div className="pos-pin-error">{error}</div>}
+        {error === '__not_configured__' ? (
+          <div className="pos-pin-error" style={{ lineHeight: 1.6 }}>
+            {t('notConfigured')}{' '}
+            <a
+              href="/dashboard?tab=settings"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: 'var(--cp-cyan, #06b6d4)', textDecoration: 'underline' }}
+            >
+              {t('openSettings')}
+            </a>
+          </div>
+        ) : error ? (
+          <div className="pos-pin-error">{error}</div>
+        ) : null}
 
         <div className="pos-pin-pad">
           {digits.map((d, i) => {

@@ -4,7 +4,8 @@
     "enterPin": "Enter POS PIN",
     "wrong": "Wrong PIN. Try again.",
     "locked": "Too many attempts. Locked for 30 seconds.",
-    "notConfigured": "POS PIN not set. Log in via dashboard.",
+    "notConfigured": "POS PIN not set up yet.",
+    "openSettings": "Set up in Dashboard",
     "networkError": "Connection error. Try again."
   },
   "catalog": {

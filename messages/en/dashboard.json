@@ -344,13 +344,13 @@
   "pos": {
     "title": "POS // Point of Sale",
     "launcherTitle": "CipherPay POS",
-    "launcherDesc": "A dedicated register experience — fullscreen, installable as a PWA, with employee PIN lock, tipping, categories, and receipt printing.",
+    "launcherDesc": "Dedicated register — fullscreen, installable as a PWA, with employee PIN lock, tipping, categories, and receipt printing.",
     "openPos": "OPEN POS",
     "productCount": "{count} active products",
+    "noProducts": "No active products — add products first",
     "pinSet": "POS PIN configured",
     "pinNotSet": "No POS PIN set",
-    "features": "What\u2019s included:",
-    "featureList": "Split-screen catalog + cart \u00B7 Category tabs \u00B7 Favorites \u00B7 Custom amounts \u00B7 Tipping (10/15/20/custom) \u00B7 Fullscreen QR checkout \u00B7 Real-time payment status \u00B7 Print-ready receipts \u00B7 PWA installable"
+    "setupPin": "Set up"
   },
   "events": {
     "title": "Events",

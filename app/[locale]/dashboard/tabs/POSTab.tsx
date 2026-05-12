@@ -27,8 +27,7 @@ export const POSTab = memo(function POSTab({ products }: POSTabProps) {
         <span className="panel-title">{t('title')}</span>
       </div>
 
-      <div style={{ padding: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, textAlign: 'center' }}>
-        {/* POS icon */}
+      <div style={{ padding: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24, textAlign: 'center' }}>
         <div style={{ width: 64, height: 64, borderRadius: 16, background: 'rgba(0,212,255,0.08)', border: '1px solid rgba(0,212,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--cp-cyan)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
@@ -46,19 +45,32 @@ export const POSTab = memo(function POSTab({ products }: POSTabProps) {
           </div>
         </div>
 
-        {/* Status indicators */}
-        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--cp-text-muted)' }}>
+        {/* Readiness checklist */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'start', fontSize: 11, color: 'var(--cp-text-muted)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ width: 8, height: 8, borderRadius: '50%', background: productCount > 0 ? 'var(--cp-green)' : 'var(--cp-yellow)' }} />
-            {t('productCount', { count: productCount })}
+            {productCount > 0
+              ? t('productCount', { count: productCount })
+              : t('noProducts')
+            }
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--cp-text-muted)' }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: hasPin ? 'var(--cp-green)' : 'var(--cp-text-dim)' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: hasPin ? 'var(--cp-green)' : 'var(--cp-yellow)' }} />
             {hasPin ? t('pinSet') : t('pinNotSet')}
+            {!hasPin && (
+              <span
+                onClick={() => {
+                  const el = document.getElementById('pos-pin-settings');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+                style={{ color: 'var(--cp-cyan)', cursor: 'pointer', textDecoration: 'underline' }}
+              >
+                {t('setupPin')}
+              </span>
+            )}
           </div>
         </div>
 
-        {/* Open POS button */}
         <a
           href="/pos"
           target="_blank"
@@ -81,14 +93,6 @@ export const POSTab = memo(function POSTab({ products }: POSTabProps) {
             <line x1="10" y1="14" x2="21" y2="3" />
           </svg>
         </a>
-
-        {/* Quick links */}
-        <div style={{ display: 'flex', gap: 12, fontSize: 10, color: 'var(--cp-text-dim)' }}>
-          <span style={{ cursor: 'default' }}>{t('features')}</span>
-        </div>
-        <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', lineHeight: 2, maxWidth: 320 }}>
-          {t('featureList')}
-        </div>
       </div>
     </div>
   );

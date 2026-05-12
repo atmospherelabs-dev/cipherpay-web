@@ -344,13 +344,13 @@
   "pos": {
     "title": "PDV // Ponto de Venda",
     "launcherTitle": "CipherPay PDV",
-    "launcherDesc": "Uma experiência de caixa dedicada — tela cheia, instalável como PWA, com PIN para funcionários, gorjetas, categorias e impressão de recibos.",
+    "launcherDesc": "Caixa dedicada — tela cheia, instalável como PWA, com PIN para funcionários, gorjetas, categorias e impressão de recibos.",
     "openPos": "ABRIR PDV",
     "productCount": "{count} produtos ativos",
+    "noProducts": "Sem produtos ativos — adicione produtos primeiro",
     "pinSet": "PIN do PDV configurado",
     "pinNotSet": "Sem PIN do PDV",
-    "features": "Inclui:",
-    "featureList": "Catálogo + carrinho · Abas de categorias · Favoritos · Valores personalizados · Gorjetas (10/15/20/personalizada) · QR em tela cheia · Status de pagamento em tempo real · Recibos imprimíveis · Instalável como PWA"
+    "setupPin": "Configurar"
   },
   "events": {
     "title": "Eventos",

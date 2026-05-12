@@ -4,7 +4,8 @@
     "enterPin": "Digite o PIN do POS",
     "wrong": "PIN incorreto. Tente novamente.",
     "locked": "Muitas tentativas. Bloqueado por 30 segundos.",
-    "notConfigured": "PIN do POS não configurado. Faça login pelo painel.",
+    "notConfigured": "PIN do PDV não configurado.",
+    "openSettings": "Configurar no Painel",
     "networkError": "Erro de conexão. Tente novamente."
   },
   "catalog": {

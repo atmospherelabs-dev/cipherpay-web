@@ -264,7 +264,9 @@ export const SettingsTab = memo(function SettingsTab({
         <LumaSettings merchant={merchant} reloadMerchant={reloadMerchant} />
 
         {/* POS PIN */}
-        <POSPinSettings />
+        <div id="pos-pin-settings">
+          <POSPinSettings />
+        </div>
 
         {/* 8. Danger Zone */}
         <div style={{ marginTop: 32, paddingTop: 20, borderTop: '1px solid rgba(239,68,68,0.2)' }}>

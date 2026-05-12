@@ -344,13 +344,13 @@
   "pos": {
     "title": "TPV // Terminal Punto de Venta",
     "launcherTitle": "CipherPay TPV",
-    "launcherDesc": "Una experiencia de caja dedicada — pantalla completa, instalable como PWA, con PIN para empleados, propinas, categorías e impresión de recibos.",
+    "launcherDesc": "Caja dedicada — pantalla completa, instalable como PWA, con PIN para empleados, propinas, categorías e impresión de recibos.",
     "openPos": "ABRIR TPV",
     "productCount": "{count} productos activos",
+    "noProducts": "Sin productos activos — agrega productos primero",
     "pinSet": "PIN del TPV configurado",
     "pinNotSet": "Sin PIN del TPV",
-    "features": "Incluye:",
-    "featureList": "Catálogo + carrito \u00B7 Pestañas de categorías \u00B7 Favoritos \u00B7 Montos personalizados \u00B7 Propinas (10/15/20/personalizada) \u00B7 QR en pantalla completa \u00B7 Estado de pago en tiempo real \u00B7 Recibos imprimibles \u00B7 Instalable como PWA"
+    "setupPin": "Configurar"
   },
   "events": {
     "title": "Eventos",
