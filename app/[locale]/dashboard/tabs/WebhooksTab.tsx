@@ -17,6 +17,7 @@ export function WebhooksTab({ initialDeliveries, initialTotal, hasWebhookUrl, on
   const [page, setPage] = useState(0);
   const [deliveries, setDeliveries] = useState(initialDeliveries);
   const [total, setTotal] = useState(initialTotal);
+  const [retrying, setRetrying] = useState<string | null>(null);
   const pageSize = 50;
 
   const fetchPage = useCallback(async (p: number, status: string) => {
@@ -32,6 +33,24 @@ export function WebhooksTab({ initialDeliveries, initialTotal, hasWebhookUrl, on
       console.error('Failed to fetch webhooks', e);
     }
   }, []);
+
+  const handleRetry = useCallback(async (deliveryId: string) => {
+    setRetrying(deliveryId);
+    try {
+      const result = await api.retryWebhook(deliveryId);
+      if (result.status === 'delivered') {
+        setDeliveries(prev =>
+          prev.map(d => d.id === deliveryId ? { ...d, status: 'delivered' as const } : d)
+        );
+      }
+      await fetchPage(page, filter);
+    } catch {
+      // fetchPage will show the current state
+      await fetchPage(page, filter);
+    } finally {
+      setRetrying(null);
+    }
+  }, [fetchPage, page, filter]);
 
   useEffect(() => { fetchPage(page, filter); }, [page, filter, fetchPage]);
 
@@ -95,6 +114,7 @@ export function WebhooksTab({ initialDeliveries, initialTotal, hasWebhookUrl, on
                   <th style={{ ...thStyle, textAlign: 'center' }}>{t('colHttp')}</th>
                   <th style={{ ...thStyle, textAlign: 'center' }}>{t('colAttempts')}</th>
                   <th style={thStyle}>{t('colError')}</th>
+                  <th style={{ ...thStyle, textAlign: 'center', width: 70 }}></th>
                 </tr>
               </thead>
               <tbody>
@@ -137,11 +157,35 @@ export function WebhooksTab({ initialDeliveries, initialTotal, hasWebhookUrl, on
                     <td style={{ ...tdStyle, fontSize: 10, color: 'var(--cp-red)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {d.response_error || ''}
                     </td>
+                    <td style={{ ...tdStyle, textAlign: 'center' }}>
+                      {d.status === 'failed' && (
+                        <button
+                          onClick={() => handleRetry(d.id)}
+                          disabled={retrying === d.id}
+                          style={{
+                            padding: '3px 8px',
+                            fontSize: 8,
+                            fontFamily: 'inherit',
+                            fontWeight: 600,
+                            letterSpacing: 0.8,
+                            border: '1px solid var(--cp-cyan)',
+                            borderRadius: 3,
+                            background: 'transparent',
+                            color: 'var(--cp-cyan)',
+                            cursor: retrying === d.id ? 'wait' : 'pointer',
+                            opacity: retrying === d.id ? 0.5 : 1,
+                            transition: 'opacity 0.15s',
+                          }}
+                        >
+                          {retrying === d.id ? t('retrying') : t('retry')}
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))}
                 {deliveries.length === 0 && (
                   <tr>
-                    <td colSpan={7} style={{ padding: '24px 16px', textAlign: 'center', color: 'var(--cp-text-dim)' }}>
+                    <td colSpan={8} style={{ padding: '24px 16px', textAlign: 'center', color: 'var(--cp-text-dim)' }}>
                       {t('empty')}
                     </td>
                   </tr>

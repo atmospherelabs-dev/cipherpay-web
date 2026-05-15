@@ -326,7 +326,11 @@
     "next": "PRÓX",
     "setupTitle": "Nenhuma URL de webhook configurada",
     "setupDesc": "Adicione uma URL de webhook nas Configurações para receber notificações em tempo real quando faturas forem pagas, expiradas ou reembolsadas.",
-    "setupCta": "Configurar →"
+    "setupCta": "Configurar →",
+    "retry": "REENVIAR",
+    "retrying": "REENVIANDO...",
+    "retrySuccess": "Webhook entregue com sucesso",
+    "retryFailed": "Falha ao reenviar: {error}"
   },
   "x402": {
     "title": "Pagamentos Agênticos",

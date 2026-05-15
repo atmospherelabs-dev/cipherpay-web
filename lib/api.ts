@@ -801,6 +801,11 @@ export const api = {
     return request<WebhookHistory>(`/api/merchants/me/webhooks?${p}`);
   },
 
+  retryWebhook: (deliveryId: string) =>
+    request<{ status: string; error?: string }>(`/api/merchants/me/webhooks/${deliveryId}/retry`, {
+      method: 'POST',
+    }),
+
   // Luma
   listLumaEvents: () =>
     request<LumaEventEntry[]>('/api/luma/events'),

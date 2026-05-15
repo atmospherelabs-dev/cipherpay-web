@@ -326,7 +326,11 @@
     "next": "SIG",
     "setupTitle": "No hay URL de webhook configurada",
     "setupDesc": "Agrega una URL de webhook en Ajustes para recibir notificaciones en tiempo real cuando las facturas se paguen, expiren o reembolsen.",
-    "setupCta": "Configurar →"
+    "setupCta": "Configurar →",
+    "retry": "REINTENTAR",
+    "retrying": "REINTENTANDO...",
+    "retrySuccess": "Webhook entregado exitosamente",
+    "retryFailed": "Reintento fallido: {error}"
   },
   "x402": {
     "title": "Pagos Agénticos",

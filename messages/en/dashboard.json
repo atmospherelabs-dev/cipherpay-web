@@ -326,7 +326,11 @@
     "next": "NEXT",
     "setupTitle": "No webhook URL configured",
     "setupDesc": "Add a webhook URL in Settings to receive real-time notifications when invoices are paid, expired, or refunded.",
-    "setupCta": "Configure in Settings →"
+    "setupCta": "Configure in Settings →",
+    "retry": "RETRY",
+    "retrying": "RETRYING...",
+    "retrySuccess": "Webhook delivered successfully",
+    "retryFailed": "Retry failed: {error}"
   },
   "x402": {
     "title": "Agentic Payments",
