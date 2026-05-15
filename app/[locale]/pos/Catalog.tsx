@@ -176,10 +176,13 @@ export const Catalog = memo(function Catalog({
               const inCart = cart.find(i => i.productId === product.id);
               const isFav = favorites.has(product.id);
               return (
-                <button
+                <div
                   key={product.id}
                   className={`pos-product-card${inCart ? ' in-cart' : ''}`}
+                  role="button"
+                  tabIndex={0}
                   onClick={() => addToCart(product)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); addToCart(product); } }}
                 >
                   <button
                     className={`pos-fav-btn${isFav ? ' active' : ''}`}
@@ -193,7 +196,7 @@ export const Catalog = memo(function Catalog({
                     {dp ? `${currencySymbol(dp.currency)}${dp.unit_amount.toFixed(2)}` : '—'}
                   </div>
                   {inCart && <div className="pos-product-badge">{inCart.qty}</div>}
-                </button>
+                </div>
               );
             })}
 

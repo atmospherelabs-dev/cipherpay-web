@@ -208,7 +208,7 @@ export default async function LandingPage() {
       </section>
 
       {/* How it works */}
-      <section style={{ borderTop: '1px solid var(--cp-border)', padding: '80px 24px', position: 'relative', overflow: 'hidden' }}>
+      <section id="how-it-works" style={{ borderTop: '1px solid var(--cp-border)', padding: '80px 24px', position: 'relative', overflow: 'hidden' }}>
         <MeshGradient variant="steps" className="mesh-gradient-steps" colors={['#00D4FF', '#8FE1FF', '#F4B728', '#FFE876']} />
         <div style={{ maxWidth: 900, margin: '0 auto', position: 'relative' }}>
           <AnimatedSection>
@@ -339,7 +339,7 @@ export default async function LandingPage() {
       </section>
 
       {/* Code Example */}
-      <section id="how-it-works" style={{ borderTop: '1px solid var(--cp-border)', padding: '80px 24px' }}>
+      <section style={{ borderTop: '1px solid var(--cp-border)', padding: '80px 24px' }}>
         <AnimatedSection style={{ maxWidth: 700, margin: '0 auto' }}>
           <div className="section-title" style={{ textAlign: 'center', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><LogoMark size={8} /> {t('forDevelopers')}</div>
           <h2 style={{ fontSize: 24, fontWeight: 700, textAlign: 'center', marginBottom: 32 }}>

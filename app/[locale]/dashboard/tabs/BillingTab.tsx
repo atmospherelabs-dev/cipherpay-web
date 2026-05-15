@@ -81,7 +81,11 @@ export const BillingTab = memo(function BillingTab({
         )}
       </div>
       <div className="panel-body">
-        {!billing?.fee_enabled ? (
+        {!billing ? (
+          <div style={{ textAlign: 'center', padding: '32px 16px' }}>
+            <div style={{ fontSize: 11, color: 'var(--cp-text-dim)' }}>Loading...</div>
+          </div>
+        ) : !billing.fee_enabled ? (
           <div style={{ textAlign: 'center', padding: '32px 16px' }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--cp-green)', marginBottom: 8 }}>{t('noFees')}</div>
             <div style={{ fontSize: 11, color: 'var(--cp-text-muted)', lineHeight: 1.6 }}>

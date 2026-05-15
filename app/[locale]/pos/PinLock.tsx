@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { API_URL } from '@/lib/config';
 
 interface PinLockProps {
@@ -16,6 +16,7 @@ const LOCKOUT_MS = 30_000;
 
 export function PinLock({ merchantName, onSuccess, onDashboardAuth }: PinLockProps) {
   const t = useTranslations('pos.pin');
+  const locale = useLocale();
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
   const [shake, setShake] = useState(false);
@@ -64,20 +65,22 @@ export function PinLock({ merchantName, onSuccess, onDashboardAuth }: PinLockPro
     setVerifying(false);
   }, [attempts, onDashboardAuth, onSuccess, t]);
 
-  const handleDigit = (d: string) => {
+  const handleDigit = useCallback((d: string) => {
     if (isLocked || verifying) return;
-    const next = pin + d;
-    setPin(next);
-    setError('');
-    if (next.length === PIN_LENGTH) {
-      verify(next);
-    }
-  };
+    setPin(prev => {
+      const next = prev + d;
+      setError('');
+      if (next.length === PIN_LENGTH) {
+        verify(next);
+      }
+      return next.length <= PIN_LENGTH ? next : prev;
+    });
+  }, [isLocked, verifying, verify]);
 
-  const handleBackspace = () => {
+  const handleBackspace = useCallback(() => {
     if (isLocked || verifying) return;
     setPin(prev => prev.slice(0, -1));
-  };
+  }, [isLocked, verifying]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -86,7 +89,7 @@ export function PinLock({ merchantName, onSuccess, onDashboardAuth }: PinLockPro
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  });
+  }, [handleDigit, handleBackspace]);
 
   const digits = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'back'];
 
@@ -107,7 +110,7 @@ export function PinLock({ merchantName, onSuccess, onDashboardAuth }: PinLockPro
           <div className="pos-pin-error" style={{ lineHeight: 1.6 }}>
             {t('notConfigured')}{' '}
             <a
-              href="/dashboard?tab=settings"
+              href={`/${locale}/dashboard?tab=settings`}
               target="_blank"
               rel="noopener noreferrer"
               style={{ color: 'var(--cp-cyan, #06b6d4)', textDecoration: 'underline' }}
