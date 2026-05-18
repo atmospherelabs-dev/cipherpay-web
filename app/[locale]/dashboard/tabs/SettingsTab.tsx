@@ -17,6 +17,9 @@ interface SettingsTabProps {
   reloadMerchant: () => Promise<void>;
 }
 
+const SECTIONS = ['general', 'security', 'developer', 'integrations', 'danger'] as const;
+type Section = typeof SECTIONS[number];
+
 export const SettingsTab = memo(function SettingsTab({
   merchant, displayCurrency, setDisplayCurrency, reloadMerchant,
 }: SettingsTabProps) {
@@ -31,6 +34,7 @@ export const SettingsTab = memo(function SettingsTab({
   const [editEmail, setEditEmail] = useState('');
   const [editingEmail, setEditingEmail] = useState(false);
   const [revealedKey, setRevealedKey] = useState<{ type: string; value: string } | null>(null);
+  const [activeSection, setActiveSection] = useState<Section>('general');
 
   const saveName = async () => {
     const err = validateLength(editName, 100, t('storeName'));
@@ -106,192 +110,231 @@ export const SettingsTab = memo(function SettingsTab({
     } catch { showToast(t('toastFailedRegen'), true); }
   };
 
+  const scrollToSection = (section: Section) => {
+    setActiveSection(section);
+    const el = document.getElementById(`settings-${section}`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const sectionLabels: Record<Section, string> = {
+    general: t('sectionGeneral'),
+    security: t('sectionSecurity'),
+    developer: t('sectionDeveloper'),
+    integrations: t('sectionIntegrations'),
+    danger: t('sectionDanger'),
+  };
+
   return (
-    <div className="panel">
-      <div className="panel-header">
-        <span className="panel-title">{t('title')}</span>
-      </div>
-      <div className="panel-subtitle">
-        {t('subtitle')}
-      </div>
-      <div className="panel-body">
-        {/* 1. Store Name */}
-        <div className="section-title">{t('storeName')}</div>
-        {editingName ? (
-          <div className="form-group dash-settings-row" style={{ display: 'flex', gap: 8 }}>
-            <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} placeholder={t('storeNamePlaceholder')} className="input" style={{ flex: 1, minWidth: 0 }} />
-            <button onClick={saveName} className="btn btn-small">{tc('save')}</button>
-            {editName && <button onClick={() => { setEditName(merchant.name || ''); setEditingName(false); }} className="btn btn-small btn-cancel">{tc('cancel')}</button>}
-          </div>
-        ) : (
-          <div className="stat-row">
-            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--cp-text)' }}>{editName}</span>
-            <button onClick={() => setEditingName(true)} className="btn btn-small">{tc('edit')}</button>
-          </div>
-        )}
-
-        <div className="divider" />
-
-        {/* 2. Passkeys */}
-        <PasskeySettings merchant={merchant} reloadMerchant={reloadMerchant} />
-
-        <div className="divider" />
-
-        {/* 3. Display Currency */}
-        <div className="section-title">{t('displayCurrency')}</div>
-        <select
-          value={displayCurrency}
-          onChange={(e) => { const c = e.target.value; setDisplayCurrency(c); localStorage.setItem('cp_currency', c); }}
-          className="input"
-          style={{ width: '100%', fontSize: 11, padding: '8px 12px', cursor: 'pointer' }}
-        >
-          {SUPPORTED_CURRENCIES.map(c => <option key={c} value={c}>{currencyLabel(c)}</option>)}
-        </select>
-        <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 6, lineHeight: 1.5 }}>
-          {t('displayCurrencyHelp')}
-        </div>
-
-        <div className="divider" />
-
-        {/* 3. Recovery Email */}
-        <div className="section-title">{t('recoveryEmail')}</div>
-        {merchant.recovery_email_preview && !editingEmail ? (
-          <>
-            <div className="stat-row">
-              <span style={{ fontSize: 11, color: 'var(--cp-green)' }}>{merchant.recovery_email_preview}</span>
-              <span className="status-badge status-confirmed" style={{ fontSize: 9 }}>{tc('set')}</span>
-            </div>
-            <div className="dash-settings-buttons" style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-              <button onClick={() => setEditingEmail(true)} className="btn btn-small">{t('emailChange')}</button>
-              <button onClick={removeEmail} className="btn btn-small" style={{ background: 'transparent', border: '1px solid var(--cp-red)', color: 'var(--cp-red)' }}>{t('emailRemove')}</button>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="form-group dash-settings-row" style={{ display: 'flex', gap: 8 }}>
-              <input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} placeholder={t('emailPlaceholder')} className="input" style={{ flex: 1, minWidth: 0 }} />
-              <button onClick={saveEmail} className="btn btn-small">{tc('save')}</button>
-              {editingEmail && (
-                <button onClick={() => { setEditingEmail(false); setEditEmail(''); }} className="btn btn-small" style={{ background: 'transparent', border: '1px solid var(--cp-text-dim)', color: 'var(--cp-text-dim)' }}>{tc('cancel')}</button>
-              )}
-            </div>
-            <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 6, lineHeight: 1.5 }}>
-              {editingEmail ? t('emailChangeHelp') : t('emailAddHelp')}
-            </div>
-          </>
-        )}
-
-        <div className="divider" />
-
-        {/* 4. Derived Payment Address */}
-        <div className="section-title">{t('derivedAddress')}</div>
-        <div className="stat-row" style={{ flexWrap: 'wrap', gap: 8 }}>
-          <span style={{ fontSize: 9, color: 'var(--cp-text-muted)', wordBreak: 'break-all', fontFamily: 'monospace', flex: '1 1 0', minWidth: 0 }}>
-            {merchant.payment_address}
-          </span>
-          <CopyButton text={merchant.payment_address} label="" />
-        </div>
-        <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 6, lineHeight: 1.5 }}>
-          {t('derivedAddressHelp')}
-        </div>
-
-        <div className="divider" />
-
-        {/* 5. Webhook URL */}
-        <div className="section-title">{t('webhookUrl')}</div>
-        {editingWebhook ? (
-          <div className="form-group dash-settings-row" style={{ display: 'flex', gap: 8 }}>
-            <input type="url" value={editWebhookUrl} onChange={(e) => setEditWebhookUrl(e.target.value)} placeholder={t('webhookPlaceholder')} className="input" style={{ flex: 1, minWidth: 0, fontSize: 10 }} />
-            <button onClick={saveWebhookUrl} className="btn btn-small">{tc('save')}</button>
-            {merchant.webhook_url && <button onClick={() => { setEditWebhookUrl(merchant.webhook_url || ''); setEditingWebhook(false); }} className="btn btn-small btn-cancel">{tc('cancel')}</button>}
-          </div>
-        ) : (
-          <div className="stat-row" style={{ flexWrap: 'wrap', gap: 8 }}>
-            <span style={{ fontSize: 10, color: 'var(--cp-text-muted)', wordBreak: 'break-all', fontFamily: 'monospace', flex: '1 1 0', minWidth: 0 }}>
-              {editWebhookUrl}
-            </span>
-            <button onClick={() => setEditingWebhook(true)} className="btn btn-small">{tc('edit')}</button>
-          </div>
-        )}
-        <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 6, lineHeight: 1.5 }}>
-          {t('webhookUrlHelp')}
-        </div>
-
-        <div className="divider" />
-
-        {/* 6. Webhook Secret */}
-        <div className="section-title">{t('webhookSecret')}</div>
-        <div className="stat-row">
-          <span style={{ fontSize: 10, color: 'var(--cp-text-dim)', fontFamily: 'monospace' }}>
-            {merchant.webhook_secret_preview ? `${merchant.webhook_secret_preview.slice(0, 12)}${'•'.repeat(20)}` : t('notGenerated')}
-          </span>
-          <button onClick={regenWebhookSecret} className="btn btn-small">{t('regenerate')}</button>
-        </div>
-        <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 6, lineHeight: 1.5 }}>
-          {t('webhookSecretHelp')}
-        </div>
-
-        <div className="divider" />
-
-        {/* 7. API Keys */}
-        <div className="section-title">{t('apiKeys')}</div>
-        <div className="dash-settings-buttons" style={{ display: 'flex', gap: 8 }}>
-          <button onClick={regenApiKey} className="btn" style={{ flex: 1 }}>{t('regenApiKey')}</button>
-          <button onClick={regenDashToken} className="btn" style={{ flex: 1 }}>{t('regenDashToken')}</button>
-        </div>
-        <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 6, lineHeight: 1.5 }}>
-          {t('apiKeysHelp')}
-        </div>
-
-        {revealedKey && (
-          <div style={{ background: 'var(--cp-bg)', border: '1px solid var(--cp-cyan)', borderRadius: 4, padding: 12, marginTop: 8 }}>
-            <div style={{ fontSize: 10, letterSpacing: 1, color: 'var(--cp-cyan)', marginBottom: 6 }}>
-              {t('newKeyTitle', { type: revealedKey.type.toUpperCase() })}
-            </div>
-            <div style={{ fontSize: 10, color: 'var(--cp-text)', wordBreak: 'break-all', fontFamily: 'monospace', marginBottom: 8 }}>
-              {revealedKey.value}
-            </div>
-            <CopyButton text={revealedKey.value} label={t('copyLabel')} />
-          </div>
-        )}
-
-        <div className="divider" />
-
-        {/* 7b. Scoped API Keys (full + restricted) */}
-        <ScopedKeysSection />
-
-        {/* Luma Integration */}
-        <LumaSettings merchant={merchant} reloadMerchant={reloadMerchant} />
-
-        {/* POS PIN */}
-        <div id="pos-pin-settings">
-          <POSPinSettings />
-        </div>
-
-        {/* 8. Danger Zone */}
-        <div style={{ marginTop: 32, paddingTop: 20, borderTop: '1px solid rgba(239,68,68,0.2)' }}>
-          <div style={{ fontSize: 10, letterSpacing: 2, color: 'var(--cp-red)', fontWeight: 600, marginBottom: 12 }}>{t('dangerZone')}</div>
-          <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginBottom: 12, lineHeight: 1.5 }}>
-            {t('dangerDesc')}
-          </div>
+    <div className="settings-layout">
+      {/* Section Nav */}
+      <nav className="settings-nav">
+        {SECTIONS.map(s => (
           <button
-            onClick={async () => {
-              if (!confirm(t('confirmDelete'))) return;
-              if (!confirm(t('confirmDelete2'))) return;
-              try {
-                await api.deleteAccount();
-                window.location.href = '/';
-              } catch (e: unknown) {
-                const msg = e instanceof Error ? e.message : t('toastFailedDelete');
-                showToast(msg, true);
-              }
-            }}
-            className="btn"
-            style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: 'var(--cp-red)' }}
+            key={s}
+            className={`settings-nav-item${activeSection === s ? ' active' : ''}${s === 'danger' ? ' danger' : ''}`}
+            onClick={() => scrollToSection(s)}
           >
-            {t('deleteAccount')}
+            {sectionLabels[s]}
           </button>
-        </div>
+        ))}
+      </nav>
+
+      {/* Content */}
+      <div className="settings-content">
+        {/* GENERAL */}
+        <section id="settings-general" className="settings-section">
+          <h3 className="settings-section-title">{t('sectionGeneral')}</h3>
+
+          {/* Store Name */}
+          <div className="settings-card">
+            <div className="settings-card-label">{t('storeName')}</div>
+            {editingName ? (
+              <div className="settings-field-row">
+                <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} placeholder={t('storeNamePlaceholder')} className="input" style={{ flex: 1, minWidth: 0 }} />
+                <button onClick={saveName} className="btn btn-small">{tc('save')}</button>
+                {editName && <button onClick={() => { setEditName(merchant.name || ''); setEditingName(false); }} className="btn btn-small btn-cancel">{tc('cancel')}</button>}
+              </div>
+            ) : (
+              <div className="settings-field-row">
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--cp-text)' }}>{editName}</span>
+                <button onClick={() => setEditingName(true)} className="btn btn-small">{tc('edit')}</button>
+              </div>
+            )}
+          </div>
+
+          {/* Display Currency */}
+          <div className="settings-card">
+            <div className="settings-card-label">{t('displayCurrency')}</div>
+            <select
+              value={displayCurrency}
+              onChange={(e) => { const c = e.target.value; setDisplayCurrency(c); localStorage.setItem('cp_currency', c); }}
+              className="input"
+              style={{ width: '100%', fontSize: 11, padding: '8px 12px', cursor: 'pointer' }}
+            >
+              {SUPPORTED_CURRENCIES.map(c => <option key={c} value={c}>{currencyLabel(c)}</option>)}
+            </select>
+            <div className="settings-help">{t('displayCurrencyHelp')}</div>
+          </div>
+
+          {/* Recovery Email */}
+          <div className="settings-card">
+            <div className="settings-card-label">{t('recoveryEmail')}</div>
+            {merchant.recovery_email_preview && !editingEmail ? (
+              <>
+                <div className="settings-field-row">
+                  <span style={{ fontSize: 11, color: 'var(--cp-green)' }}>{merchant.recovery_email_preview}</span>
+                  <span className="status-badge status-confirmed" style={{ fontSize: 9 }}>{tc('set')}</span>
+                </div>
+                <div className="settings-actions">
+                  <button onClick={() => setEditingEmail(true)} className="btn btn-small">{t('emailChange')}</button>
+                  <button onClick={removeEmail} className="btn btn-small" style={{ background: 'transparent', border: '1px solid var(--cp-red)', color: 'var(--cp-red)' }}>{t('emailRemove')}</button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="settings-field-row">
+                  <input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} placeholder={t('emailPlaceholder')} className="input" style={{ flex: 1, minWidth: 0 }} />
+                  <button onClick={saveEmail} className="btn btn-small">{tc('save')}</button>
+                  {editingEmail && (
+                    <button onClick={() => { setEditingEmail(false); setEditEmail(''); }} className="btn btn-small btn-cancel">{tc('cancel')}</button>
+                  )}
+                </div>
+                <div className="settings-help">
+                  {editingEmail ? t('emailChangeHelp') : t('emailAddHelp')}
+                </div>
+              </>
+            )}
+          </div>
+        </section>
+
+        {/* SECURITY */}
+        <section id="settings-security" className="settings-section">
+          <h3 className="settings-section-title">{t('sectionSecurity')}</h3>
+
+          {/* Passkeys */}
+          <div className="settings-card">
+            <PasskeySettings merchant={merchant} reloadMerchant={reloadMerchant} />
+          </div>
+
+          {/* POS PIN */}
+          <div className="settings-card" id="pos-pin-settings">
+            <POSPinSettings />
+          </div>
+        </section>
+
+        {/* DEVELOPER */}
+        <section id="settings-developer" className="settings-section">
+          <h3 className="settings-section-title">{t('sectionDeveloper')}</h3>
+
+          {/* Payment Address */}
+          <div className="settings-card">
+            <div className="settings-card-label">{t('derivedAddress')}</div>
+            <div className="settings-field-row" style={{ flexWrap: 'wrap', gap: 8 }}>
+              <span style={{ fontSize: 9, color: 'var(--cp-text-muted)', wordBreak: 'break-all', fontFamily: 'monospace', flex: '1 1 0', minWidth: 0 }}>
+                {merchant.payment_address}
+              </span>
+              <CopyButton text={merchant.payment_address} label="" />
+            </div>
+            <div className="settings-help">{t('derivedAddressHelp')}</div>
+          </div>
+
+          {/* Webhook URL */}
+          <div className="settings-card">
+            <div className="settings-card-label">{t('webhookUrl')}</div>
+            {editingWebhook ? (
+              <div className="settings-field-row">
+                <input type="url" value={editWebhookUrl} onChange={(e) => setEditWebhookUrl(e.target.value)} placeholder={t('webhookPlaceholder')} className="input" style={{ flex: 1, minWidth: 0, fontSize: 10 }} />
+                <button onClick={saveWebhookUrl} className="btn btn-small">{tc('save')}</button>
+                {merchant.webhook_url && <button onClick={() => { setEditWebhookUrl(merchant.webhook_url || ''); setEditingWebhook(false); }} className="btn btn-small btn-cancel">{tc('cancel')}</button>}
+              </div>
+            ) : (
+              <div className="settings-field-row" style={{ flexWrap: 'wrap', gap: 8 }}>
+                <span style={{ fontSize: 10, color: 'var(--cp-text-muted)', wordBreak: 'break-all', fontFamily: 'monospace', flex: '1 1 0', minWidth: 0 }}>
+                  {editWebhookUrl}
+                </span>
+                <button onClick={() => setEditingWebhook(true)} className="btn btn-small">{tc('edit')}</button>
+              </div>
+            )}
+            <div className="settings-help">{t('webhookUrlHelp')}</div>
+          </div>
+
+          {/* Webhook Secret */}
+          <div className="settings-card">
+            <div className="settings-card-label">{t('webhookSecret')}</div>
+            <div className="settings-field-row">
+              <span style={{ fontSize: 10, color: 'var(--cp-text-dim)', fontFamily: 'monospace' }}>
+                {merchant.webhook_secret_preview ? `${merchant.webhook_secret_preview.slice(0, 12)}${'•'.repeat(20)}` : t('notGenerated')}
+              </span>
+              <button onClick={regenWebhookSecret} className="btn btn-small">{t('regenerate')}</button>
+            </div>
+            <div className="settings-help">{t('webhookSecretHelp')}</div>
+          </div>
+
+          {/* Legacy API Keys */}
+          <div className="settings-card">
+            <div className="settings-card-label">{t('apiKeys')}</div>
+            <div className="settings-actions">
+              <button onClick={regenApiKey} className="btn" style={{ flex: 1 }}>{t('regenApiKey')}</button>
+              <button onClick={regenDashToken} className="btn" style={{ flex: 1 }}>{t('regenDashToken')}</button>
+            </div>
+            <div className="settings-help">{t('apiKeysHelp')}</div>
+
+            {revealedKey && (
+              <div style={{ background: 'var(--cp-bg)', border: '1px solid var(--cp-cyan)', borderRadius: 4, padding: 12, marginTop: 12 }}>
+                <div style={{ fontSize: 10, letterSpacing: 1, color: 'var(--cp-cyan)', marginBottom: 6 }}>
+                  {t('newKeyTitle', { type: revealedKey.type.toUpperCase() })}
+                </div>
+                <div style={{ fontSize: 10, color: 'var(--cp-text)', wordBreak: 'break-all', fontFamily: 'monospace', marginBottom: 8 }}>
+                  {revealedKey.value}
+                </div>
+                <CopyButton text={revealedKey.value} label={t('copyLabel')} />
+              </div>
+            )}
+          </div>
+
+          {/* Scoped API Keys */}
+          <div className="settings-card">
+            <ScopedKeysSection />
+          </div>
+        </section>
+
+        {/* INTEGRATIONS */}
+        <section id="settings-integrations" className="settings-section">
+          <h3 className="settings-section-title">{t('sectionIntegrations')}</h3>
+
+          <div className="settings-card">
+            <LumaSettings merchant={merchant} reloadMerchant={reloadMerchant} />
+          </div>
+        </section>
+
+        {/* DANGER */}
+        <section id="settings-danger" className="settings-section">
+          <h3 className="settings-section-title settings-section-title--danger">{t('sectionDanger')}</h3>
+
+          <div className="settings-card settings-card--danger">
+            <div className="settings-card-label" style={{ color: 'var(--cp-red)' }}>{t('dangerZone')}</div>
+            <div className="settings-help" style={{ marginBottom: 12 }}>
+              {t('dangerDesc')}
+            </div>
+            <button
+              onClick={async () => {
+                if (!confirm(t('confirmDelete'))) return;
+                if (!confirm(t('confirmDelete2'))) return;
+                try {
+                  await api.deleteAccount();
+                  window.location.href = '/';
+                } catch (e: unknown) {
+                  const msg = e instanceof Error ? e.message : t('toastFailedDelete');
+                  showToast(msg, true);
+                }
+              }}
+              className="btn"
+              style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: 'var(--cp-red)' }}
+            >
+              {t('deleteAccount')}
+            </button>
+          </div>
+        </section>
       </div>
     </div>
   );
@@ -305,7 +348,6 @@ function PasskeySettings({ merchant, reloadMerchant }: { merchant: MerchantInfo;
   const [adding, setAdding] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Single-step flow: token → browser dialog → done
   const [step, setStep] = useState<'idle' | 'confirm' | 'registering'>('idle');
   const [token, setToken] = useState('');
   const [tokenError, setTokenError] = useState('');
@@ -423,7 +465,7 @@ function PasskeySettings({ merchant, reloadMerchant }: { merchant: MerchantInfo;
 
   const formatDate = (iso: string) => {
     try {
-      return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
     } catch { return iso; }
   };
 
@@ -431,8 +473,8 @@ function PasskeySettings({ merchant, reloadMerchant }: { merchant: MerchantInfo;
 
   return (
     <div>
-      <div className="section-title">{tp('title')}</div>
-      <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginBottom: 12, lineHeight: 1.5 }}>
+      <div className="settings-card-label">{tp('title')}</div>
+      <div className="settings-help" style={{ marginBottom: 12 }}>
         {tp('description')}
       </div>
 
@@ -465,7 +507,6 @@ function PasskeySettings({ merchant, reloadMerchant }: { merchant: MerchantInfo;
             </div>
           ))}
 
-          {/* Confirmation step: single input for token, then action proceeds automatically */}
           {step === 'confirm' && (
             <div style={{
               background: 'rgba(255,255,255,0.02)', border: '1px solid var(--cp-border)',
@@ -477,7 +518,7 @@ function PasskeySettings({ merchant, reloadMerchant }: { merchant: MerchantInfo;
               <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginBottom: 10 }}>
                 {tp('reauthDesc')}
               </div>
-              <div style={{ display: 'flex', gap: 8 }}>
+              <div className="settings-field-row">
                 <input
                   type="password"
                   value={token}
@@ -554,7 +595,7 @@ function ScopedKeysSection() {
   const formatDate = (iso: string | null) => {
     if (!iso) return null;
     try {
-      return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
     } catch { return iso; }
   };
 
@@ -591,8 +632,8 @@ function ScopedKeysSection() {
 
   return (
     <div>
-      <div className="section-title">{t('scopedKeys')}</div>
-      <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginBottom: 12, lineHeight: 1.5 }}>
+      <div className="settings-card-label">{t('scopedKeys')}</div>
+      <div className="settings-help" style={{ marginBottom: 12 }}>
         {t('scopedKeysHelp')}
       </div>
 
@@ -670,7 +711,7 @@ function ScopedKeysSection() {
               background: 'rgba(255,255,255,0.02)', border: '1px solid var(--cp-border)',
               borderRadius: 4, padding: 14, marginTop: 12,
             }}>
-              <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+              <div className="settings-field-row" style={{ marginBottom: 8 }}>
                 <input
                   type="text"
                   value={newLabel}
@@ -685,23 +726,15 @@ function ScopedKeysSection() {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10, color: 'var(--cp-text-muted)', cursor: 'pointer' }}>
-                  <input
-                    type="radio"
-                    checked={newType === 'restricted'}
-                    onChange={() => setNewType('restricted')}
-                  />
+                  <input type="radio" checked={newType === 'restricted'} onChange={() => setNewType('restricted')} />
                   {t('scopedKeysTypeRestricted')}
                 </label>
                 <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10, color: 'var(--cp-text-muted)', cursor: 'pointer' }}>
-                  <input
-                    type="radio"
-                    checked={newType === 'full'}
-                    onChange={() => setNewType('full')}
-                  />
+                  <input type="radio" checked={newType === 'full'} onChange={() => setNewType('full')} />
                   {t('scopedKeysTypeFull')}
                 </label>
               </div>
-              <div style={{ display: 'flex', gap: 8 }}>
+              <div className="settings-actions">
                 <button onClick={submitCreate} disabled={creating} className="btn btn-small">
                   {creating ? <Spinner size={10} /> : t('scopedKeysCreateConfirm')}
                 </button>
@@ -783,14 +816,14 @@ function POSPinSettings() {
   if (!loaded) return null;
 
   return (
-    <div style={{ marginTop: 32, paddingTop: 20, borderTop: '1px solid var(--cp-border)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-        <div style={{ fontSize: 10, letterSpacing: 2, fontWeight: 600, color: 'var(--cp-cyan)' }}>{tp('title')}</div>
+    <div>
+      <div className="settings-card-label" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <span>{tp('title')}</span>
         <span className={`status-badge ${hasPin ? 'status-confirmed' : 'status-pending'}`} style={{ fontSize: 8 }}>
           {hasPin ? tp('currentPin') : tp('noPin')}
         </span>
       </div>
-      <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', lineHeight: 1.5, marginBottom: 12 }}>
+      <div className="settings-help" style={{ marginBottom: 12 }}>
         {tp('description')}
       </div>
 
@@ -817,17 +850,17 @@ function POSPinSettings() {
             className="input"
             style={{ fontSize: 18, letterSpacing: 12, textAlign: 'center', maxWidth: 160 }}
           />
-          <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+          <div className="settings-actions" style={{ marginTop: 4 }}>
             <button className="btn btn-small" disabled={saving} onClick={handleSave}>
               {saving ? tp('saving') : tp('save')}
             </button>
-            <button className="btn btn-small" onClick={() => { setEditing(false); setNewPin(''); setConfirmPin(''); }}>
+            <button className="btn btn-small btn-cancel" onClick={() => { setEditing(false); setNewPin(''); setConfirmPin(''); }}>
               Cancel
             </button>
           </div>
         </div>
       ) : (
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <div className="settings-actions">
           <button className="btn btn-small" onClick={() => setEditing(true)}>
             {hasPin ? tp('changePin') : tp('setPin')}
           </button>
@@ -863,9 +896,9 @@ function LumaSettings({ merchant, reloadMerchant }: { merchant: MerchantInfo; re
   const [saving, setSaving] = useState(false);
 
   return (
-    <div style={{ marginTop: 32, paddingTop: 20, borderTop: '1px solid var(--cp-border)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-        <span style={{ fontSize: 10, letterSpacing: 2, color: 'var(--cp-warm)', fontWeight: 600 }}>{tl('title')}</span>
+    <div>
+      <div className="settings-card-label" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <span>{tl('title')}</span>
         <span style={{
           fontSize: 9, fontWeight: 600, letterSpacing: 0.5,
           color: merchant.has_luma_key ? 'var(--cp-green)' : 'var(--cp-text-dim)',
@@ -877,7 +910,7 @@ function LumaSettings({ merchant, reloadMerchant }: { merchant: MerchantInfo; re
       </div>
       <div className="form-group" style={{ marginBottom: 8 }}>
         <label style={{ fontSize: 10, color: 'var(--cp-text-muted)', marginBottom: 4, display: 'block' }}>{tl('apiKeyLabel')}</label>
-        <div className="dash-settings-row" style={{ display: 'flex', gap: 8 }}>
+        <div className="settings-field-row">
           <input
             type="password"
             value={lumaKey}
@@ -924,9 +957,7 @@ function LumaSettings({ merchant, reloadMerchant }: { merchant: MerchantInfo; re
           )}
         </div>
       </div>
-      <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', lineHeight: 1.5 }}>
-        {tl('apiKeyHelp')}
-      </div>
+      <div className="settings-help">{tl('apiKeyHelp')}</div>
     </div>
   );
 }

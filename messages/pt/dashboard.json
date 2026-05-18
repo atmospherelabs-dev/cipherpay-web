@@ -237,6 +237,11 @@
   "settings": {
     "title": "Configurações",
     "subtitle": "Gerencie a configuração da loja, credenciais de API e ajustes de segurança.",
+    "sectionGeneral": "Geral",
+    "sectionSecurity": "Segurança",
+    "sectionDeveloper": "Desenvolvedor",
+    "sectionIntegrations": "Integrações",
+    "sectionDanger": "Zona de Perigo",
     "storeName": "Nome da Loja",
     "storeNamePlaceholder": "Minha Loja",
     "displayCurrency": "Moeda de Exibição",

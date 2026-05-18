@@ -236,6 +236,11 @@
   },
   "settings": {
     "title": "Ajustes",
+    "sectionGeneral": "General",
+    "sectionSecurity": "Seguridad",
+    "sectionDeveloper": "Desarrollador",
+    "sectionIntegrations": "Integraciones",
+    "sectionDanger": "Zona de Peligro",
     "storeName": "Nombre de la Tienda",
     "displayCurrency": "Moneda de Visualización",
     "displayCurrencyHelp": "Controla cómo se muestran los montos fiduciarios y las tasas ZEC en el panel. No afecta precios de productos ni montos de facturas.",

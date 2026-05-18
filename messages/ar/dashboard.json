@@ -237,6 +237,11 @@
   "settings": {
     "title": "الإعدادات",
     "subtitle": "أدِر إعدادات متجرك وبيانات API والأمان.",
+    "sectionGeneral": "عام",
+    "sectionSecurity": "الأمان",
+    "sectionDeveloper": "المطوّر",
+    "sectionIntegrations": "التكاملات",
+    "sectionDanger": "منطقة الخطر",
     "storeName": "اسم المتجر",
     "storeNamePlaceholder": "متجري",
     "displayCurrency": "عملة العرض",

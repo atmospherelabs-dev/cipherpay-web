@@ -237,6 +237,11 @@
   "settings": {
     "title": "Settings",
     "subtitle": "Manage your store configuration, API credentials, and security settings.",
+    "sectionGeneral": "General",
+    "sectionSecurity": "Security",
+    "sectionDeveloper": "Developer",
+    "sectionIntegrations": "Integrations",
+    "sectionDanger": "Danger Zone",
     "storeName": "Store Name",
     "storeNamePlaceholder": "My Store",
     "displayCurrency": "Display Currency",
