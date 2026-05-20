@@ -564,7 +564,7 @@
     "step1Title": "استلم المدفوعات",
     "step1Desc": "يدفع لك العملاء بـ ZEC عبر فواتير CipherPay أو روابط الدفع أو جلسات الدفع.",
     "step2Title": "أرسل من محفظتك",
-    "step2Desc": "افتح محفظة Zcash الخاصة بك (Zipher, Zashi, YWallet) وأرسل ZEC إلى Loofta أو Peer لبدء المبادلة.",
+    "step2Desc": "افتح محفظة Zcash الخاصة بك (Zipher, ZODL, Vizor, zkool) وأرسل ZEC إلى Loofta أو Peer لبدء المبادلة.",
     "step3Title": "استلم العملة التقليدية",
     "step3Desc": "يُنفذ أحد الأقران جانب الفيات. يتحقق إثبات المعرفة الصفرية من الاستلام. تحصل على الفيات — بدون وسيط."
   }

@@ -564,7 +564,7 @@
     "step1Title": "Receive payments",
     "step1Desc": "Customers pay you in ZEC through CipherPay invoices, payment links, or checkout sessions.",
     "step2Title": "Send from your wallet",
-    "step2Desc": "Open your Zcash wallet (Zipher, Zashi, YWallet) and send ZEC to Loofta or Peer to initiate a swap.",
+    "step2Desc": "Open your Zcash wallet (Zipher, ZODL, Vizor, zkool) and send ZEC to Loofta or Peer to initiate a swap.",
     "step3Title": "Receive fiat",
     "step3Desc": "A peer on the network fulfills the fiat side. ZK proof verifies receipt. You get fiat — no middleman."
   }

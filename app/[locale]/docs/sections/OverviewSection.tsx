@@ -60,7 +60,7 @@ export default function OverviewSection({ onNavigate }: { onNavigate: (id: strin
       </Paragraph>
       <Paragraph>
         <Strong>Step 2:</Strong> The customer is redirected to a hosted checkout page. They see a QR code and a payment address.
-        They scan it with their Zcash wallet (like Zodl or YWallet), and the transaction is sent.
+        They scan it with their Zcash wallet (like ZODL, Vizor, or zkool), and the transaction is sent.
       </Paragraph>
       <Paragraph>
         <Strong>Step 3:</Strong> CipherPay continuously monitors the Zcash network. When the transaction appears in the mempool
@@ -117,7 +117,7 @@ export default function OverviewSection({ onNavigate }: { onNavigate: (id: strin
         <div style={{ marginBottom: 8 }}>
           <Strong>1. A Zcash wallet</Strong><br />
           <span style={{ paddingLeft: 16, display: 'inline-block' }}>
-            Download <a href="https://zodl.com/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>Zodl</a> (mobile), <a href="https://ywallet.app" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>YWallet</a> (desktop &amp; mobile), or <a href="https://www.npmjs.com/package/@cipherpay/zipher-cli" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>Zipher CLI</a> (terminal / AI agents).
+            Download <a href="https://zodl.org/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>ZODL</a> (mobile), <a href="https://vizor.cash" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>Vizor</a> (desktop), <a href="https://zkool.app" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>zkool</a> (desktop &amp; mobile), or <a href="https://www.npmjs.com/package/@cipherpay/zipher-cli" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>Zipher CLI</a> (terminal / AI agents).
             This is where your payments will arrive. You control the private keys — CipherPay never has access to them.
           </span>
         </div>

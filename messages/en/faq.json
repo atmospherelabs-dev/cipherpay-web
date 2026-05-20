@@ -14,7 +14,7 @@
   "s2q1": "Should I use my personal wallet for my store?",
   "s2a1": "No. Generate a dedicated wallet exclusively for your CipherPay store. This isolates your commercial transaction history from your personal finances. If the server is ever compromised, an attacker would only see your store's sales history, not your personal net worth or other transactions. Sweep funds from your store wallet to cold storage regularly.",
   "s2q2": "What is the recommended wallet setup?",
-  "s2a2": "1. Create a brand new wallet (using Zodl, Zipher (coming soon), or Ywallet) dedicated to your store.\n2. Export the Unified Full Viewing Key (UFVK) from that wallet.\n3. Use that UFVK when registering on CipherPay.\n4. Periodically sweep received funds to your main cold storage wallet.\n5. Never reuse this wallet for personal transactions.",
+  "s2a2": "1. Create a brand new wallet (using ZODL, Vizor, Zipher (coming soon), or zkool) dedicated to your store.\n2. Export the Unified Full Viewing Key (UFVK) from that wallet.\n3. Use that UFVK when registering on CipherPay.\n4. Periodically sweep received funds to your main cold storage wallet.\n5. Never reuse this wallet for personal transactions.",
   "s2q3": "Can I change my payment address?",
   "s2a3": "Yes. You can update your payment address anytime from the dashboard settings. For security, this requires re-entering your dashboard token. New invoices will use the new address. Existing pending invoices keep the address they were created with.",
   "s2q4": "Can I change my viewing key (UFVK)?",
@@ -80,7 +80,7 @@
 
   "s9Title": "Wallets & Testing",
   "s9q1": "Which Zcash wallets work with CipherPay?",
-  "s9a1": "Any wallet that supports Zcash Unified Addresses and Orchard shielded transactions. Recommended: Zodl (iOS), Zashi (iOS/Android), Ywallet (iOS/Android/desktop), or Zipher (coming soon). The wallet needs to support scanning QR codes or opening zcash: URIs.",
+  "s9a1": "Any wallet that supports Zcash Unified Addresses and Orchard shielded transactions. Recommended: ZODL (iOS/Android), Vizor (macOS/Windows/Linux), zkool (iOS/Android/desktop), or Zipher (coming soon). The wallet needs to support scanning QR codes or opening zcash: URIs.",
   "s9q2": "Can I test before going live?",
   "s9a2": "Yes. CipherPay supports Zcash testnet. Register with a testnet viewing key, and all invoices are created on testnet. You can test the full flow — invoice creation, payment, confirmation, webhooks — without spending real ZEC. Switch to mainnet when ready by updating your viewing key and network setting.",
   "s9q3": "Can I accept ZEC in person (point of sale)?",

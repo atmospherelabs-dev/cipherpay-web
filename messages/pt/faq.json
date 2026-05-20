@@ -14,7 +14,7 @@
   "s2q1": "Devo usar minha carteira pessoal para a loja?",
   "s2a1": "Não. Gere uma carteira dedicada exclusivamente à sua loja CipherPay. Isso isola seu histórico comercial das suas finanças pessoais. Se o servidor for comprometido, um atacante veria apenas o histórico de vendas da loja, não seu patrimônio pessoal ou outras transações. Transfira fundos da carteira da loja para cold storage regularmente.",
   "s2q2": "Qual é a configuração de carteira recomendada?",
-  "s2a2": "1. Crie uma carteira nova (usando Zodl, Zipher (em breve) ou Ywallet) dedicada à sua loja.\n2. Exporte a Unified Full Viewing Key (UFVK) dessa carteira.\n3. Use essa UFVK ao se registrar no CipherPay.\n4. Periodicamente transfira os fundos recebidos para sua carteira principal de cold storage.\n5. Nunca reutilize essa carteira para transações pessoais.",
+  "s2a2": "1. Crie uma carteira nova (usando ZODL, Vizor, Zipher (em breve) ou zkool) dedicada à sua loja.\n2. Exporte a Unified Full Viewing Key (UFVK) dessa carteira.\n3. Use essa UFVK ao se registrar no CipherPay.\n4. Periodicamente transfira os fundos recebidos para sua carteira principal de cold storage.\n5. Nunca reutilize essa carteira para transações pessoais.",
   "s2q3": "Posso alterar meu endereço de pagamento?",
   "s2a3": "Sim. Você pode atualizar seu endereço de pagamento a qualquer momento nas configurações do dashboard. Por segurança, isso exige reinserir seu token do dashboard. Novas faturas usarão o novo endereço. Faturas pendentes existentes mantêm o endereço com que foram criadas.",
   "s2q4": "Posso alterar minha chave de visualização (UFVK)?",
@@ -80,7 +80,7 @@
 
   "s9Title": "Carteiras e Testes",
   "s9q1": "Quais carteiras Zcash funcionam com o CipherPay?",
-  "s9a1": "Qualquer carteira que suporte Endereços Unificados Zcash e transações blindadas Orchard. Recomendadas: Zodl (iOS), Zashi (iOS/Android), Ywallet (iOS/Android/desktop) ou Zipher (em breve). A carteira precisa suportar leitura de QR codes ou abertura de URIs zcash:.",
+  "s9a1": "Qualquer carteira que suporte Endereços Unificados Zcash e transações blindadas Orchard. Recomendadas: ZODL (iOS/Android), Vizor (macOS/Windows/Linux), zkool (iOS/Android/desktop) ou Zipher (em breve). A carteira precisa suportar leitura de QR codes ou abertura de URIs zcash:.",
   "s9q2": "Posso testar antes de ir ao ar?",
   "s9a2": "Sim. O CipherPay suporta testnet Zcash. Registre-se com uma chave de visualização testnet e todas as faturas são criadas na testnet. Você pode testar o fluxo completo — criação de fatura, pagamento, confirmação, webhooks — sem gastar ZEC real. Mude para mainnet quando estiver pronto atualizando sua chave de visualização e configuração de rede.",
   "s9q3": "Posso aceitar ZEC pessoalmente (ponto de venda)?",

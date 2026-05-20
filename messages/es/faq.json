@@ -14,7 +14,7 @@
   "s2q1": "¿Debo usar mi billetera personal para mi tienda?",
   "s2a1": "No. Genera una billetera dedicada exclusivamente para tu tienda CipherPay. Esto aísla tu historial comercial de tus finanzas personales. Si el servidor llegara a comprometerse, un atacante solo vería el historial de ventas de tu tienda, no tu patrimonio personal ni otras transacciones. Transfiere fondos de tu billetera de tienda a almacenamiento en frío con regularidad.",
   "s2q2": "¿Cuál es la configuración de billetera recomendada?",
-  "s2a2": "1. Crea una billetera nueva (con Zodl, Zipher (próximamente) o Ywallet) dedicada a tu tienda.\n2. Exporta la Unified Full Viewing Key (UFVK) de esa billetera.\n3. Usa esa UFVK al registrarte en CipherPay.\n4. Transfiere periódicamente los fondos recibidos a tu billetera principal de almacenamiento en frío.\n5. Nunca reutilices esta billetera para transacciones personales.",
+  "s2a2": "1. Crea una billetera nueva (con ZODL, Vizor, Zipher (próximamente) o zkool) dedicada a tu tienda.\n2. Exporta la Unified Full Viewing Key (UFVK) de esa billetera.\n3. Usa esa UFVK al registrarte en CipherPay.\n4. Transfiere periódicamente los fondos recibidos a tu billetera principal de almacenamiento en frío.\n5. Nunca reutilices esta billetera para transacciones personales.",
   "s2q3": "¿Puedo cambiar mi dirección de pago?",
   "s2a3": "Sí. Puedes actualizar tu dirección de pago en cualquier momento desde la configuración del panel. Por seguridad, esto requiere volver a ingresar tu token del panel. Las nuevas facturas usarán la nueva dirección. Las facturas pendientes existentes conservan la dirección con la que fueron creadas.",
   "s2q4": "¿Puedo cambiar mi clave de visualización (UFVK)?",
@@ -80,7 +80,7 @@
 
   "s9Title": "Billeteras y pruebas",
   "s9q1": "¿Qué billeteras Zcash funcionan con CipherPay?",
-  "s9a1": "Cualquier billetera que soporte Direcciones Unificadas de Zcash y transacciones blindadas Orchard. Recomendadas: Zodl (iOS), Zashi (iOS/Android), Ywallet (iOS/Android/escritorio) o Zipher (próximamente). La billetera necesita soportar escaneo de códigos QR o apertura de URIs zcash:.",
+  "s9a1": "Cualquier billetera que soporte Direcciones Unificadas de Zcash y transacciones blindadas Orchard. Recomendadas: ZODL (iOS/Android), Vizor (macOS/Windows/Linux), zkool (iOS/Android/escritorio) o Zipher (próximamente). La billetera necesita soportar escaneo de códigos QR o apertura de URIs zcash:.",
   "s9q2": "¿Puedo probar antes de ir en vivo?",
   "s9a2": "Sí. CipherPay soporta testnet de Zcash. Regístrate con una clave de visualización de testnet y todas las facturas se crean en testnet. Puedes probar el flujo completo — creación de facturas, pago, confirmación, webhooks — sin gastar ZEC real. Cambia a mainnet cuando estés listo actualizando tu clave de visualización y configuración de red.",
   "s9q3": "¿Puedo aceptar ZEC en persona (punto de venta)?",
