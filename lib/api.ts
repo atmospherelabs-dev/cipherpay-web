@@ -478,8 +478,44 @@ export interface LumaPassData {
   ticket_type?: string | null;
 }
 
+export interface ShopifySetupResponse {
+  ok: boolean;
+  client_id: string;
+  shop_domain: string;
+  app_url: string;
+  redirect_url: string;
+  status_token: string | null;
+  deploy_job: {
+    id: string;
+    status: 'queued' | 'processing' | 'deployed' | 'failed';
+  } | null;
+}
+
+export interface ShopifyDeployStatus {
+  id: string;
+  client_id: string;
+  app_name: string;
+  status: 'queued' | 'processing' | 'deployed' | 'failed';
+  created_at: string;
+  updated_at: string;
+  error: string | null;
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    ...options,
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(body.error || `Request failed: ${res.status}`);
+  }
+  return res.json();
+}
+
+async function sameOriginRequest<T>(path: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(path, {
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     ...options,
@@ -551,6 +587,25 @@ export const api = {
 
   deletePasskey: (id: string) =>
     request<{ status: string }>(`/api/auth/passkeys/${id}`, { method: 'DELETE' }),
+
+  setupShopify: (data: {
+    dashboard_token: string;
+    client_id: string;
+    client_secret: string;
+    shop_domain: string;
+    app_name?: string;
+    app_automation_token: string;
+  }) =>
+    sameOriginRequest<ShopifySetupResponse>('/api/shopify/setup', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  getShopifyDeployStatus: (jobId: string, statusToken: string) =>
+    sameOriginRequest<ShopifyDeployStatus>(`/api/shopify/deploy-jobs/${jobId}`, {
+      method: 'POST',
+      body: JSON.stringify({ status_token: statusToken }),
+    }),
 
   // API keys (full + restricted)
   listApiKeys: () =>

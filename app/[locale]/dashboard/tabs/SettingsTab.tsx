@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useState, useEffect, useCallback } from 'react';
+import { memo, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { api, type MerchantInfo, type PasskeyInfo, type ApiKeySummary, type ApiKeyType } from '@/lib/api';
 import { CopyButton } from '@/components/CopyButton';
@@ -301,6 +301,10 @@ export const SettingsTab = memo(function SettingsTab({
         {/* INTEGRATIONS */}
         <section id="settings-integrations" className="settings-section">
           <h3 className="settings-section-title">{t('sectionIntegrations')}</h3>
+
+          <div className="settings-card">
+            <ShopifySetup />
+          </div>
 
           <div className="settings-card">
             <LumaSettings merchant={merchant} reloadMerchant={reloadMerchant} />
@@ -886,6 +890,208 @@ function POSPinSettings() {
         </div>
       )}
     </div>
+  );
+}
+
+function ShopifySetup() {
+  const { showToast } = useToast();
+  const [dashboardToken, setDashboardToken] = useState('');
+  const [shopDomain, setShopDomain] = useState('');
+  const [clientId, setClientId] = useState('');
+  const [clientSecret, setClientSecret] = useState('');
+  const [automationToken, setAutomationToken] = useState('');
+  const [appName, setAppName] = useState('CipherPay');
+  const [submitting, setSubmitting] = useState(false);
+  const [deployJobId, setDeployJobId] = useState<string | null>(null);
+  const [statusToken, setStatusToken] = useState<string | null>(null);
+  const [deployStatus, setDeployStatus] = useState<'idle' | 'queued' | 'processing' | 'deployed' | 'failed'>('idle');
+  const [deployError, setDeployError] = useState<string | null>(null);
+  const [appUrl, setAppUrl] = useState<string | null>(null);
+  const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!deployJobId || !statusToken || deployStatus === 'deployed' || deployStatus === 'failed') return;
+
+    let cancelled = false;
+    const timer = window.setInterval(async () => {
+      try {
+        const status = await api.getShopifyDeployStatus(deployJobId, statusToken);
+        if (cancelled) return;
+        setDeployStatus(status.status);
+        setDeployError(status.error);
+        if (status.status === 'deployed') {
+          showToast('Shopify checkout block deployed.');
+          window.clearInterval(timer);
+        }
+        if (status.status === 'failed') {
+          showToast('Shopify deployment failed. Check the error below.', true);
+          window.clearInterval(timer);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          const message = err instanceof Error ? err.message : 'Could not check deploy status';
+          setDeployError(message);
+        }
+      }
+    }, 5000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [deployJobId, statusToken, deployStatus, showToast]);
+
+  const submit = async () => {
+    setSubmitting(true);
+    setDeployError(null);
+    try {
+      const response = await api.setupShopify({
+        dashboard_token: dashboardToken.trim(),
+        client_id: clientId.trim(),
+        client_secret: clientSecret.trim(),
+        shop_domain: shopDomain.trim(),
+        app_name: appName.trim() || 'CipherPay',
+        app_automation_token: automationToken.trim(),
+      });
+
+      setAppUrl(response.app_url);
+      setRedirectUrl(response.redirect_url);
+      setDeployJobId(response.deploy_job?.id || null);
+      setStatusToken(response.status_token);
+      setDeployStatus(response.deploy_job?.status || 'idle');
+      setClientSecret('');
+      setAutomationToken('');
+      showToast(response.deploy_job ? 'Shopify deploy job queued.' : 'Shopify app registered.');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Shopify setup failed', true);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const statusColor = deployStatus === 'deployed'
+    ? 'var(--cp-green)'
+    : deployStatus === 'failed'
+      ? 'var(--cp-red)'
+      : deployStatus === 'idle'
+        ? 'var(--cp-text-dim)'
+        : 'var(--cp-yellow)';
+
+  return (
+    <div>
+      <div className="settings-card-label" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <span>Shopify</span>
+        <span style={{
+          fontSize: 9, fontWeight: 600, letterSpacing: 0.5,
+          color: statusColor,
+          background: 'rgba(255,255,255,0.05)',
+          padding: '2px 7px', borderRadius: 3,
+        }}>
+          {deployStatus === 'idle' ? 'not configured' : deployStatus}
+        </span>
+      </div>
+
+      <div className="settings-help" style={{ marginBottom: 12 }}>
+        Connect a merchant-owned Shopify custom app. CipherPay creates a dedicated restricted API key, configures the webhook URL, and deploys the checkout block automatically. The Shopify automation token is used once and is not stored.
+      </div>
+
+      <div style={{ display: 'grid', gap: 10 }}>
+        <input
+          className="input"
+          value={shopDomain}
+          onChange={(e) => setShopDomain(e.target.value)}
+          placeholder="Permanent store domain, e.g. 1h8myk-qj.myshopify.com"
+          style={{ fontSize: 10 }}
+        />
+        <input
+          className="input"
+          value={clientId}
+          onChange={(e) => setClientId(e.target.value)}
+          placeholder="Shopify Client ID"
+          style={{ fontSize: 10 }}
+        />
+        <input
+          className="input"
+          type="password"
+          value={clientSecret}
+          onChange={(e) => setClientSecret(e.target.value)}
+          placeholder="Shopify Client Secret"
+          style={{ fontSize: 10 }}
+        />
+        <input
+          className="input"
+          type="password"
+          value={automationToken}
+          onChange={(e) => setAutomationToken(e.target.value)}
+          placeholder="One-time App automation token (atkn_...)"
+          style={{ fontSize: 10 }}
+        />
+        <input
+          className="input"
+          value={appName}
+          onChange={(e) => setAppName(e.target.value)}
+          placeholder="Shopify app name"
+          style={{ fontSize: 10 }}
+        />
+        <input
+          className="input"
+          type="password"
+          value={dashboardToken}
+          onChange={(e) => setDashboardToken(e.target.value)}
+          placeholder="CipherPay dashboard token (cpay_dash_...)"
+          style={{ fontSize: 10 }}
+        />
+      </div>
+
+      <button
+        className="btn"
+        disabled={submitting || !shopDomain.trim() || !clientId.trim() || !clientSecret.trim() || !automationToken.trim() || !dashboardToken.trim()}
+        onClick={submit}
+        style={{ marginTop: 12, opacity: submitting ? 0.6 : 1 }}
+      >
+        {submitting ? <Spinner size={12} /> : 'Register and deploy Shopify app'}
+      </button>
+
+      {(deployJobId || appUrl || redirectUrl) && (
+        <div style={{
+          marginTop: 14,
+          padding: 12,
+          border: '1px solid var(--cp-border)',
+          borderRadius: 4,
+          background: 'rgba(255,255,255,0.02)',
+          fontSize: 10,
+          color: 'var(--cp-text-dim)',
+          lineHeight: 1.8,
+        }}>
+          {deployJobId && <div>Deploy job: <CodeLike>{deployJobId}</CodeLike></div>}
+          <div>Status: <span style={{ color: statusColor }}>{deployStatus}</span></div>
+          {appUrl && <div>App URL: <CodeLike>{appUrl}</CodeLike></div>}
+          {redirectUrl && <div>Redirect URL: <CodeLike>{redirectUrl}</CodeLike></div>}
+          {deployStatus === 'deployed' && (
+            <div style={{ color: 'var(--cp-green)', marginTop: 8 }}>
+              Deployed and CipherPay credentials are configured. Refresh Shopify Dev Dashboard, then use Custom distribution to install the app.
+            </div>
+          )}
+          {deployError && (
+            <div style={{ color: 'var(--cp-red)', marginTop: 8, whiteSpace: 'pre-wrap' }}>
+              {deployError}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CodeLike({ children }: { children: ReactNode }) {
+  return (
+    <span style={{
+      fontFamily: 'monospace',
+      color: 'var(--cp-cyan)',
+      wordBreak: 'break-all',
+    }}>
+      {children}
+    </span>
   );
 }
 

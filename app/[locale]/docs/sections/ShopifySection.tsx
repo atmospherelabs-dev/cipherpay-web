@@ -45,26 +45,33 @@ export default function ShopifySection() {
 
       <Step n={1} title="Create your private Shopify app">
         <Paragraph>
-          Create a new app in the Shopify Dev Dashboard. This is a private custom app for your own store — you do not submit it to the Shopify App Store.
+          Create or log into a free Shopify Partner account, then open the Shopify Dev Dashboard and create a new app.
+          This is a private custom app for your own store — you do not submit it to the Shopify App Store.
         </Paragraph>
         <div style={{ fontSize: 11, color: 'var(--cp-text-dim)', lineHeight: 2.4, marginBottom: 12 }}>
-          <Strong>App URL</Strong> — CipherPay will provide this after your app credentials are registered. It looks like <Code>https://connect.cipherpay.app/api/auth/tenant/...</Code>.<br />
+          <Strong>App URL</Strong> — Use <Code>https://connect.cipherpay.app</Code> temporarily when creating the app. CipherPay will set the final app URL when the checkout block is deployed.<br />
           <Strong>Redirect URL</Strong> — Use <Code>https://connect.cipherpay.app/api/auth/callback</Code>.<br />
           <Strong>Scopes</Strong> — Use <Code>read_orders,write_orders</Code>.<br />
           <Strong>Embedded app</Strong> — Leave disabled.
         </div>
         <Paragraph>
-          Copy the app&apos;s Client ID, Client Secret, and a one-time Shopify CLI token. CipherPay uses these to securely deploy the checkout block to your private app.
+          Copy the app&apos;s Client ID and Client Secret. Then create a one-time App automation token in the same Dev Dashboard.
+          CipherPay uses these to securely deploy the checkout block to your private app. The automation token is used once and is not stored.
         </Paragraph>
       </Step>
 
       <Step n={2} title="Deploy and install your private app">
         <Paragraph>
-          After CipherPay deploys the checkout extension to your private app, choose <Strong>Custom distribution</Strong> in Shopify and enter your store&apos;s <Code>.myshopify.com</Code> domain.
+          After CipherPay deploys the checkout extension to your private app, the app version will contain the final App URL and Redirect URL automatically.
+          You do not need to manually edit the version URLs after deployment.
+        </Paragraph>
+        <Paragraph>
+          Next, choose <Strong>Custom distribution</Strong> in Shopify and enter your store&apos;s permanent <Code>.myshopify.com</Code> domain.
           Shopify will generate a private install link for your store.
         </Paragraph>
         <Paragraph>
-          Open the install link and approve the app. You&apos;ll be redirected to the CipherPay Shopify settings page.
+          Open the install link and approve the app. If Shopify shows both a store name and an internal generated domain, use the permanent domain Shopify uses in the install link.
+          You&apos;ll be redirected to the CipherPay Shopify settings page.
         </Paragraph>
       </Step>
 
