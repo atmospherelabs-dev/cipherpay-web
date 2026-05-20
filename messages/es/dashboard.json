@@ -564,7 +564,7 @@
     "step1Title": "Recibe pagos",
     "step1Desc": "Los clientes te pagan en ZEC a través de facturas CipherPay, enlaces de pago o sesiones de checkout.",
     "step2Title": "Envía desde tu billetera",
-    "step2Desc": "Abre tu billetera Zcash (Zipher, ZODL, Vizor, zkool) y envía ZEC a Loofta o Peer para iniciar un intercambio.",
+    "step2Desc": "Abre tu billetera Zcash (ZODL, Vizor, zkool, Zipher) y envía ZEC a Loofta o Peer para iniciar un intercambio.",
     "step3Title": "Recibe fiat",
     "step3Desc": "Un par en la red cumple el lado fiat. La prueba ZK verifica el recibo. Recibes fiat — sin intermediarios."
   }

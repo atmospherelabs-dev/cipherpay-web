@@ -38,7 +38,7 @@ export default function QuickstartSection() {
         <div style={{ fontSize: 11, color: 'var(--cp-text-dim)', lineHeight: 2.2, marginBottom: 12 }}>
           <Strong>ZODL</Strong> — <a href="https://zodl.org/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>zodl.org</a> (iOS, Android) — recommended for beginners<br />
           <Strong>Vizor</Strong> — <a href="https://vizor.cash" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>vizor.cash</a> (macOS, Windows, Linux) — desktop-first, by the Keplr team<br />
-          <Strong>zkool</Strong> — <a href="https://zkool.app" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>zkool.app</a> (iOS, Android, desktop) — more advanced features<br />
+          <Strong>zkool</Strong> — <a href="https://hhanh00.github.io/zkool2/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>zkool</a> (iOS, Android, desktop) — more advanced features<br />
           <Strong>Zingo!</Strong> — <a href="https://zingolabs.org" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>zingolabs.org</a> — developer-friendly, supports testnet<br />
         </div>
         <Paragraph>
