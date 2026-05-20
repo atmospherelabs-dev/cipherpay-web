@@ -6,13 +6,12 @@ export default function ShopifySection() {
   return (
     <>
       <Paragraph>
-        If you run a Shopify store, you can accept Zcash payments with the CipherPay app — no coding required.
-        The app handles everything: creating invoices when customers place orders,
-        showing a payment button on the Thank You page, and updating order statuses when payment is confirmed.
+        If you run a Shopify store, you can accept Zcash payments with CipherPay using a merchant-owned custom app.
+        The app handles invoice creation, shows a payment button on the Thank You page, and updates order statuses when payment is confirmed.
       </Paragraph>
 
       <Callout type="info">
-        Estimated setup time: <Strong>10 minutes</Strong>. You need a CipherPay account (see Quickstart) and Shopify admin access.
+        Estimated setup time: <Strong>15 minutes</Strong>. You need a CipherPay account, Shopify admin access, and a free Shopify Partner account to create your private app.
       </Callout>
 
       <SectionTitle>How the app works</SectionTitle>
@@ -44,18 +43,32 @@ export default function ShopifySection() {
 
       <SectionDivider />
 
-      <Step n={1} title="Install the CipherPay app">
+      <Step n={1} title="Create your private Shopify app">
         <Paragraph>
-          Install the app by visiting the install link with your store name:
+          Create a new app in the Shopify Dev Dashboard. This is a private custom app for your own store — you do not submit it to the Shopify App Store.
         </Paragraph>
-        <CodeBlock lang="text" code={`https://connect.cipherpay.app/api/auth?shop=yourstore.myshopify.com`} />
+        <div style={{ fontSize: 11, color: 'var(--cp-text-dim)', lineHeight: 2.4, marginBottom: 12 }}>
+          <Strong>App URL</Strong> — CipherPay will provide this after your app credentials are registered. It looks like <Code>https://connect.cipherpay.app/api/auth/tenant/...</Code>.<br />
+          <Strong>Redirect URL</Strong> — Use <Code>https://connect.cipherpay.app/api/auth/callback</Code>.<br />
+          <Strong>Scopes</Strong> — Use <Code>read_orders,write_orders</Code>.<br />
+          <Strong>Embedded app</Strong> — Leave disabled.
+        </div>
         <Paragraph>
-          Replace <Code>yourstore</Code> with your actual Shopify store name. This will redirect you to Shopify to authorize the app.
+          Copy the app&apos;s Client ID, Client Secret, and a one-time Shopify CLI token. CipherPay uses these to securely deploy the checkout block to your private app.
         </Paragraph>
-        
       </Step>
 
-      <Step n={2} title="Configure CipherPay credentials">
+      <Step n={2} title="Deploy and install your private app">
+        <Paragraph>
+          After CipherPay deploys the checkout extension to your private app, choose <Strong>Custom distribution</Strong> in Shopify and enter your store&apos;s <Code>.myshopify.com</Code> domain.
+          Shopify will generate a private install link for your store.
+        </Paragraph>
+        <Paragraph>
+          Open the install link and approve the app. You&apos;ll be redirected to the CipherPay Shopify settings page.
+        </Paragraph>
+      </Step>
+
+      <Step n={3} title="Configure CipherPay credentials">
         <Paragraph>
           After installation, you&apos;ll be redirected to the CipherPay settings page. Fill in:
         </Paragraph>
@@ -68,7 +81,7 @@ export default function ShopifySection() {
         
       </Step>
 
-      <Step n={3} title="Add a manual payment method">
+      <Step n={4} title="Add a manual payment method">
         <Paragraph>
           In your Shopify admin, go to <Strong>Settings &rarr; Payments &rarr; Manual payment methods</Strong> and add a method called exactly:
         </Paragraph>
@@ -80,7 +93,7 @@ export default function ShopifySection() {
         
       </Step>
 
-      <Step n={4} title="Add the payment button to the Thank You page">
+      <Step n={5} title="Add the payment button to the Thank You page">
         <Paragraph>
           The CipherPay button needs to be placed on the checkout Thank You page:
         </Paragraph>
@@ -107,7 +120,7 @@ export default function ShopifySection() {
         </div>
       </Step>
 
-      <Step n={5} title="Set the webhook URL in CipherPay">
+      <Step n={6} title="Set the webhook URL in CipherPay">
         <Paragraph>
           CipherPay needs to know where to send payment confirmations. In your CipherPay dashboard &rarr; Settings, set the Webhook URL to:
         </Paragraph>
@@ -117,7 +130,7 @@ export default function ShopifySection() {
         </Paragraph>
       </Step>
 
-      <Step n={6} title="Test a payment">
+      <Step n={7} title="Test a payment">
         <Paragraph>
           Add an item to your cart and proceed to checkout. Select <Strong>&quot;Pay with Zcash (ZEC)&quot;</Strong> as the payment method
           and complete the order. On the Thank You page, you&apos;ll see a <Strong>&quot;Pay with CipherPay&quot;</Strong> button.
