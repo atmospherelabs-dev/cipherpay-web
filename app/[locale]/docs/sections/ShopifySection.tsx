@@ -62,8 +62,12 @@ export default function ShopifySection() {
 
       <Step n={2} title="Deploy and install your private app">
         <Paragraph>
-          After CipherPay deploys the checkout extension to your private app, the app version will contain the final App URL and Redirect URL automatically.
-          You do not need to manually edit the version URLs after deployment.
+          Go to <Strong>CipherPay Dashboard &rarr; Settings &rarr; Integrations &rarr; Shopify</Strong>. Paste your permanent store domain,
+          Shopify Client ID, Client Secret, one-time App automation token, and CipherPay dashboard token.
+        </Paragraph>
+        <Paragraph>
+          CipherPay will create a dedicated restricted API key, configure the webhook URL, and deploy the checkout extension to your private Shopify app.
+          The app version will contain the final App URL and Redirect URL automatically, so you do not need to manually edit the version URLs after deployment.
         </Paragraph>
         <Paragraph>
           Next, choose <Strong>Custom distribution</Strong> in Shopify and enter your store&apos;s permanent <Code>.myshopify.com</Code> domain.
@@ -75,17 +79,14 @@ export default function ShopifySection() {
         </Paragraph>
       </Step>
 
-      <Step n={3} title="Configure CipherPay credentials">
+      <Step n={3} title="Confirm connector settings">
         <Paragraph>
-          After installation, you&apos;ll be redirected to the CipherPay settings page. Fill in:
+          After installation, you&apos;ll be redirected to the CipherPay Shopify settings page. If setup was completed from the CipherPay dashboard,
+          your API key, webhook secret, and API URL should already be configured.
         </Paragraph>
-        <div style={{ fontSize: 11, color: 'var(--cp-text-dim)', lineHeight: 2.4, marginBottom: 12 }}>
-          <Code>API Key</Code> — Your CipherPay API key. Find it in your CipherPay dashboard &gt; Settings &gt; API Keys.<br />
-          <Code>Webhook Secret</Code> — The secret used to verify webhook signatures. Found in your CipherPay dashboard &gt; Settings (starts with <Code>whsec_</Code>).<br />
-          <Code>API URL</Code> — Use <Code>https://api.cipherpay.app</Code> for mainnet,
-          or <Code>https://api.testnet.cipherpay.app</Code> for testnet.
-        </div>
-        
+        <Paragraph>
+          You only need to edit this page if you are troubleshooting or intentionally replacing the generated restricted API key.
+        </Paragraph>
       </Step>
 
       <Step n={4} title="Add a manual payment method">
@@ -127,17 +128,7 @@ export default function ShopifySection() {
         </div>
       </Step>
 
-      <Step n={6} title="Set the webhook URL in CipherPay">
-        <Paragraph>
-          CipherPay needs to know where to send payment confirmations. In your CipherPay dashboard &rarr; Settings, set the Webhook URL to:
-        </Paragraph>
-        <CodeBlock lang="text" code={`https://connect.cipherpay.app/api/webhook/cipherpay`} />
-        <Paragraph>
-          This URL is also displayed on your CipherPay settings page in Shopify for easy copying.
-        </Paragraph>
-      </Step>
-
-      <Step n={7} title="Test a payment">
+      <Step n={6} title="Test a payment">
         <Paragraph>
           Add an item to your cart and proceed to checkout. Select <Strong>&quot;Pay with Zcash (ZEC)&quot;</Strong> as the payment method
           and complete the order. On the Thank You page, you&apos;ll see a <Strong>&quot;Pay with CipherPay&quot;</Strong> button.
@@ -153,8 +144,8 @@ export default function ShopifySection() {
       <SectionTitle>Troubleshooting</SectionTitle>
       <div style={{ fontSize: 11, color: 'var(--cp-text-dim)', lineHeight: 2.2 }}>
         <Strong>Payment button doesn&apos;t appear on the Thank You page</Strong> — Make sure you added the CipherPay Checkout block in the checkout editor (Settings &rarr; Checkout &rarr; Customize &rarr; Thank you page) and clicked Save.<br /><br />
-        <Strong>Order status doesn&apos;t update after payment</Strong> — Verify the webhook URL is set correctly in your CipherPay dashboard. Check that the webhook secret in both CipherPay and the Shopify app settings match.<br /><br />
-        <Strong>&quot;Payment not ready&quot; message</Strong> — This usually means the app is still creating the invoice. Wait a few seconds and the button should appear. If it persists, check that your CipherPay API key is correct.<br /><br />
+        <Strong>Order status doesn&apos;t update after payment</Strong> — Open the CipherPay Shopify settings page and confirm the API key, webhook secret, and API URL are configured.<br /><br />
+        <Strong>&quot;Payment not ready&quot; message</Strong> — This usually means the app is still creating the invoice. Wait a few seconds and try again. If it persists, confirm the connector settings are configured.<br /><br />
         <Strong>Need help?</Strong> — Contact us at contact@atmospherelabs.dev
       </div>
     </>
