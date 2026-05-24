@@ -29,7 +29,7 @@ export default function ShopifySection() {
       <div style={{ margin: '24px 0', borderRadius: 8, overflow: 'hidden', border: '1px solid var(--cp-border)' }}>
         <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0 }}>
           <iframe
-            src="https://www.youtube.com/embed/5SCCdOcka2k"
+            src="https://www.youtube.com/embed/CfnQORoMOEs"
             title="CipherPay for Shopify — Setup Walkthrough"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
