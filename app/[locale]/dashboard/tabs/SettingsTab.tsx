@@ -303,7 +303,7 @@ export const SettingsTab = memo(function SettingsTab({
           <h3 className="settings-section-title">{t('sectionIntegrations')}</h3>
 
           <div className="settings-card">
-            <ShopifySetup />
+            <ShopifySetup merchant={merchant} />
           </div>
 
           <div className="settings-card">
@@ -893,8 +893,10 @@ function POSPinSettings() {
   );
 }
 
-function ShopifySetup() {
+function ShopifySetup({ merchant }: { merchant: MerchantInfo }) {
   const { showToast } = useToast();
+  const isAlreadyConfigured = !!merchant.webhook_url?.includes('connect.cipherpay.app');
+  const [showForm, setShowForm] = useState(false);
   const [dashboardToken, setDashboardToken] = useState('');
   const [shopDomain, setShopDomain] = useState('');
   const [clientId, setClientId] = useState('');
@@ -904,7 +906,9 @@ function ShopifySetup() {
   const [submitting, setSubmitting] = useState(false);
   const [deployJobId, setDeployJobId] = useState<string | null>(null);
   const [statusToken, setStatusToken] = useState<string | null>(null);
-  const [deployStatus, setDeployStatus] = useState<'idle' | 'queued' | 'processing' | 'deployed' | 'failed'>('idle');
+  const [deployStatus, setDeployStatus] = useState<'idle' | 'queued' | 'processing' | 'deployed' | 'failed'>(
+    isAlreadyConfigured ? 'deployed' : 'idle'
+  );
   const [deployError, setDeployError] = useState<string | null>(null);
   const [appUrl, setAppUrl] = useState<string | null>(null);
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
@@ -992,92 +996,132 @@ function ShopifySetup() {
       </div>
 
       <div className="settings-help" style={{ marginBottom: 12 }}>
-        Connect a merchant-owned Shopify custom app. CipherPay creates a dedicated restricted API key, configures the webhook URL, and deploys the checkout block automatically. The Shopify automation token is used once and is not stored.
+        {deployStatus === 'deployed' && !showForm
+          ? 'Shopify integration is active. CipherPay API key, webhook, and checkout block are configured.'
+          : 'Connect a merchant-owned Shopify custom app. CipherPay creates a dedicated restricted API key, configures the webhook URL, and deploys the checkout block automatically. The Shopify automation token is used once and is not stored.'}
       </div>
 
-      <div style={{ display: 'grid', gap: 10 }}>
-        <input
-          className="input"
-          value={shopDomain}
-          onChange={(e) => setShopDomain(e.target.value)}
-          placeholder="Permanent store domain, e.g. 1h8myk-qj.myshopify.com"
-          style={{ fontSize: 10 }}
-        />
-        <input
-          className="input"
-          value={clientId}
-          onChange={(e) => setClientId(e.target.value)}
-          placeholder="Shopify Client ID"
-          style={{ fontSize: 10 }}
-        />
-        <input
-          className="input"
-          type="password"
-          value={clientSecret}
-          onChange={(e) => setClientSecret(e.target.value)}
-          placeholder="Shopify Client Secret"
-          style={{ fontSize: 10 }}
-        />
-        <input
-          className="input"
-          type="password"
-          value={automationToken}
-          onChange={(e) => setAutomationToken(e.target.value)}
-          placeholder="One-time App automation token (atkn_...)"
-          style={{ fontSize: 10 }}
-        />
-        <input
-          className="input"
-          value={appName}
-          onChange={(e) => setAppName(e.target.value)}
-          placeholder="Shopify app name"
-          style={{ fontSize: 10 }}
-        />
-        <input
-          className="input"
-          type="password"
-          value={dashboardToken}
-          onChange={(e) => setDashboardToken(e.target.value)}
-          placeholder="CipherPay dashboard token (cpay_dash_...)"
-          style={{ fontSize: 10 }}
-        />
-      </div>
-
-      <button
-        className="btn"
-        disabled={submitting || !shopDomain.trim() || !clientId.trim() || !clientSecret.trim() || !automationToken.trim() || !dashboardToken.trim()}
-        onClick={submit}
-        style={{ marginTop: 12, opacity: submitting ? 0.6 : 1 }}
-      >
-        {submitting ? <Spinner size={12} /> : 'Register and deploy Shopify app'}
-      </button>
-
-      {(deployJobId || appUrl || redirectUrl) && (
-        <div style={{
-          marginTop: 14,
-          padding: 12,
-          border: '1px solid var(--cp-border)',
-          borderRadius: 4,
-          background: 'rgba(255,255,255,0.02)',
-          fontSize: 10,
-          color: 'var(--cp-text-dim)',
-          lineHeight: 1.8,
-        }}>
-          {deployJobId && <div>Deploy job: <CodeLike>{deployJobId}</CodeLike></div>}
-          <div>Status: <span style={{ color: statusColor }}>{deployStatus}</span></div>
-          {appUrl && <div>App URL: <CodeLike>{appUrl}</CodeLike></div>}
-          {redirectUrl && <div>Redirect URL: <CodeLike>{redirectUrl}</CodeLike></div>}
-          {deployStatus === 'deployed' && (
-            <div style={{ color: 'var(--cp-green)', marginTop: 8 }}>
-              Deployed and CipherPay credentials are configured. Refresh Shopify Dev Dashboard, then use Custom distribution to install the app.
-            </div>
-          )}
-          {deployError && (
-            <div style={{ color: 'var(--cp-red)', marginTop: 8, whiteSpace: 'pre-wrap' }}>
-              {deployError}
-            </div>
-          )}
+      {deployStatus === 'deployed' && !showForm ? (
+        <div>
+          <div style={{
+            padding: 12,
+            border: '1px solid rgba(34,197,94,0.2)',
+            borderRadius: 4,
+            background: 'rgba(34,197,94,0.04)',
+            fontSize: 10,
+            color: 'var(--cp-text-dim)',
+            lineHeight: 1.8,
+            marginBottom: 12,
+          }}>
+            <div style={{ color: 'var(--cp-green)', fontWeight: 600, marginBottom: 4 }}>Connected</div>
+            <div>Webhook: <CodeLike>{merchant.webhook_url}</CodeLike></div>
+          </div>
+          <button
+            className="btn btn-small"
+            onClick={() => setShowForm(true)}
+            style={{ fontSize: 9, color: 'var(--cp-text-dim)' }}
+          >
+            Reconfigure
+          </button>
         </div>
+      ) : (
+        <>
+          <div style={{ display: 'grid', gap: 10 }}>
+            <input
+              className="input"
+              value={shopDomain}
+              onChange={(e) => setShopDomain(e.target.value)}
+              placeholder="Permanent store domain, e.g. 1h8myk-qj.myshopify.com"
+              style={{ fontSize: 10 }}
+            />
+            <input
+              className="input"
+              value={clientId}
+              onChange={(e) => setClientId(e.target.value)}
+              placeholder="Shopify Client ID"
+              style={{ fontSize: 10 }}
+            />
+            <input
+              className="input"
+              type="password"
+              value={clientSecret}
+              onChange={(e) => setClientSecret(e.target.value)}
+              placeholder="Shopify Client Secret"
+              style={{ fontSize: 10 }}
+            />
+            <input
+              className="input"
+              type="password"
+              value={automationToken}
+              onChange={(e) => setAutomationToken(e.target.value)}
+              placeholder="One-time App automation token (atkn_...)"
+              style={{ fontSize: 10 }}
+            />
+            <input
+              className="input"
+              value={appName}
+              onChange={(e) => setAppName(e.target.value)}
+              placeholder="Shopify app name"
+              style={{ fontSize: 10 }}
+            />
+            <input
+              className="input"
+              type="password"
+              value={dashboardToken}
+              onChange={(e) => setDashboardToken(e.target.value)}
+              placeholder="CipherPay dashboard token (cpay_dash_...)"
+              style={{ fontSize: 10 }}
+            />
+          </div>
+
+          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+            <button
+              className="btn"
+              disabled={submitting || !shopDomain.trim() || !clientId.trim() || !clientSecret.trim() || !automationToken.trim() || !dashboardToken.trim()}
+              onClick={submit}
+              style={{ opacity: submitting ? 0.6 : 1 }}
+            >
+              {submitting ? <Spinner size={12} /> : 'Register and deploy Shopify app'}
+            </button>
+            {showForm && (
+              <button
+                className="btn btn-small btn-cancel"
+                onClick={() => setShowForm(false)}
+                style={{ fontSize: 9 }}
+              >
+                Cancel
+              </button>
+            )}
+          </div>
+
+          {(deployJobId || appUrl || redirectUrl) && (
+            <div style={{
+              marginTop: 14,
+              padding: 12,
+              border: '1px solid var(--cp-border)',
+              borderRadius: 4,
+              background: 'rgba(255,255,255,0.02)',
+              fontSize: 10,
+              color: 'var(--cp-text-dim)',
+              lineHeight: 1.8,
+            }}>
+              {deployJobId && <div>Deploy job: <CodeLike>{deployJobId}</CodeLike></div>}
+              <div>Status: <span style={{ color: statusColor }}>{deployStatus}</span></div>
+              {appUrl && <div>App URL: <CodeLike>{appUrl}</CodeLike></div>}
+              {redirectUrl && <div>Redirect URL: <CodeLike>{redirectUrl}</CodeLike></div>}
+              {deployStatus === 'deployed' && (
+                <div style={{ color: 'var(--cp-green)', marginTop: 8 }}>
+                  Deployed and CipherPay credentials are configured. Refresh Shopify Dev Dashboard, then use Custom distribution to install the app.
+                </div>
+              )}
+              {deployError && (
+                <div style={{ color: 'var(--cp-red)', marginTop: 8, whiteSpace: 'pre-wrap' }}>
+                  {deployError}
+                </div>
+              )}
+            </div>
+          )}
+        </>
       )}
     </div>
   );
