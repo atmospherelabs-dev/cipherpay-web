@@ -19,7 +19,7 @@ export function CodeTabs({ tabs }: CodeTabsProps) {
   return (
     <div className="panel">
       <div className="panel-header" style={{ gap: 8 }}>
-        <div style={{ display: 'flex', gap: 4 }}>
+        <div style={{ display: 'flex', gap: 4, overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
           {tabs.map((tab, i) => (
             <button
               key={tab.label}
@@ -36,6 +36,8 @@ export function CodeTabs({ tabs }: CodeTabsProps) {
                 background: active === i ? 'rgba(0, 212, 255, 0.1)' : 'transparent',
                 color: active === i ? 'var(--cp-cyan)' : 'var(--cp-text-muted)',
                 transition: 'all 0.15s',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
               }}
             >
               {tab.label}

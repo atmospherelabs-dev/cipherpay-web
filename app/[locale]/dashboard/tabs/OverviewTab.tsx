@@ -6,6 +6,7 @@ import type { MerchantInfo, Invoice, Product, BillingSummary, ZecRates, EventSum
 import { currencySymbol, zecToFiat, fiatLabel } from '@/lib/currency';
 import type { Tab } from '../components/DashboardSidebar';
 import type { TabAction } from '../DashboardClient';
+import { ZecMapPrompt } from '@/components/ZecMapPrompt';
 
 interface OverviewTabProps {
   merchant: MerchantInfo;
@@ -353,6 +354,8 @@ export const OverviewTab = memo(function OverviewTab({
             <span style={{ color: 'var(--cp-text-muted)' }}>{t('eventsLabel')}</span>
             <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--cp-text)' }}>{events.length}</span>
           </div>
+
+          {nameConfigured && <ZecMapPrompt namespace="dashboard.overview" />}
         </div>
       </div>
     </div>

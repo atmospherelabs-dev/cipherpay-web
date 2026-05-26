@@ -8,70 +8,10 @@ import { AnimatedSection, StaggerChildren, StaggerItem } from '@/components/Anim
 import { CodeTabs } from '@/components/CodeTabs';
 import { PrivacyTable } from '@/components/PrivacyTable';
 import { AgentFlow } from '@/components/AgentFlow';
+import { IntegrationLogoBar } from '@/components/IntegrationLogoBar';
+import { UseCasesSection } from '@/components/UseCasesSection';
+import { CheckoutPrivacySection } from '@/components/CheckoutPrivacySection';
 import { getTranslations } from 'next-intl/server';
-
-const x402Snippet = `import { zcashPaywall } from '@cipherpay/x402/express';
-
-app.use('/api/premium', zcashPaywall({
-  amount: 0.001,
-  address: 'u1abc...',
-  apiKey: process.env.CIPHERPAY_API_KEY,
-}));`;
-
-const agentTabs = [
-  {
-    label: 'Merchant',
-    tag: '@cipherpay/x402',
-    code: `import { zcashPaywall } from '@cipherpay/x402/express';
-
-// One line — handles x402, MPP, and session tokens
-app.use('/api/premium', zcashPaywall({
-  amount: 0.001,
-  address: 'u1abc...',
-  apiKey: process.env.CIPHERPAY_API_KEY,
-}));
-
-// Agents pay with ZEC, you get the data
-app.get('/api/premium/data', (req, res) => {
-  res.json({ temperature: 18 });
-});`,
-  },
-  {
-    label: 'Agent (beta)',
-    tag: '@cipherpay/zipher-cli',
-    code: `# Pay for a paywalled API — auto-detects x402 or MPP
-$ zipher-cli pay https://api.example.com/premium/data
-
-# Or open a prepaid session for bulk access
-$ zipher-cli session open \\
-    --merchant abc123 \\
-    --deposit 0.01 \\
-    --cost-per-request 1000
-
-# Then use the session token
-$ zipher-cli session request \\
-    --url https://api.example.com/premium/data`,
-  },
-  {
-    label: 'MCP',
-    tag: '@cipherpay/mcp',
-    code: `// Add to claude_desktop_config.json or mcp.json
-{
-  "mcpServers": {
-    "cipherpay": {
-      "command": "npx",
-      "args": ["@cipherpay/mcp"],
-      "env": {
-        "CIPHERPAY_API_KEY": "cpay_sk_..."
-      }
-    }
-  }
-}
-
-// Then ask your AI: "Verify tx abc123 paid 0.001 ZEC"
-// Or: "Open a session for merchant xyz"`,
-  },
-];
 
 const codeTabs = [
   {
@@ -109,20 +49,56 @@ console.log(invoice.zcash_uri);
 // → "zcash:u1...?amount=0.12345678&memo=..."`,
   },
   {
-    label: 'Python',
-    tag: 'SDK',
-    code: `import cipherpay
+    label: 'x402',
+    tag: '@cipherpay/x402',
+    code: `import { zcashPaywall } from '@cipherpay/x402/express';
 
-cp = cipherpay.Client("cpay_sk_...")
+// One line — handles x402, MPP, and session tokens
+app.use('/api/premium', zcashPaywall({
+  amount: 0.001,
+  address: 'u1abc...',
+  apiKey: process.env.CIPHERPAY_API_KEY,
+}));
 
-invoice = cp.invoices.create(
-    amount=29.99,
-    currency="USD",
-    product_name="T-Shirt",
-)
+// Agents pay with ZEC, you get the data
+app.get('/api/premium/data', (req, res) => {
+  res.json({ temperature: 18 });
+});`,
+  },
+  {
+    label: 'Agent CLI',
+    tag: '@cipherpay/zipher-cli',
+    code: `# Pay for a paywalled API — auto-detects x402 or MPP
+$ zipher-cli pay https://api.example.com/premium/data
 
-print(invoice.zcash_uri)
-# → "zcash:u1...?amount=0.12345678&memo=..."`,
+# Or open a prepaid session for bulk access
+$ zipher-cli session open \\
+    --merchant abc123 \\
+    --deposit 0.01 \\
+    --cost-per-request 1000
+
+# Then use the session token
+$ zipher-cli session request \\
+    --url https://api.example.com/premium/data`,
+  },
+  {
+    label: 'MCP',
+    tag: '@cipherpay/mcp',
+    code: `// Add to claude_desktop_config.json or mcp.json
+{
+  "mcpServers": {
+    "cipherpay": {
+      "command": "npx",
+      "args": ["@cipherpay/mcp"],
+      "env": {
+        "CIPHERPAY_API_KEY": "cpay_sk_..."
+      }
+    }
+  }
+}
+
+// Then ask your AI: "Verify tx abc123 paid 0.001 ZEC"
+// Or: "Open a session for merchant xyz"`,
   },
 ];
 
@@ -133,7 +109,7 @@ export default async function LandingPage() {
     <div style={{ minHeight: '100vh', fontFamily: 'var(--font-geist-mono), monospace', fontSize: 13, lineHeight: 1.6 }}>
       <SiteHeader />
 
-      {/* Hero */}
+      {/* 1. Hero */}
       <section style={{ padding: '100px 24px 80px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
         <MeshGradient />
         <AnimatedSection style={{ maxWidth: 700, margin: '0 auto', position: 'relative' }}>
@@ -155,59 +131,15 @@ export default async function LandingPage() {
               {t('ctaHowItWorks')}
             </a>
           </div>
+
+          <IntegrationLogoBar />
         </AnimatedSection>
       </section>
 
-      {/* Features */}
-      <section style={{ borderTop: '1px solid var(--cp-border)', padding: '80px 24px' }}>
-        <div style={{ maxWidth: 900, margin: '0 auto' }}>
-          <AnimatedSection>
-            <div className="section-title" style={{ textAlign: 'center', marginBottom: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><LogoMark size={8} /> {t('whyCipherpay')}</div>
-          </AnimatedSection>
-          <StaggerChildren style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
-            <StaggerItem>
-              <div className="panel">
-                <div className="panel-header">
-                  <span className="panel-title">{t('feature1Title')}</span>
-                </div>
-                <div className="panel-body">
-                  <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>
-                    {t('feature1Desc')}
-                  </p>
-                </div>
-              </div>
-            </StaggerItem>
+      {/* 2. Use Cases (Built For) */}
+      <UseCasesSection />
 
-            <StaggerItem>
-              <div className="panel">
-                <div className="panel-header">
-                  <span className="panel-title">{t('feature2Title')}</span>
-                </div>
-                <div className="panel-body">
-                  <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>
-                    {t('feature2Desc')}
-                  </p>
-                </div>
-              </div>
-            </StaggerItem>
-
-            <StaggerItem>
-              <div className="panel">
-                <div className="panel-header">
-                  <span className="panel-title">{t('feature3Title')}</span>
-                </div>
-                <div className="panel-body">
-                  <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>
-                    {t('feature3Desc')}
-                  </p>
-                </div>
-              </div>
-            </StaggerItem>
-          </StaggerChildren>
-        </div>
-      </section>
-
-      {/* How it works */}
+      {/* 3. How it works */}
       <section id="how-it-works" style={{ borderTop: '1px solid var(--cp-border)', padding: '80px 24px', position: 'relative', overflow: 'hidden' }}>
         <MeshGradient variant="steps" className="mesh-gradient-steps" colors={['#00D4FF', '#8FE1FF', '#F4B728', '#FFE876']} />
         <div style={{ maxWidth: 900, margin: '0 auto', position: 'relative' }}>
@@ -219,7 +151,6 @@ export default async function LandingPage() {
           </AnimatedSection>
 
           <StaggerChildren className="steps-grid">
-            {/* Step 1: Register */}
             <StaggerItem className="step-col">
               <div className="step-header">
                 <div className="step-title">{t('step1')}</div>
@@ -244,7 +175,6 @@ export default async function LandingPage() {
               </div>
             </StaggerItem>
 
-            {/* Step 2: Add Products */}
             <StaggerItem className="step-col">
               <div className="step-header">
                 <div className="step-title">{t('step2')}</div>
@@ -310,7 +240,6 @@ export default async function LandingPage() {
               </div>
             </StaggerItem>
 
-            {/* Step 3: Get Paid */}
             <StaggerItem className="step-col">
               <div className="step-header">
                 <div className="step-title">{t('step3')}</div>
@@ -338,7 +267,10 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* Code Example */}
+      {/* 4. Checkout Privacy */}
+      <CheckoutPrivacySection />
+
+      {/* 5. For Developers — all code in one place */}
       <section style={{ borderTop: '1px solid var(--cp-border)', padding: '80px 24px' }}>
         <AnimatedSection style={{ maxWidth: 700, margin: '0 auto' }}>
           <div className="section-title" style={{ textAlign: 'center', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><LogoMark size={8} /> {t('forDevelopers')}</div>
@@ -350,59 +282,8 @@ export default async function LandingPage() {
         </AnimatedSection>
       </section>
 
-      {/* Integrations */}
-      <section style={{ borderTop: '1px solid var(--cp-border)', padding: '80px 24px' }}>
-        <div style={{ maxWidth: 700, margin: '0 auto' }}>
-          <AnimatedSection>
-            <div className="section-title" style={{ textAlign: 'center', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><LogoMark size={8} /> {t('integrationsTitle')}</div>
-            <h2 style={{ fontSize: 24, fontWeight: 700, textAlign: 'center', marginBottom: 32 }}>
-              {t('integrationsSubtitle')}
-            </h2>
-          </AnimatedSection>
-
-          <StaggerChildren className="integrations-grid">
-            <StaggerItem><div className="panel">
-              <div className="panel-body">
-                <div style={{ fontSize: 11, color: 'var(--cp-cyan)', letterSpacing: 1, marginBottom: 8 }}>{t('intHosted')}</div>
-                <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>{t('intHostedDesc')}</p>
-              </div>
-            </div></StaggerItem>
-            <StaggerItem><div className="panel">
-              <div className="panel-body">
-                <div style={{ fontSize: 11, color: 'var(--cp-cyan)', letterSpacing: 1, marginBottom: 8 }}>{t('intApi')}</div>
-                <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>{t('intApiDesc')}</p>
-              </div>
-            </div></StaggerItem>
-            <StaggerItem><div className="panel">
-              <div className="panel-body">
-                <div style={{ fontSize: 11, color: 'var(--cp-cyan)', letterSpacing: 1, marginBottom: 8 }}>{t('intWidget')}</div>
-                <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>{t('intWidgetDesc')}</p>
-              </div>
-            </div></StaggerItem>
-            <StaggerItem><div className="panel">
-              <div className="panel-body">
-                <div style={{ fontSize: 11, color: 'var(--cp-cyan)', letterSpacing: 1, marginBottom: 8 }}>{t('intShopify')}</div>
-                <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>{t('intShopifyDesc')}</p>
-              </div>
-            </div></StaggerItem>
-            <StaggerItem><div className="panel">
-              <div className="panel-body">
-                <div style={{ fontSize: 11, color: 'var(--cp-cyan)', letterSpacing: 1, marginBottom: 8 }}>{t('intWoo')}</div>
-                <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>{t('intWooDesc')}</p>
-              </div>
-            </div></StaggerItem>
-            <StaggerItem><div className="panel">
-              <div className="panel-body">
-                <div style={{ fontSize: 11, color: 'var(--cp-cyan)', letterSpacing: 1, marginBottom: 8 }}>{t('intMcp')}</div>
-                <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.7 }}>{t('intMcpDesc')}</p>
-              </div>
-            </div></StaggerItem>
-          </StaggerChildren>
-        </div>
-      </section>
-
-      {/* AI Agents */}
-      <section className="section-agents" style={{ borderTop: '1px solid var(--cp-border)', padding: '80px 24px', position: 'relative', overflow: 'hidden' }}>
+      {/* 6. AI Agents — privacy table + flow diagram */}
+      <section id="agents" className="section-agents" style={{ borderTop: '1px solid var(--cp-border)', padding: '80px 24px', position: 'relative', overflow: 'hidden' }}>
         <MeshGradient variant="agents" colors={['#8FE1FF', '#00D4FF', '#56D4C8', '#FFE876']} />
         <div style={{ maxWidth: 900, margin: '0 auto', position: 'relative' }}>
           <AnimatedSection>
@@ -418,7 +299,6 @@ export default async function LandingPage() {
             </p>
           </AnimatedSection>
 
-          {/* Privacy Comparison */}
           <PrivacyTable
             header={{
               label: <>&nbsp;</>,
@@ -432,7 +312,6 @@ export default async function LandingPage() {
             }))}
           />
 
-          {/* x402 / MPP Protocol Flow */}
           <div style={{ marginTop: 24 }}>
             <AgentFlow
               title={t('agentsHow')}
@@ -446,17 +325,10 @@ export default async function LandingPage() {
               ]}
             />
           </div>
-
-          {/* Tabbed code: Merchant / Agent / MCP */}
-          <div style={{ marginTop: 24 }}>
-            <AnimatedSection>
-              <CodeTabs tabs={agentTabs} />
-            </AnimatedSection>
-          </div>
         </div>
       </section>
 
-      {/* CTA */}
+      {/* 7. CTA */}
       <section style={{ borderTop: '1px solid var(--cp-border)', padding: '80px 24px', position: 'relative', overflow: 'hidden' }}>
         <MeshGradient
           variant="cta"

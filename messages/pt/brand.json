@@ -1,0 +1,19 @@
+{
+  "title": "Recursos de marca",
+  "subtitle": "Baixe logos e ícones do CipherPay para imprensa, integrações e diretórios.",
+  "logosTitle": "Logos",
+  "iconsTitle": "Ícones",
+  "download": "Baixar",
+  "usageTitle": "Uso",
+  "usage1": "Use estes recursos ao mencionar o CipherPay em diretórios, imprensa ou páginas de parceiros.",
+  "usage2": "Não modifique as cores ou proporções do logo. Mantenha espaço livre ao redor.",
+  "usage3": "CipherPay é um produto da Atmosphere Labs. Link para cipherpay.app quando possível.",
+  "assets": {
+    "logoFull": "Logo completo (transparente)",
+    "logoDark": "Logo completo (fundo escuro)",
+    "logoMark": "Símbolo",
+    "icon192": "Ícone do app 192×192",
+    "icon512": "Ícone do app 512×512",
+    "favicon": "Favicon"
+  }
+}

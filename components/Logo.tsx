@@ -1,7 +1,7 @@
 export function Logo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
   const config = {
-    sm: { icon: 8, text: 14, gap: 4 },
-    md: { icon: 11, text: 17, gap: 5 },
+    sm: { icon: 12, text: 16, gap: 6 },
+    md: { icon: 14, text: 18, gap: 6 },
     lg: { icon: 16, text: 24, gap: 6 },
   }[size];
 

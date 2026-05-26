@@ -70,7 +70,10 @@
     "importFromLuma": "Importar de Luma",
     "upcomingEvents": "Próximos Eventos",
     "soldLabel": "vendidos",
-    "lumaIntegration": "Integración Luma"
+    "lumaIntegration": "Integración Luma",
+    "zecmapTitle": "PUBLICAR EN ZECMAP",
+    "zecmapDesc": "ZecMap ayuda a los holders de ZEC a descubrir comercios. Envía tu tienda al directorio comunitario.",
+    "zecmapAction": "ENVIAR A ZECMAP →"
   },
   "products": {
     "title": "Catálogo de Productos",

@@ -1,6 +1,39 @@
 {
   "heroTitle": "<purple>Private</purple> payments for the internet.",
   "heroSubtitle": "Accept Zcash in minutes. Non-custodial. Zero buyer data. No middleman.",
+  "logoBar": {
+    "ariaLabel": "Supported integrations",
+    "label": "Works with your stack"
+  },
+  "useCases": {
+    "title": "BUILT FOR",
+    "subtitle": "Three ways to get paid in ZEC",
+    "intro": "Plug into what you already run. Payment links and hosted checkout are in How it works below.",
+    "showcaseCaption": "Shopify, WooCommerce, or your own site — CipherPay adds ZEC without replacing your store.",
+    "onlineTitle": "Sell online",
+    "onlineDesc": "Shopify app, WooCommerce plugin, payment links, or REST API. Your storefront stays yours — CipherPay adds ZEC without replacing your store.",
+    "inPersonTitle": "Sell in person",
+    "inPersonDesc": "iPad POS for markets and retail. QR checkout, tips, and receipts on any tablet.",
+    "agentsTitle": "Sell to machines",
+    "agentsDesc": "x402 paywalls and MCP for AI agents. Shielded ZEC — no public payment graph.",
+    "learnMore": "Learn more →",
+    "checkoutNote": "Step 3 in How it works shows the checkout page your customers scan.",
+    "tabsAriaLabel": "How you sell with CipherPay"
+  },
+  "privacy": {
+    "title": "WHAT STAYS PRIVATE",
+    "subtitle": "Your customers aren't the product",
+    "intro": "Card processors and transparent crypto expose buyers. CipherPay checkout collects nothing from the person paying.",
+    "typicalCheckout": "TYPICAL CHECKOUT",
+    "cipherpayCheckout": "CIPHERPAY CHECKOUT",
+    "Row1": "Buyer name & email",
+    "Row2": "Payment linked to identity",
+    "Row3": "Purchase history on chain",
+    "Row4": "Third-party analytics",
+    "Row5": "Your ZEC in custody",
+    "exposed": "Collected",
+    "hidden": "Not collected"
+  },
   "ctaStart": "START ACCEPTING ZEC",
   "ctaHowItWorks": "HOW IT WORKS",
   "ctaDashboard": "GO TO DASHBOARD",

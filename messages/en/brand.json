@@ -1,0 +1,19 @@
+{
+  "title": "Brand Assets",
+  "subtitle": "Download CipherPay logos and icons for press, integrations, and partner listings.",
+  "logosTitle": "Logos",
+  "iconsTitle": "Icons",
+  "download": "Download",
+  "usageTitle": "Usage",
+  "usage1": "Use these assets when referring to CipherPay in directories, press, or partner pages.",
+  "usage2": "Do not modify the logo colors or proportions. Keep clear space around the mark.",
+  "usage3": "CipherPay is a product of Atmosphere Labs. Link back to cipherpay.app when possible.",
+  "assets": {
+    "logoFull": "Full logo (transparent)",
+    "logoDark": "Full logo (dark background)",
+    "logoMark": "Logo mark",
+    "icon192": "App icon 192×192",
+    "icon512": "App icon 512×512",
+    "favicon": "Favicon"
+  }
+}

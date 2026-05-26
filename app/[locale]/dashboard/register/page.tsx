@@ -9,6 +9,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { MeshGradient } from '@/components/MeshGradient';
 import { CopyButton } from '@/components/CopyButton';
+import { ZecMapPrompt } from '@/components/ZecMapPrompt';
 import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 
@@ -110,6 +111,8 @@ export default function RegisterPage() {
                     {t('credentialsWarning')}
                   </p>
                 </div>
+
+                <ZecMapPrompt namespace="auth.register" />
 
                 <Link href="/dashboard/login" className="btn-primary" style={{ width: '100%', marginTop: 16, textAlign: 'center' }}>
                   {t('goToDashboard')}

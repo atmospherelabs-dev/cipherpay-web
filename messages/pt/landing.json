@@ -1,6 +1,39 @@
 {
   "heroTitle": "Pagamentos <purple>privados</purple> para a internet.",
   "heroSubtitle": "Aceite Zcash em minutos. Não-custodial. Zero dados do comprador. Sem intermediários.",
+  "logoBar": {
+    "ariaLabel": "Integrações compatíveis",
+    "label": "Funciona com sua stack"
+  },
+  "useCases": {
+    "title": "FEITO PARA",
+    "subtitle": "Três formas de receber em ZEC",
+    "intro": "Encaixe no que você já usa. Links de pagamento e checkout hospedado estão em Como funciona abaixo.",
+    "showcaseCaption": "Shopify, WooCommerce ou seu próprio site — CipherPay adiciona ZEC sem substituir sua loja.",
+    "onlineTitle": "Venda online",
+    "onlineDesc": "App Shopify, plugin WooCommerce, links de pagamento ou REST API. Sua vitrine continua sua — CipherPay adiciona ZEC sem substituir sua loja.",
+    "inPersonTitle": "Venda presencialmente",
+    "inPersonDesc": "POS em iPad para mercados e varejo. Checkout QR, gorjetas e recibos em qualquer tablet.",
+    "agentsTitle": "Venda para máquinas",
+    "agentsDesc": "Paywalls x402 e MCP para agentes de IA. ZEC blindado — sem grafo de pagamentos público.",
+    "learnMore": "Saiba mais →",
+    "checkoutNote": "O passo 3 em Como funciona mostra o checkout que seus clientes escaneiam.",
+    "tabsAriaLabel": "Como você vende com CipherPay"
+  },
+  "privacy": {
+    "title": "O QUE PERMANECE PRIVADO",
+    "subtitle": "Seus clientes não são o produto",
+    "intro": "Processadores de cartão e cripto transparente expõem compradores. O checkout CipherPay não coleta nada de quem paga.",
+    "typicalCheckout": "CHECKOUT TÍPICO",
+    "cipherpayCheckout": "CHECKOUT CIPHERPAY",
+    "Row1": "Nome e email do comprador",
+    "Row2": "Pagamento ligado à identidade",
+    "Row3": "Histórico de compras on-chain",
+    "Row4": "Analytics de terceiros",
+    "Row5": "Seu ZEC em custódia",
+    "exposed": "Coletado",
+    "hidden": "Não coletado"
+  },
   "ctaStart": "COMECE A ACEITAR ZEC",
   "ctaHowItWorks": "COMO FUNCIONA",
   "ctaDashboard": "IR PARA O PAINEL",

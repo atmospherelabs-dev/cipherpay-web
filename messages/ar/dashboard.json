@@ -70,7 +70,10 @@
     "importFromLuma": "استيراد من Luma",
     "upcomingEvents": "الفعاليات القادمة",
     "soldLabel": "مباعة",
-    "lumaIntegration": "تكامل Luma"
+    "lumaIntegration": "تكامل Luma",
+    "zecmapTitle": "الإدراج في ZECMAP",
+    "zecmapDesc": "يساعد ZecMap حاملي ZEC على اكتشاف التجار. أرسل متجرك إلى الدليل المجتمعي.",
+    "zecmapAction": "إرسال إلى ZECMAP →"
   },
   "products": {
     "title": "كتالوج المنتجات",
