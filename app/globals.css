@@ -1309,7 +1309,7 @@ body {
 
 .privacy-compare-header {
   display: grid;
-  grid-template-columns: 1fr 120px 120px;
+  grid-template-columns: 1fr 140px 160px;
   padding: 12px 18px;
   border-bottom: 1px solid var(--cp-border);
   background: rgba(255, 255, 255, 0.02);
@@ -1321,6 +1321,7 @@ body {
   letter-spacing: 1.5px;
   text-transform: uppercase;
   text-align: center;
+  white-space: nowrap;
 }
 
 .privacy-compare-col--exposed {
@@ -1333,7 +1334,7 @@ body {
 
 .privacy-compare-row {
   display: grid;
-  grid-template-columns: 1fr 120px 120px;
+  grid-template-columns: 1fr 140px 160px;
   padding: 10px 18px;
   border-bottom: 1px solid var(--cp-border);
   transition: background 0.15s ease;
@@ -1988,7 +1989,12 @@ body {
 
   .privacy-compare-header,
   .privacy-compare-row {
-    grid-template-columns: 1fr 90px 90px;
+    grid-template-columns: 1fr 72px 72px;
+  }
+
+  .privacy-compare-col {
+    font-size: 8px;
+    letter-spacing: 1px;
   }
 
   .privacy-compare-cell span {

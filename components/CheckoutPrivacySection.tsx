@@ -22,7 +22,7 @@ export function CheckoutPrivacySection() {
 
   return (
     <section id="privacy" style={{ borderTop: '1px solid var(--cp-border)', padding: '80px 24px' }}>
-      <div style={{ maxWidth: 600, margin: '0 auto' }}>
+      <div style={{ maxWidth: 720, margin: '0 auto' }}>
         <AnimatedSection>
           <div
             className="section-title"
