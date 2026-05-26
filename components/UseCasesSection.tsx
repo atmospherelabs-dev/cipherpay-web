@@ -9,6 +9,34 @@ import { AgentTerminalVisual } from '@/components/AgentTerminalVisual';
 
 const CYCLE_MS = 5000;
 
+function IconGlobe({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M2 12h20" />
+      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10A15.3 15.3 0 0 1 12 2z" />
+    </svg>
+  );
+}
+
+function IconTablet({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
+      <line x1="12" y1="18" x2="12" y2="18" strokeWidth="2" />
+    </svg>
+  );
+}
+
+function IconTerminal({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="4 17 10 11 4 5" />
+      <line x1="12" y1="19" x2="20" y2="19" />
+    </svg>
+  );
+}
+
 const USE_CASES = [
   {
     key: 'online' as const,
@@ -16,6 +44,7 @@ const USE_CASES = [
     external: false,
     image: '/use-cases/shopify-store.png',
     imagePosition: 'top' as const,
+    icon: IconGlobe,
   },
   {
     key: 'inPerson' as const,
@@ -23,12 +52,14 @@ const USE_CASES = [
     external: false,
     image: '/use-cases/pos-retail.png',
     imagePosition: 'center' as const,
+    icon: IconTablet,
   },
   {
     key: 'agents' as const,
     href: '#agents',
     external: true,
     variant: 'terminal' as const,
+    icon: IconTerminal,
   },
 ] as const;
 
@@ -148,7 +179,10 @@ export function UseCasesSection() {
                     className="uc-tab-trigger"
                     onClick={() => handleSelect(idx)}
                   >
-                    <h3 className="uc-tab-title">{t(`${uc.key}Title`)}</h3>
+                    <h3 className="uc-tab-title">
+                      <uc.icon size={14} />
+                      {t(`${uc.key}Title`)}
+                    </h3>
                     <p className="uc-tab-desc">{t(`${uc.key}Desc`)}</p>
                   </button>
                   <span className="uc-tab-cta">
@@ -187,7 +221,10 @@ export function UseCasesSection() {
                   )}
                 </div>
                 <div className="use-case-body">
-                  <h3 className="use-case-title">{t(`${uc.key}Title`)}</h3>
+                  <h3 className="use-case-title">
+                    <uc.icon size={14} />
+                    {t(`${uc.key}Title`)}
+                  </h3>
                   <p className="use-case-desc">{t(`${uc.key}Desc`)}</p>
                   <span className="use-case-cta">{t('learnMore')}</span>
                 </div>
