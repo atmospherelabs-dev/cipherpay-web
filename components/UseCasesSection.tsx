@@ -70,8 +70,6 @@ export function UseCasesSection() {
     startRef.current = Date.now();
   };
 
-  const current = USE_CASES[active];
-
   return (
     <section id="use-cases" className="uc-section">
       <div className="uc-container">
@@ -132,12 +130,10 @@ export function UseCasesSection() {
             {USE_CASES.map((uc, idx) => {
               const isActive = idx === active;
               return (
-                <button
+                <div
                   key={uc.key}
-                  role="tab"
-                  aria-selected={isActive}
+                  role="presentation"
                   className={`uc-tab ${isActive ? 'uc-tab--active' : ''}`}
-                  onClick={() => handleSelect(idx)}
                 >
                   <div className="uc-tab-progress">
                     <div
@@ -145,18 +141,24 @@ export function UseCasesSection() {
                       style={{ transform: `scaleX(${isActive ? progress : 0})` }}
                     />
                   </div>
-                  <h3 className="uc-tab-title">{t(`${uc.key}Title`)}</h3>
-                  <p className="uc-tab-desc">{t(`${uc.key}Desc`)}</p>
-                  {isActive && (
-                    <span className="uc-tab-cta">
-                      {uc.external ? (
-                        <a href={uc.href}>{t('learnMore')}</a>
-                      ) : (
-                        <Link href={uc.href}>{t('learnMore')}</Link>
-                      )}
-                    </span>
-                  )}
-                </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    className="uc-tab-trigger"
+                    onClick={() => handleSelect(idx)}
+                  >
+                    <h3 className="uc-tab-title">{t(`${uc.key}Title`)}</h3>
+                    <p className="uc-tab-desc">{t(`${uc.key}Desc`)}</p>
+                  </button>
+                  <span className="uc-tab-cta">
+                    {uc.external ? (
+                      <a href={uc.href}>{t('learnMore')}</a>
+                    ) : (
+                      <Link href={uc.href}>{t('learnMore')}</Link>
+                    )}
+                  </span>
+                </div>
               );
             })}
           </div>

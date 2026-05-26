@@ -881,6 +881,7 @@ body {
 .uc-visual {
   position: relative;
   min-height: 380px;
+  height: 100%;
   background: #0a0a0f;
   overflow: hidden;
 }
@@ -946,17 +947,13 @@ body {
 
 .uc-tab {
   position: relative;
-  flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   padding: 18px 20px;
-  border: none;
   border-bottom: 1px solid var(--cp-border);
   background: transparent;
   text-align: left;
-  cursor: pointer;
-  font-family: inherit;
   transition: background 0.2s ease;
 }
 
@@ -970,6 +967,23 @@ body {
 
 .uc-tab--active {
   background: rgba(91, 156, 246, 0.06);
+}
+
+.uc-tab-trigger {
+  display: block;
+  width: 100%;
+  margin: 0 0 8px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.uc-tab-trigger .uc-tab-desc {
+  margin: 0;
+  pointer-events: none;
 }
 
 /* Progress bar at the top of each tab */
@@ -993,7 +1007,7 @@ body {
 .uc-tab-title {
   font-size: 13px;
   font-weight: 700;
-  color: var(--cp-text);
+  color: var(--cp-text-muted);
   margin: 0 0 6px;
   transition: color 0.2s ease;
 }
@@ -1006,16 +1020,6 @@ body {
   font-size: 11px;
   color: var(--cp-text-dim);
   line-height: 1.6;
-  margin: 0;
-  max-height: 0;
-  overflow: hidden;
-  opacity: 0;
-  transition: max-height 0.35s ease, opacity 0.25s ease, margin 0.35s ease;
-}
-
-.uc-tab--active .uc-tab-desc {
-  max-height: 100px;
-  opacity: 1;
   margin: 0 0 8px;
 }
 
@@ -1026,11 +1030,17 @@ body {
 }
 
 .uc-tab-cta a {
-  color: var(--cp-cyan);
+  color: var(--cp-text-muted);
   text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.uc-tab--active .uc-tab-cta a {
+  color: var(--cp-cyan);
 }
 
 .uc-tab-cta a:hover {
+  color: var(--cp-cyan);
   text-decoration: underline;
 }
 
