@@ -2,6 +2,7 @@
 
 import { memo, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
 import { Spinner } from '@/components/Spinner';
 import type { X402Verification, AgentSession, ZecRates } from '@/lib/api';
 import { zecToFiat, fiatLabel } from '@/lib/currency';
@@ -125,24 +126,20 @@ export const X402Tab = memo(function X402Tab({
                 ))}
               </div>
               <div style={{ display: 'flex', gap: 10 }}>
-                <a
+                <Link
                   href="/docs/x402"
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="btn-primary"
                   style={{ fontSize: 10, textDecoration: 'none', display: 'inline-block' }}
                 >
                   {t('emptyGetStarted')}
-                </a>
-                <a
+                </Link>
+                <Link
                   href="/docs"
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="btn"
                   style={{ fontSize: 10, textDecoration: 'none', display: 'inline-block' }}
                 >
                   {t('emptyDocs')}
-                </a>
+                </Link>
               </div>
             </div>
           ) : (

@@ -619,11 +619,141 @@ body {
   gap: 24px;
 }
 
+/* ── Docs sidebar ── */
+
+.docs-layout {
+  align-items: start;
+}
+
+.docs-sidebar-panel {
+  position: sticky;
+  top: 24px;
+  overflow: hidden;
+}
+
+.docs-sidebar-nav {
+  padding: 8px 0 12px;
+}
+
+.docs-sidebar-group-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--cp-text-muted);
+}
+
+.docs-sidebar-group-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--cp-cyan);
+  opacity: 0.75;
+}
+
+.docs-sidebar-group-label--spaced {
+  padding-top: 18px;
+  margin-top: 6px;
+  border-top: 1px solid var(--cp-border);
+}
+
+.docs-sidebar-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 4px;
+}
+
+.docs-sidebar-group:not(:last-child) .docs-sidebar-list {
+  margin-bottom: 2px;
+}
+
+.docs-sidebar-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 9px 16px 9px 14px;
+  font-size: 12px;
+  font-family: inherit;
+  line-height: 1.35;
+  cursor: pointer;
+  border: none;
+  border-left: 2px solid transparent;
+  background: transparent;
+  color: var(--cp-text-muted);
+  font-weight: 500;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.docs-sidebar-item:hover {
+  color: var(--cp-text);
+  background: rgba(91, 156, 246, 0.04);
+}
+
+.docs-sidebar-item--active {
+  border-left-color: var(--cp-cyan);
+  background: rgba(6, 182, 212, 0.08);
+  color: var(--cp-cyan);
+  font-weight: 600;
+}
+
+.light .docs-sidebar-item:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.light .docs-sidebar-item--active {
+  background: rgba(6, 178, 212, 0.06);
+}
+
+.docs-sidebar-mobile {
+  display: none;
+  margin-bottom: 16px;
+}
+
+.docs-sidebar-mobile-label {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--cp-text-dim);
+  margin-bottom: 8px;
+}
+
+.docs-sidebar-mobile-select {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--cp-text);
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.docs-sidebar-desktop {
+  display: block;
+}
+
 @media (max-width: 800px) {
   .grid-layout {
     grid-template-columns: 1fr;
   }
+
+  .docs-sidebar-desktop {
+    display: none;
+  }
+
+  .docs-sidebar-mobile {
+    display: block;
+  }
 }
+
 
 /* ── Dashboard sidebar ── */
 

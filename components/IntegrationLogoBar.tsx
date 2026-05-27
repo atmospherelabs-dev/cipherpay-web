@@ -4,8 +4,8 @@ import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 
 const INTEGRATIONS = [
-  { name: 'Shopify', href: '/docs', logo: '/integrations/shopify.svg' },
-  { name: 'WooCommerce', href: '/docs', logo: '/integrations/woocommerce.svg' },
+  { name: 'Shopify', href: '/docs/shopify', logo: '/integrations/shopify.svg' },
+  { name: 'WooCommerce', href: '/docs/woocommerce', logo: '/integrations/woocommerce.svg' },
 ] as const;
 
 export function IntegrationLogoBar() {

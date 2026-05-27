@@ -40,7 +40,7 @@ function IconTerminal({ size = 16 }: { size?: number }) {
 const USE_CASES = [
   {
     key: 'online' as const,
-    href: '/docs',
+    href: '/docs/shopify',
     external: false,
     image: '/use-cases/shopify-store.png',
     imagePosition: 'top' as const,
@@ -48,7 +48,7 @@ const USE_CASES = [
   },
   {
     key: 'inPerson' as const,
-    href: '/pos',
+    href: '/docs/pos',
     external: false,
     image: '/use-cases/pos-retail.png',
     imagePosition: 'center' as const,
@@ -56,8 +56,8 @@ const USE_CASES = [
   },
   {
     key: 'agents' as const,
-    href: '#agents',
-    external: true,
+    href: '/docs/x402',
+    external: false,
     variant: 'terminal' as const,
     icon: IconTerminal,
   },

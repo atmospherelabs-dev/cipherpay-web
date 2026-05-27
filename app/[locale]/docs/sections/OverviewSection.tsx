@@ -2,7 +2,9 @@
 
 import { Code, Callout, SectionDivider, Paragraph, SectionTitle, Strong } from '../components/DocComponents';
 
-const USE_CASES = [
+import type { DocSectionId } from '@/lib/docs-sections';
+
+const USE_CASES: { title: string; bestFor: string; time: string; link: DocSectionId }[] = [
   { title: 'Shopify store', bestFor: 'Shopify merchants — install an app, no code', time: '~10 min', link: 'shopify' },
   { title: 'WooCommerce store', bestFor: 'WordPress merchants — install a plugin, no code', time: '~10 min', link: 'woocommerce' },
   { title: 'Custom website or app', bestFor: 'Developers integrating via REST API', time: '~30 min', link: 'custom' },
@@ -14,7 +16,7 @@ const USE_CASES = [
   { title: 'MCP server', bestFor: 'AI assistants managing payments via tool calls', time: '~5 min', link: 'mcp' },
 ];
 
-export default function OverviewSection({ onNavigate }: { onNavigate: (id: string) => void }) {
+export default function OverviewSection({ onNavigate }: { onNavigate: (id: DocSectionId) => void }) {
   return (
     <>
       <SectionTitle>What is CipherPay?</SectionTitle>
