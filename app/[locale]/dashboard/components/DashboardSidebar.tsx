@@ -2,6 +2,7 @@
 
 import { memo } from 'react';
 import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
 import { CopyButton } from '@/components/CopyButton';
 import type { MerchantInfo, BillingSummary } from '@/lib/api';
 
@@ -12,10 +13,11 @@ interface DashboardSidebarProps {
   tab: Tab;
   setTab: (t: Tab) => void;
   billing: BillingSummary | null;
+  isNewMerchant?: boolean;
 }
 
 export const DashboardSidebar = memo(function DashboardSidebar({
-  merchant, tab, setTab, billing,
+  merchant, tab, setTab, billing, isNewMerchant,
 }: DashboardSidebarProps) {
   const t = useTranslations('dashboard.sidebar');
   const navButton = (key: Tab, label: string, badge?: React.ReactNode) => (
@@ -113,8 +115,8 @@ export const DashboardSidebar = memo(function DashboardSidebar({
             <line x1="10" y1="14" x2="21" y2="3" />
           </svg>
         </a>
-        <a
-          href="/docs"
+        <Link
+          href={isNewMerchant ? '/docs/quickstart' : '/docs'}
           target="_blank"
           rel="noopener noreferrer"
           className="dash-nav-btn dash-sidebar-docs"
@@ -125,7 +127,7 @@ export const DashboardSidebar = memo(function DashboardSidebar({
             <polyline points="15 3 21 3 21 9" />
             <line x1="10" y1="14" x2="21" y2="3" />
           </svg>
-        </a>
+        </Link>
       </nav>
     </div>
   );

@@ -27,10 +27,17 @@ import { CashOutTab } from './tabs/CashOutTab';
 
 export type TabAction = 'add-product' | 'create-paylink' | 'create-link' | 'create-donation-link' | 'create-event' | 'import-luma' | null;
 
+export type TabNavigateOptions = {
+  action?: TabAction;
+  invoiceId?: string;
+  statusFilter?: string;
+};
+
 export default function DashboardClient({ merchant }: { merchant: MerchantInfo }) {
   const t = useTranslations('dashboard');
   const [tab, setTab] = useState<Tab>('overview');
   const [tabAction, setTabAction] = useState<TabAction>(null);
+  const [navOptions, setNavOptions] = useState<TabNavigateOptions>({});
   const [products, setProducts] = useState<Product[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [events, setEvents] = useState<EventSummary[]>([]);
@@ -145,9 +152,16 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
 
   const checkoutOrigin = typeof window !== 'undefined' ? window.location.origin : '';
 
-  const navigateWithAction = (t: Tab, action: TabAction = null) => {
-    setTab(t);
-    setTabAction(action);
+  const navigateTo = (target: Tab, options: TabNavigateOptions = {}) => {
+    setTab(target);
+    setTabAction(options.action ?? null);
+    setNavOptions(options);
+  };
+
+  const clearNavOptions = () => setNavOptions({});
+
+  const navigateWithAction = (target: Tab, action: TabAction = null) => {
+    navigateTo(target, { action: action ?? undefined });
   };
 
   return (
@@ -194,6 +208,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
             tab={tab}
             setTab={setTab}
             billing={billing}
+            isNewMerchant={merchant.stats.total_invoices === 0}
           />
 
           <div>
@@ -207,6 +222,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                 zecRates={zecRates}
                 displayCurrency={displayCurrency}
                 setTab={setTab}
+                navigateTo={navigateTo}
                 navigateWithAction={navigateWithAction}
                 events={events}
                 hasLumaKey={merchant?.has_luma_key}
@@ -264,7 +280,9 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
                 displayCurrency={displayCurrency}
                 checkoutOrigin={checkoutOrigin}
                 initialAction={tabAction}
-                clearAction={() => setTabAction(null)}
+                initialInvoiceId={navOptions.invoiceId}
+                initialStatusFilter={navOptions.statusFilter}
+                clearAction={() => { setTabAction(null); clearNavOptions(); }}
                 isTestnet={merchant.payment_address.startsWith('utest')}
               />
             )}

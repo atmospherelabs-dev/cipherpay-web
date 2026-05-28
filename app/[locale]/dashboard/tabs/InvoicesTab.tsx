@@ -19,6 +19,8 @@ interface InvoicesTabProps {
   displayCurrency: string;
   checkoutOrigin: string;
   initialAction?: TabAction;
+  initialInvoiceId?: string;
+  initialStatusFilter?: string;
   clearAction?: () => void;
   isTestnet: boolean;
 }
@@ -33,7 +35,8 @@ function getInvoiceType(inv: Invoice, recurringPriceIds: Set<string>): 'billing'
 const TYPE_BADGE_STYLE = { color: 'var(--cp-text-muted)', bg: 'rgba(255,255,255,0.05)' };
 
 export const InvoicesTab = memo(function InvoicesTab({
-  invoices, loadingInvoices, reloadInvoices, products, displayCurrency, checkoutOrigin, initialAction, clearAction, isTestnet,
+  invoices, loadingInvoices, reloadInvoices, products, displayCurrency, checkoutOrigin,
+  initialAction, initialInvoiceId, initialStatusFilter, clearAction, isTestnet,
 }: InvoicesTabProps) {
   const { showToast } = useToast();
   const t = useTranslations('dashboard.invoices');
@@ -64,6 +67,21 @@ export const InvoicesTab = memo(function InvoicesTab({
       clearAction?.();
     }
   }, [initialAction, clearAction]);
+
+  useEffect(() => {
+    if (initialStatusFilter) {
+      setStatusFilter(initialStatusFilter);
+    }
+    if (initialInvoiceId) {
+      setExpandedInvoice(initialInvoiceId);
+      requestAnimationFrame(() => {
+        document.getElementById(`invoice-${initialInvoiceId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+    }
+    if (initialInvoiceId || initialStatusFilter) {
+      clearAction?.();
+    }
+  }, [initialInvoiceId, initialStatusFilter, clearAction]);
   const [payLinkAmount, setPayLinkAmount] = useState('');
   const [payLinkDesc, setPayLinkDesc] = useState('');
   const [payLinkCurrency, setPayLinkCurrency] = useState<string>(displayCurrency);
@@ -258,7 +276,11 @@ export const InvoicesTab = memo(function InvoicesTab({
         ) : (
           invoices.filter(inv => {
             if (inv.product_name === 'Fee Settlement') return false;
-            if (statusFilter !== 'all' && inv.status !== statusFilter) return false;
+            if (statusFilter === 'attention') {
+              if (!['pending', 'detected', 'underpaid'].includes(inv.status)) return false;
+            } else if (statusFilter !== 'all' && inv.status !== statusFilter) {
+              return false;
+            }
             if (typeFilter === 'payments') return !inv.is_event && getInvoiceType(inv, recurringPriceIds) === 'payment';
             if (typeFilter === 'recurring') return getInvoiceType(inv, recurringPriceIds) === 'recurring';
             if (typeFilter === 'tickets') return inv.is_event && !inv.is_luma;
@@ -271,7 +293,7 @@ export const InvoicesTab = memo(function InvoicesTab({
             const invType = getInvoiceType(inv, recurringPriceIds);
             const typeBadge = TYPE_BADGE_STYLE;
             return (
-              <div key={inv.id} className="invoice-card" style={{ cursor: 'pointer' }} onClick={() => setExpandedInvoice(isExpanded ? null : inv.id)}>
+              <div key={inv.id} id={`invoice-${inv.id}`} className="invoice-card" style={{ cursor: 'pointer' }} onClick={() => setExpandedInvoice(isExpanded ? null : inv.id)}>
                 <div className="invoice-header">
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', minWidth: 0 }}>
                     <span style={{ fontSize: 10, color: 'var(--cp-text-dim)', transition: 'transform 0.15s', transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)', display: 'inline-block' }}>▸</span>

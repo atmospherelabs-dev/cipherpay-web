@@ -832,14 +832,171 @@ body {
   gap: 12px;
 }
 
-.dash-stat-grid .panel {
+.dash-stat-grid--3 {
+  grid-template-columns: repeat(3, 1fr);
+  align-items: stretch;
+}
+
+.dash-stat-grid--3 .dash-stat-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.dash-stat-grid--3 .dash-stat-card .panel-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.dash-stat-grid .panel,
+.dash-stat-card {
   transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
 }
 
-.dash-stat-grid .panel[style*="cursor: pointer"]:hover {
+.dash-stat-grid .panel[style*="cursor: pointer"]:hover,
+.dash-stat-card[style*="cursor: pointer"]:hover {
   border-color: var(--cp-cyan);
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(86, 212, 200, 0.08);
+}
+
+.dash-stat-card--attention {
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.dash-stat-card--attention:hover {
+  border-color: var(--cp-yellow) !important;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.12) !important;
+}
+
+/* ── Dashboard overview header ── */
+
+.dash-overview-header {
+  padding: 4px 0 0;
+}
+
+.dash-overview-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--cp-text);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.dash-overview-subtitle {
+  font-size: 11px;
+  color: var(--cp-text-muted);
+  margin: 6px 0 0;
+}
+
+.dash-overview-subtitle-sep {
+  opacity: 0.5;
+}
+
+/* ── Dashboard overview (returning merchant) ── */
+
+.dash-overview-returning {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dash-overview-actions .panel-body {
+  padding: 12px 16px;
+}
+
+.dash-quick-actions-bar {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.dash-quick-actions-bar .btn,
+.dash-quick-actions-bar .btn-primary {
+  width: auto;
+  font-size: 10px;
+}
+
+.dash-quick-actions-more-wrap {
+  position: relative;
+}
+
+.dash-quick-actions-more {
+  width: auto;
+}
+
+/* ── Dashboard setup progress ── */
+
+.dash-overview-setup-progress {
+  height: 3px;
+  background: var(--cp-border);
+  border-radius: 2px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.dash-overview-setup-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cp-blue), var(--cp-cyan));
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.dash-setup-link {
+  background: none;
+  border: none;
+  color: var(--cp-yellow);
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: 1px;
+  padding: 0;
+}
+
+.dash-setup-link:hover {
+  color: var(--cp-warm);
+}
+
+/* ── Dashboard quick actions ── */
+
+.dash-quick-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dash-quick-actions-primary {
+  font-size: 11px;
+  align-self: flex-start;
+}
+
+.dash-quick-actions-secondary {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.dash-more-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  z-index: 50;
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+  border-radius: 6px;
+  padding: 4px;
+  min-width: 160px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.dash-get-started-panel {
+  border-color: rgba(86, 212, 200, 0.25);
+  background: linear-gradient(180deg, rgba(86, 212, 200, 0.04) 0%, transparent 100%);
 }
 
 /* ── Dashboard activity rows ── */
@@ -941,6 +1098,47 @@ body {
 
   .dash-stat-grid {
     grid-template-columns: repeat(3, 1fr);
+  }
+
+  .dash-stat-grid--3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dash-overview-returning {
+    gap: 12px;
+  }
+
+  .dash-quick-actions-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .dash-quick-actions-bar .btn,
+  .dash-quick-actions-bar .btn-primary {
+    width: 100%;
+    min-height: 32px;
+    padding: 8px 10px;
+    font-size: 9px;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  .dash-quick-actions-more-wrap {
+    grid-column: 1 / -1;
+  }
+
+  .dash-quick-actions-more {
+    width: 100%;
+  }
+
+  .dash-more-menu {
+    left: auto;
+    right: 0;
+  }
+
+  .dash-overview-title {
+    font-size: 16px;
   }
 }
 
