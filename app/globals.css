@@ -179,6 +179,12 @@ body {
   border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
+.status-carried {
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--cp-text-muted);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
 .status-underpaid {
   background: rgba(249, 115, 22, 0.15);
   color: #f97316;
@@ -3645,4 +3651,229 @@ body {
   .pos-grid-panel { border-right: none; border-bottom: 1px solid #e2e8f0; flex: 1; }
   .pos-cart-panel { max-width: none; max-height: 40vh; }
   .pos-product-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+}
+
+/* ── Admin Dashboard ── */
+
+.admin-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--cp-bg);
+}
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--cp-border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--cp-bg);
+}
+
+.admin-badge {
+  font-size: 9px;
+  letter-spacing: 2px;
+  font-weight: 600;
+  color: var(--cp-cyan);
+  padding: 2px 8px;
+  border: 1px solid rgba(86, 212, 200, 0.3);
+  border-radius: 3px;
+}
+
+.admin-body {
+  display: flex;
+  flex: 1;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px;
+  gap: 24px;
+}
+
+.admin-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 160px;
+  flex-shrink: 0;
+}
+
+.admin-nav-btn {
+  width: 100%;
+}
+
+.admin-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-loading {
+  display: flex;
+  justify-content: center;
+  padding: 48px;
+}
+
+.admin-tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.admin-stat-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-stat-grid--3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.admin-stat-grid--4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.admin-stat-card--attention {
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.admin-alerts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-alert {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: 1px solid var(--cp-border);
+  background: var(--cp-surface);
+  color: var(--cp-text-muted);
+}
+
+.admin-alert:hover {
+  border-color: var(--cp-text-dim);
+  color: var(--cp-text);
+}
+
+.admin-alert--warn {
+  border-color: rgba(239, 68, 68, 0.3);
+  color: var(--cp-red);
+}
+
+.admin-alert--info {
+  border-color: rgba(245, 158, 11, 0.3);
+  color: var(--cp-yellow);
+}
+
+.admin-filter-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.admin-filter-pill {
+  background: transparent;
+  border: 1px solid var(--cp-border);
+  border-radius: 4px;
+  padding: 3px 10px;
+  cursor: pointer;
+  font-size: 9px;
+  font-family: inherit;
+  letter-spacing: 0.5px;
+  color: var(--cp-text-dim);
+  font-weight: 400;
+  transition: all 0.15s;
+}
+
+.admin-filter-pill:hover {
+  color: var(--cp-text);
+  border-color: var(--cp-text-dim);
+}
+
+.admin-filter-pill.active {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--cp-text-dim);
+  color: var(--cp-text);
+  font-weight: 600;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.admin-table-row:hover {
+  background: var(--cp-hover);
+}
+
+.admin-table-row--selected {
+  background: rgba(86, 212, 200, 0.06);
+}
+
+.admin-delta {
+  font-size: 9px;
+  margin-left: 6px;
+  font-weight: 500;
+}
+
+.admin-delta--up {
+  color: var(--cp-green);
+}
+
+.admin-delta--down {
+  color: var(--cp-red);
+}
+
+.admin-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.admin-activity-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .admin-body {
+    flex-direction: column;
+    padding: 16px;
+  }
+
+  .admin-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    min-width: unset;
+  }
+
+  .admin-stat-grid--3,
+  .admin-stat-grid--4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .admin-two-col,
+  .admin-activity-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-stat-grid--3,
+  .admin-stat-grid--4 {
+    grid-template-columns: 1fr;
+  }
 }

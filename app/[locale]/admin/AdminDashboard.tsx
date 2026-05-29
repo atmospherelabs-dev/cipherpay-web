@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { API_URL } from '@/lib/config';
 import { Logo } from '@/components/Logo';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -13,6 +13,7 @@ interface AdminDashboardProps {
 
 interface Stats {
   merchants: number;
+  merchants_inactive: number;
   products: number;
   invoices: { total: number; confirmed: number; pending: number; expired: number; draft: number };
   volume: { total_zec: number; total_zatoshis: number };
@@ -21,6 +22,7 @@ interface Stats {
   last_24h: { invoices: number; confirmed: number; volume_zec: number };
   last_7d: { invoices: number; confirmed: number; volume_zec: number };
   last_30d: { invoices: number; confirmed: number; volume_zec: number };
+  prior_7d: { invoices: number; confirmed: number; volume_zec: number };
 }
 
 interface Merchant {
@@ -33,20 +35,34 @@ interface Merchant {
   billing_status: string;
 }
 
+interface BillingCycle {
+  id: string;
+  merchant_id: string;
+  merchant_name: string;
+  period_end: string;
+  total_fees_zec: number;
+  outstanding_zec: number;
+  status: string;
+  grace_until: string | null;
+}
+
+interface OutstandingMerchant {
+  merchant_id: string;
+  merchant_name: string;
+  outstanding_zec: number;
+  billing_status: string;
+  period_end: string;
+}
+
 interface BillingData {
   cycles: { open: number; invoiced: number; past_due: number; paid: number };
   merchants: { suspended: number; past_due: number };
-  totals: { outstanding_zec: number; collected_zec: number };
-  recent_cycles: Array<{
-    id: string;
-    merchant_id: string;
-    merchant_name: string;
-    period_end: string;
-    total_fees_zec: number;
-    outstanding_zec: number;
-    status: string;
-    grace_until: string | null;
-  }>;
+  totals: { outstanding_zec: number; collected_zec: number; earned_zec: number };
+  total_cycles: number;
+  carried_over_cycles: number;
+  outstanding_by_merchant: OutstandingMerchant[];
+  active_cycles: BillingCycle[];
+  all_cycles: BillingCycle[];
 }
 
 interface SystemData {
@@ -96,6 +112,14 @@ function timeAgo(dateStr: string): string {
   return `${days}d ago`;
 }
 
+function fmtDelta(current: number, prior: number): string | null {
+  if (prior === 0 && current === 0) return null;
+  if (prior === 0) return 'new';
+  const pct = Math.round(((current - prior) / prior) * 100);
+  if (pct === 0) return '—';
+  return pct > 0 ? `+${pct}%` : `${pct}%`;
+}
+
 type HealthStatus = 'operational' | 'degraded' | 'down';
 
 function deriveHealth(system: SystemData): HealthStatus {
@@ -105,6 +129,14 @@ function deriveHealth(system: SystemData): HealthStatus {
   if (priceFeedAge > 30 * 60 * 1000) return 'degraded';
   if (system.webhooks.failed > 10) return 'degraded';
   return 'operational';
+}
+
+function cycleBadgeClass(status: string): string {
+  if (status === 'paid') return 'status-confirmed';
+  if (status === 'open') return 'status-pending';
+  if (status === 'invoiced') return 'status-detected';
+  if (status === 'carried_over') return 'status-carried';
+  return 'status-expired';
 }
 
 function healthBadgeClass(h: HealthStatus): string {
@@ -165,13 +197,11 @@ export default function AdminDashboard({ adminKey, onLogout }: AdminDashboardPro
   const health = system ? deriveHealth(system) : null;
 
   return (
-    <div style={{ minHeight: '100vh', fontFamily: 'var(--font-geist-mono), monospace', fontSize: 13, lineHeight: 1.6, display: 'flex', flexDirection: 'column' }}>
-      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid var(--cp-border)' }}>
+    <div className="admin-layout">
+      <header className="admin-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <Link href="/"><Logo size="sm" /></Link>
-          <span style={{ fontSize: 9, letterSpacing: 2, color: 'var(--cp-text-muted)', fontWeight: 600, padding: '2px 8px', border: '1px solid var(--cp-border)', borderRadius: 4 }}>
-            ADMIN
-          </span>
+          <span className="admin-badge">ADMIN</span>
           {health && (
             <span className={`status-badge ${healthBadgeClass(health)}`} style={{ fontSize: 9 }}>
               {health.toUpperCase()}
@@ -181,7 +211,7 @@ export default function AdminDashboard({ adminKey, onLogout }: AdminDashboardPro
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           {lastFetched && (
             <span style={{ fontSize: 9, color: 'var(--cp-text-dim)' }}>
-              {lastFetched.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+              Updated {timeAgo(lastFetched.toISOString())}
             </span>
           )}
           <button onClick={fetchAll} className="btn btn-small" style={{ fontSize: 9 }}>REFRESH</button>
@@ -190,34 +220,32 @@ export default function AdminDashboard({ adminKey, onLogout }: AdminDashboardPro
         </div>
       </header>
 
-      <div style={{ display: 'flex', flex: 1 }}>
-        <nav style={{ width: 180, borderRight: '1px solid var(--cp-border)', padding: '16px 0', flexShrink: 0 }}>
+      <div className="admin-body">
+        <nav className="admin-nav">
           {tabs.map(t => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`dash-nav-btn${tab === t.id ? ' active' : ''}`}
-              style={{
-                display: 'block', width: '100%', textAlign: 'left', padding: '10px 20px',
-                fontSize: 10, letterSpacing: 1,
-                border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-                borderLeft: tab === t.id ? '2px solid var(--cp-cyan)' : '2px solid transparent',
-              }}
+              className={`dash-nav-btn admin-nav-btn${tab === t.id ? ' active' : ''}`}
             >
               {t.label}
             </button>
           ))}
         </nav>
 
-        <main style={{ flex: 1, padding: 24, maxWidth: 1000, overflow: 'auto' }}>
+        <main className="admin-main">
           {loading && !stats ? (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 48 }}>
+            <div className="admin-loading">
               <div className="w-6 h-6 border-2 border-cp-cyan border-t-transparent rounded-full animate-spin" />
             </div>
           ) : (
             <>
-              {tab === 'overview' && stats && <OverviewTab stats={stats} system={system} />}
-              {tab === 'merchants' && <MerchantsTab merchants={merchants} system={system} />}
+              {tab === 'overview' && stats && (
+                <OverviewTab stats={stats} system={system} billing={billing} onNavigate={setTab} />
+              )}
+              {tab === 'merchants' && (
+                <MerchantsTab merchants={merchants} billing={billing} system={system} onNavigate={setTab} />
+              )}
               {tab === 'billing' && billing && <BillingTab billing={billing} system={system} />}
               {tab === 'webhooks' && webhookData && <WebhooksTab data={webhookData} adminKey={adminKey} />}
               {tab === 'system' && system && <SystemTab system={system} adminKey={adminKey} />}
@@ -233,10 +261,12 @@ export default function AdminDashboard({ adminKey, onLogout }: AdminDashboardPro
 // Stat card — values always in neutral color, matching merchant dashboard
 // ---------------------------------------------------------------------------
 
-function StatCard({ value, label, sub, sub2 }: { value: string | number; label: string; sub?: string; sub2?: string }) {
+function StatCard({ value, label, sub, sub2, attention }: {
+  value: string | number; label: string; sub?: string; sub2?: string; attention?: boolean;
+}) {
   return (
-    <div className="panel" style={{ textAlign: 'center' }}>
-      <div className="panel-body" style={{ padding: '20px 16px' }}>
+    <div className={`panel admin-stat-card${attention ? ' admin-stat-card--attention' : ''}`}>
+      <div className="panel-body" style={{ padding: '20px 16px', textAlign: 'center' }}>
         <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--cp-text)', lineHeight: 1.2 }}>{value}</div>
         <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginTop: 6 }}>{label}</div>
         {sub && <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginTop: 2 }}>{sub}</div>}
@@ -246,52 +276,107 @@ function StatCard({ value, label, sub, sub2 }: { value: string | number; label: 
   );
 }
 
+function FilterPills({ options, value, onChange }: {
+  options: { id: string; label: string }[];
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div className="admin-filter-pills">
+      {options.map(o => (
+        <button key={o.id} onClick={() => onChange(o.id)} className={`admin-filter-pill${value === o.id ? ' active' : ''}`}>
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function AlertsStrip({ stats, system, billing, onNavigate }: {
+  stats: Stats; system: SystemData | null; billing: BillingData | null;
+  onNavigate: (tab: Tab) => void;
+}) {
+  const alerts: { message: string; tab: Tab; severity: 'warn' | 'info' }[] = [];
+  if (system && system.webhooks.failed > 0) {
+    alerts.push({ message: `${system.webhooks.failed} failed webhook${system.webhooks.failed > 1 ? 's' : ''}`, tab: 'webhooks', severity: 'warn' });
+  }
+  if (billing && billing.merchants.past_due > 0) {
+    alerts.push({ message: `${billing.merchants.past_due} past due merchant${billing.merchants.past_due > 1 ? 's' : ''}`, tab: 'billing', severity: 'warn' });
+  }
+  if (billing && billing.merchants.suspended > 0) {
+    alerts.push({ message: `${billing.merchants.suspended} suspended merchant${billing.merchants.suspended > 1 ? 's' : ''}`, tab: 'billing', severity: 'warn' });
+  }
+  if (stats.fees.outstanding > 0) {
+    alerts.push({ message: `${stats.fees.outstanding.toFixed(4)} ZEC outstanding`, tab: 'billing', severity: 'info' });
+  }
+  if (alerts.length === 0) return null;
+  return (
+    <div className="admin-alerts">
+      {alerts.map((a, i) => (
+        <button key={i} onClick={() => onNavigate(a.tab)} className={`admin-alert admin-alert--${a.severity}`}>
+          {a.severity === 'warn' ? '⚠' : '●'} {a.message} →
+        </button>
+      ))}
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Overview
 // ---------------------------------------------------------------------------
 
-function OverviewTab({ stats, system }: { stats: Stats; system: SystemData | null }) {
-  const conversionRate = stats.invoices.total > 0
-    ? Math.round((stats.invoices.confirmed / stats.invoices.total) * 100)
-    : 0;
+function OverviewTab({ stats, system, billing, onNavigate }: {
+  stats: Stats; system: SystemData | null; billing: BillingData | null;
+  onNavigate: (tab: Tab) => void;
+}) {
   const usd = system?.price_feed?.zec_usd;
+  const feeCollectionRate = stats.fees.total > 0
+    ? Math.round((stats.fees.collected / stats.fees.total) * 100) : 0;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
-        <StatCard value={stats.merchants} label="MERCHANTS" />
-        <StatCard value={stats.volume.total_zec.toFixed(4)} label="TOTAL VOLUME" sub="ZEC" sub2={fmtUsd(stats.volume.total_zec, usd)} />
-        <StatCard value={stats.invoices.confirmed} label="CONFIRMED" sub={`of ${stats.invoices.total} total`} />
-        <StatCard value={`${conversionRate}%`} label="CONVERSION" sub={`${stats.invoices.expired} expired`} />
+    <div className="admin-tab-content">
+      <AlertsStrip stats={stats} system={system} billing={billing} onNavigate={onNavigate} />
+
+      <div className="admin-stat-grid admin-stat-grid--3">
+        <StatCard value={stats.volume.total_zec.toFixed(4)} label="PLATFORM VOLUME" sub="ZEC" sub2={fmtUsd(stats.volume.total_zec, usd)} />
+        <StatCard value={stats.fees.outstanding.toFixed(4)} label="FEES OUTSTANDING" sub="ZEC" sub2={fmtUsd(stats.fees.outstanding, usd)} attention={stats.fees.outstanding > 0} />
+        <StatCard value={stats.merchants} label="MERCHANTS" sub={stats.merchants_inactive > 0 ? `${stats.merchants_inactive} inactive` : undefined} />
       </div>
 
-      {/* Time-based metrics */}
       <div className="panel">
-        <div className="panel-header">
-          <span className="panel-title">Activity</span>
-        </div>
+        <div className="panel-header"><span className="panel-title">Activity</span></div>
         <div className="panel-body">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+          <div className="admin-activity-grid">
             {([
-              { label: 'LAST 24H', data: stats.last_24h },
-              { label: 'LAST 7D', data: stats.last_7d },
-              { label: 'LAST 30D', data: stats.last_30d },
-            ] as const).map(({ label, data }) => (
+              { label: 'LAST 24H', data: stats.last_24h, prior: null as Stats['prior_7d'] | null },
+              { label: 'LAST 7D', data: stats.last_7d, prior: stats.prior_7d },
+              { label: 'LAST 30D', data: stats.last_30d, prior: null as Stats['prior_7d'] | null },
+            ]).map(({ label, data, prior }) => (
               <div key={label}>
                 <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginBottom: 8 }}>{label}</div>
                 <div className="stat-row">
                   <span style={{ color: 'var(--cp-text-muted)' }}>Invoices</span>
-                  <span style={{ fontWeight: 500 }}>{data.invoices}</span>
+                  <span style={{ fontWeight: 500 }}>
+                    {data.invoices}
+                    {prior && fmtDelta(data.invoices, prior.invoices) && (
+                      <span className={`admin-delta admin-delta--${data.invoices >= prior.invoices ? 'up' : 'down'}`}>{fmtDelta(data.invoices, prior.invoices)}</span>
+                    )}
+                  </span>
                 </div>
                 <div className="stat-row">
                   <span style={{ color: 'var(--cp-text-muted)' }}>Confirmed</span>
-                  <span style={{ fontWeight: 500 }}>{data.confirmed}</span>
+                  <span style={{ fontWeight: 500 }}>
+                    {data.confirmed}
+                    {prior && fmtDelta(data.confirmed, prior.confirmed) && (
+                      <span className={`admin-delta admin-delta--${data.confirmed >= prior.confirmed ? 'up' : 'down'}`}>{fmtDelta(data.confirmed, prior.confirmed)}</span>
+                    )}
+                  </span>
                 </div>
                 <div className="stat-row">
                   <span style={{ color: 'var(--cp-text-muted)' }}>Volume</span>
                   <span style={{ fontWeight: 500 }}>
                     {data.volume_zec.toFixed(4)} ZEC
-                    {usd ? <span style={{ color: 'var(--cp-text-dim)', fontWeight: 400, marginLeft: 4 }}>{fmtUsd(data.volume_zec, usd)}</span> : null}
+                    {usd && <span style={{ color: 'var(--cp-text-dim)', fontWeight: 400, marginLeft: 4 }}>{fmtUsd(data.volume_zec, usd)}</span>}
                   </span>
                 </div>
               </div>
@@ -300,74 +385,41 @@ function OverviewTab({ stats, system }: { stats: Stats; system: SystemData | nul
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        {/* Fee revenue */}
+      <div className="admin-two-col">
         <div className="panel">
           <div className="panel-header">
             <span className="panel-title">Fee Revenue</span>
+            <button onClick={() => onNavigate('billing')} className="btn btn-small" style={{ fontSize: 9 }}>VIEW BILLING →</button>
           </div>
           <div className="panel-body">
             <div className="stat-row">
               <span style={{ color: 'var(--cp-text-muted)' }}>Total Earned</span>
-              <span style={{ fontWeight: 600 }}>
-                {stats.fees.total.toFixed(8)} ZEC
-                {usd ? <span style={{ color: 'var(--cp-text-dim)', fontWeight: 400, marginLeft: 4 }}>{fmtUsd(stats.fees.total, usd)}</span> : null}
-              </span>
+              <span style={{ fontWeight: 600 }}>{stats.fees.total.toFixed(6)} ZEC{usd && <span style={{ color: 'var(--cp-text-dim)', fontWeight: 400, marginLeft: 4 }}>{fmtUsd(stats.fees.total, usd)}</span>}</span>
             </div>
             <div className="stat-row">
               <span style={{ color: 'var(--cp-text-muted)' }}>Collected</span>
-              <span style={{ fontWeight: 500 }}>
-                {stats.fees.collected.toFixed(8)} ZEC
-              </span>
+              <span style={{ fontWeight: 500 }}>{stats.fees.collected.toFixed(6)} ZEC ({feeCollectionRate}%)</span>
             </div>
             <div className="stat-row">
               <span style={{ color: 'var(--cp-text-muted)' }}>Outstanding</span>
               <span style={{ fontWeight: 500 }}>
-                {stats.fees.outstanding.toFixed(8)} ZEC
-                {stats.fees.outstanding > 0 && (
-                  <span className="status-badge status-pending" style={{ fontSize: 8, marginLeft: 6 }}>OWED</span>
-                )}
+                {stats.fees.outstanding.toFixed(6)} ZEC
+                {stats.fees.outstanding > 0 && <span className="status-badge status-pending" style={{ fontSize: 8, marginLeft: 6 }}>OWED</span>}
               </span>
             </div>
           </div>
         </div>
-
-        {/* Pipeline */}
         <div className="panel">
-          <div className="panel-header">
-            <span className="panel-title">Pipeline</span>
-          </div>
+          <div className="panel-header"><span className="panel-title">Pipeline</span></div>
           <div className="panel-body">
-            <div className="stat-row">
-              <span style={{ color: 'var(--cp-text-muted)' }}>Products</span>
-              <span style={{ fontWeight: 500 }}>{stats.products}</span>
-            </div>
-            <div className="stat-row">
-              <span style={{ color: 'var(--cp-text-muted)' }}>Active Subscriptions</span>
-              <span style={{ fontWeight: 500 }}>
-                {stats.subscriptions.active}
-                {stats.subscriptions.total > stats.subscriptions.active && (
-                  <span style={{ color: 'var(--cp-text-dim)', fontWeight: 400, marginLeft: 4 }}>of {stats.subscriptions.total}</span>
-                )}
-              </span>
-            </div>
-            <div className="stat-row">
-              <span style={{ color: 'var(--cp-text-muted)' }}>Pending Invoices</span>
-              <span style={{ fontWeight: 500 }}>{stats.invoices.pending}</span>
-            </div>
-            <div className="stat-row">
-              <span style={{ color: 'var(--cp-text-muted)' }}>Draft</span>
-              <span style={{ fontWeight: 500 }}>{stats.invoices.draft}</span>
-            </div>
-            {system && (
+            <div className="stat-row"><span style={{ color: 'var(--cp-text-muted)' }}>Confirmed</span><span style={{ fontWeight: 500 }}>{stats.invoices.confirmed} of {stats.invoices.total}</span></div>
+            <div className="stat-row"><span style={{ color: 'var(--cp-text-muted)' }}>Pending</span><span style={{ fontWeight: 500 }}>{stats.invoices.pending}</span></div>
+            <div className="stat-row"><span style={{ color: 'var(--cp-text-muted)' }}>Products</span><span style={{ fontWeight: 500 }}>{stats.products}</span></div>
+            <div className="stat-row"><span style={{ color: 'var(--cp-text-muted)' }}>Active Subscriptions</span><span style={{ fontWeight: 500 }}>{stats.subscriptions.active}</span></div>
+            {system && system.webhooks.failed > 0 && (
               <div className="stat-row">
                 <span style={{ color: 'var(--cp-text-muted)' }}>Failed Webhooks</span>
-                <span style={{ fontWeight: 500 }}>
-                  {system.webhooks.failed}
-                  {system.webhooks.failed > 0 && (
-                    <span className="status-badge status-expired" style={{ fontSize: 8, marginLeft: 6 }}>ATTENTION</span>
-                  )}
-                </span>
+                <span style={{ fontWeight: 500 }}>{system.webhooks.failed}<span className="status-badge status-expired" style={{ fontSize: 8, marginLeft: 6 }}>ATTENTION</span></span>
               </div>
             )}
           </div>
@@ -383,19 +435,66 @@ function OverviewTab({ stats, system }: { stats: Stats; system: SystemData | nul
 
 const TH: React.CSSProperties = { padding: '10px 16px', fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', fontWeight: 500 };
 
-function MerchantsTab({ merchants, system }: { merchants: Merchant[]; system: SystemData | null }) {
+function SortHeader({ label, sortKey, current, dir, onSort, align = 'left' }: {
+  label: string; sortKey: string; current: string; dir: 'asc' | 'desc';
+  onSort: (key: string) => void; align?: 'left' | 'right' | 'center';
+}) {
+  const active = current === sortKey;
+  return (
+    <th
+      style={{ ...TH, textAlign: align, cursor: 'pointer', userSelect: 'none' }}
+      onClick={() => onSort(sortKey)}
+    >
+      {label}{active ? (dir === 'asc' ? ' ↑' : ' ↓') : ''}
+    </th>
+  );
+}
+
+function MerchantsTab({ merchants, billing, system, onNavigate }: {
+  merchants: Merchant[]; billing: BillingData | null; system: SystemData | null;
+  onNavigate: (tab: Tab) => void;
+}) {
   const usd = system?.price_feed?.zec_usd;
   const [search, setSearch] = useState('');
+  const [sortKey, setSortKey] = useState('volume');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const filtered = search
-    ? merchants.filter(m =>
-        (m.name || '').toLowerCase().includes(search.toLowerCase()) ||
-        m.id.toLowerCase().includes(search.toLowerCase())
-      )
-    : merchants;
+  const handleSort = (key: string) => {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('desc'); }
+  };
+
+  const filtered = useMemo(() => {
+    let list = search
+      ? merchants.filter(m =>
+          (m.name || '').toLowerCase().includes(search.toLowerCase()) ||
+          m.id.toLowerCase().includes(search.toLowerCase())
+        )
+      : [...merchants];
+
+    list.sort((a, b) => {
+      let cmp = 0;
+      if (sortKey === 'name') cmp = (a.name || '').localeCompare(b.name || '');
+      else if (sortKey === 'invoices') cmp = a.invoice_count - b.invoice_count;
+      else if (sortKey === 'volume') cmp = a.total_zec - b.total_zec;
+      else if (sortKey === 'joined') cmp = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      else if (sortKey === 'billing') cmp = a.billing_status.localeCompare(b.billing_status);
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+    return list;
+  }, [merchants, search, sortKey, sortDir]);
+
+  const selected = selectedId ? merchants.find(m => m.id === selectedId) : null;
+  const merchantOutstanding = selectedId && billing
+    ? billing.outstanding_by_merchant.find(m => m.merchant_id === selectedId)
+    : null;
+  const merchantCycles = selectedId && billing
+    ? billing.all_cycles.filter(c => c.merchant_id === selectedId).slice(0, 10)
+    : [];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="admin-tab-content">
       <div className="panel">
         <div className="panel-header">
           <span className="panel-title">Merchants ({filtered.length})</span>
@@ -410,20 +509,25 @@ function MerchantsTab({ merchants, system }: { merchants: Merchant[]; system: Sy
         </div>
         <div className="panel-body" style={{ padding: 0 }}>
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+            <table className="admin-table">
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--cp-border)' }}>
-                  <th style={{ ...TH, textAlign: 'left' }}>NAME</th>
-                  <th style={{ ...TH, textAlign: 'right' }}>INVOICES</th>
-                  <th style={{ ...TH, textAlign: 'right' }}>VOLUME (ZEC)</th>
+                  <SortHeader label="NAME" sortKey="name" current={sortKey} dir={sortDir} onSort={handleSort} />
+                  <SortHeader label="INVOICES" sortKey="invoices" current={sortKey} dir={sortDir} onSort={handleSort} align="right" />
+                  <SortHeader label="VOLUME (ZEC)" sortKey="volume" current={sortKey} dir={sortDir} onSort={handleSort} align="right" />
                   <th style={{ ...TH, textAlign: 'center' }}>WEBHOOK</th>
-                  <th style={{ ...TH, textAlign: 'center' }}>BILLING</th>
-                  <th style={{ ...TH, textAlign: 'right' }}>JOINED</th>
+                  <SortHeader label="BILLING" sortKey="billing" current={sortKey} dir={sortDir} onSort={handleSort} align="center" />
+                  <SortHeader label="JOINED" sortKey="joined" current={sortKey} dir={sortDir} onSort={handleSort} align="right" />
                 </tr>
               </thead>
               <tbody>
                 {filtered.map(m => (
-                  <tr key={m.id} style={{ borderBottom: '1px solid var(--cp-border)' }}>
+                  <tr
+                    key={m.id}
+                    className={`admin-table-row${selectedId === m.id ? ' admin-table-row--selected' : ''}`}
+                    style={{ borderBottom: '1px solid var(--cp-border)', cursor: 'pointer' }}
+                    onClick={() => setSelectedId(selectedId === m.id ? null : m.id)}
+                  >
                     <td style={{ padding: '10px 16px' }}>
                       <div style={{ fontWeight: 500, color: 'var(--cp-text)' }}>{m.name || '(unnamed)'}</div>
                       <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', fontFamily: 'monospace' }}>{m.id.slice(0, 8)}...</div>
@@ -463,6 +567,56 @@ function MerchantsTab({ merchants, system }: { merchants: Merchant[]; system: Sy
           </div>
         </div>
       </div>
+
+      {selected && (
+        <div className="panel">
+          <div className="panel-header">
+            <span className="panel-title">{selected.name || '(unnamed)'} — Detail</span>
+            {merchantOutstanding && merchantOutstanding.outstanding_zec > 0 && (
+              <button onClick={() => onNavigate('billing')} className="btn btn-small" style={{ fontSize: 9 }}>VIEW BILLING →</button>
+            )}
+          </div>
+          <div className="panel-body">
+            <div className="admin-two-col">
+              <div>
+                <div className="stat-row"><span style={{ color: 'var(--cp-text-muted)' }}>Merchant ID</span><span style={{ fontFamily: 'monospace', fontSize: 10 }}>{selected.id}</span></div>
+                <div className="stat-row"><span style={{ color: 'var(--cp-text-muted)' }}>Invoices</span><span style={{ fontWeight: 500 }}>{selected.invoice_count}</span></div>
+                <div className="stat-row"><span style={{ color: 'var(--cp-text-muted)' }}>Volume</span><span style={{ fontWeight: 500 }}>{selected.total_zec.toFixed(4)} ZEC</span></div>
+                <div className="stat-row"><span style={{ color: 'var(--cp-text-muted)' }}>Webhook</span><span>{selected.webhook_configured ? 'Configured' : 'Not configured'}</span></div>
+                <div className="stat-row"><span style={{ color: 'var(--cp-text-muted)' }}>Billing Status</span>
+                  <span className={`status-badge ${
+                    selected.billing_status === 'active' ? 'status-confirmed' :
+                    selected.billing_status === 'past_due' ? 'status-detected' :
+                    selected.billing_status === 'suspended' ? 'status-expired' : 'status-pending'
+                  }`} style={{ fontSize: 9 }}>{selected.billing_status.toUpperCase()}</span>
+                </div>
+                {merchantOutstanding && (
+                  <div className="stat-row">
+                    <span style={{ color: 'var(--cp-text-muted)' }}>Outstanding</span>
+                    <span style={{ fontWeight: 600 }}>{merchantOutstanding.outstanding_zec.toFixed(6)} ZEC</span>
+                  </div>
+                )}
+              </div>
+              <div>
+                <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginBottom: 8 }}>RECENT CYCLES</div>
+                {merchantCycles.length === 0 ? (
+                  <div style={{ fontSize: 10, color: 'var(--cp-text-dim)' }}>No billing cycles.</div>
+                ) : merchantCycles.map(c => (
+                  <div key={c.id} className="stat-row">
+                    <span style={{ color: 'var(--cp-text-muted)', fontSize: 10 }}>
+                      {new Date(c.period_end).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                    </span>
+                    <span style={{ fontSize: 10 }}>
+                      {c.outstanding_zec.toFixed(6)} ZEC
+                      <span className={`status-badge ${cycleBadgeClass(c.status)}`} style={{ fontSize: 8, marginLeft: 6 }}>{c.status.toUpperCase()}</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -473,55 +627,89 @@ function MerchantsTab({ merchants, system }: { merchants: Merchant[]; system: Sy
 
 function BillingTab({ billing, system }: { billing: BillingData; system: SystemData | null }) {
   const usd = system?.price_feed?.zec_usd;
+  const [cycleFilter, setCycleFilter] = useState<'active' | 'history' | 'all'>('active');
+
+  const cycles = useMemo(() => {
+    if (cycleFilter === 'active') return billing.active_cycles;
+    if (cycleFilter === 'history') {
+      return billing.all_cycles.filter(c =>
+        c.status === 'paid' || c.status === 'carried_over'
+      );
+    }
+    return billing.all_cycles;
+  }, [billing, cycleFilter]);
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12 }}>
+    <div className="admin-tab-content">
+      <div className="admin-stat-grid admin-stat-grid--4">
+        <StatCard value={billing.totals.earned_zec.toFixed(4)} label="TOTAL EARNED" sub="ZEC" sub2={fmtUsd(billing.totals.earned_zec, usd)} />
         <StatCard value={billing.totals.collected_zec.toFixed(4)} label="COLLECTED" sub="ZEC" sub2={fmtUsd(billing.totals.collected_zec, usd)} />
-        <StatCard value={billing.totals.outstanding_zec.toFixed(4)} label="OUTSTANDING" sub="ZEC" sub2={fmtUsd(billing.totals.outstanding_zec, usd)} />
-        <StatCard value={billing.cycles.open} label="OPEN CYCLES" />
-        <StatCard value={billing.cycles.past_due} label="PAST DUE" />
+        <StatCard value={billing.totals.outstanding_zec.toFixed(4)} label="OUTSTANDING" sub="ZEC" sub2={fmtUsd(billing.totals.outstanding_zec, usd)} attention={billing.totals.outstanding_zec > 0} />
+        <StatCard value={billing.cycles.past_due} label="PAST DUE" sub={`${billing.merchants.past_due} merchant${billing.merchants.past_due !== 1 ? 's' : ''}`} attention={billing.cycles.past_due > 0} />
       </div>
+
+      {billing.outstanding_by_merchant.length > 0 && (
+        <div className="panel">
+          <div className="panel-header">
+            <span className="panel-title">Outstanding by Merchant</span>
+            <span style={{ fontSize: 10, color: 'var(--cp-text-dim)' }}>
+              {billing.outstanding_by_merchant.length} merchant{billing.outstanding_by_merchant.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+          <div className="panel-body" style={{ padding: 0 }}>
+            <div style={{ overflowX: 'auto' }}>
+              <table className="admin-table">
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--cp-border)' }}>
+                    <th style={{ ...TH, textAlign: 'left' }}>MERCHANT</th>
+                    <th style={{ ...TH, textAlign: 'right' }}>OUTSTANDING (ZEC)</th>
+                    <th style={{ ...TH, textAlign: 'center' }}>STATUS</th>
+                    <th style={{ ...TH, textAlign: 'right' }}>PERIOD END</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {billing.outstanding_by_merchant.map(m => (
+                    <tr key={m.merchant_id} style={{ borderBottom: '1px solid var(--cp-border)' }}>
+                      <td style={{ padding: '10px 16px', fontWeight: 500 }}>{m.merchant_name || m.merchant_id.slice(0, 8)}</td>
+                      <td style={{ padding: '10px 16px', textAlign: 'right' }}>
+                        <div style={{ fontWeight: 600 }}>{m.outstanding_zec.toFixed(6)}</div>
+                        {usd && m.outstanding_zec > 0 && <div style={{ fontSize: 9, color: 'var(--cp-text-dim)' }}>{fmtUsd(m.outstanding_zec, usd)}</div>}
+                      </td>
+                      <td style={{ padding: '10px 16px', textAlign: 'center' }}>
+                        <span className={`status-badge ${
+                          m.billing_status === 'active' ? 'status-confirmed' :
+                          m.billing_status === 'past_due' ? 'status-detected' :
+                          m.billing_status === 'suspended' ? 'status-expired' : 'status-pending'
+                        }`} style={{ fontSize: 9 }}>{m.billing_status.toUpperCase()}</span>
+                      </td>
+                      <td style={{ padding: '10px 16px', textAlign: 'right', fontSize: 10, color: 'var(--cp-text-dim)' }}>
+                        {new Date(m.period_end).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="panel">
         <div className="panel-header">
-          <span className="panel-title">Cycle Summary</span>
-        </div>
-        <div className="panel-body">
-          <div className="stat-row"><span style={{ color: 'var(--cp-text-muted)' }}>Open</span><span style={{ fontWeight: 500 }}>{billing.cycles.open}</span></div>
-          <div className="stat-row"><span style={{ color: 'var(--cp-text-muted)' }}>Invoiced</span><span style={{ fontWeight: 500 }}>{billing.cycles.invoiced}</span></div>
-          <div className="stat-row">
-            <span style={{ color: 'var(--cp-text-muted)' }}>Past Due</span>
-            <span style={{ fontWeight: 500 }}>
-              {billing.cycles.past_due}
-              {billing.cycles.past_due > 0 && <span className="status-badge status-expired" style={{ fontSize: 8, marginLeft: 6 }}>OVERDUE</span>}
-            </span>
-          </div>
-          <div className="stat-row"><span style={{ color: 'var(--cp-text-muted)' }}>Paid</span><span style={{ fontWeight: 500 }}>{billing.cycles.paid}</span></div>
-          <div className="divider" />
-          <div className="stat-row">
-            <span style={{ color: 'var(--cp-text-muted)' }}>Suspended Merchants</span>
-            <span style={{ fontWeight: 500 }}>
-              {billing.merchants.suspended}
-              {billing.merchants.suspended > 0 && <span className="status-badge status-expired" style={{ fontSize: 8, marginLeft: 6 }}>ACTION</span>}
-            </span>
-          </div>
-          <div className="stat-row">
-            <span style={{ color: 'var(--cp-text-muted)' }}>Past Due Merchants</span>
-            <span style={{ fontWeight: 500 }}>
-              {billing.merchants.past_due}
-              {billing.merchants.past_due > 0 && <span className="status-badge status-pending" style={{ fontSize: 8, marginLeft: 6 }}>PENDING</span>}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div className="panel">
-        <div className="panel-header">
-          <span className="panel-title">Recent Cycles</span>
+          <span className="panel-title">Billing Cycles</span>
+          <FilterPills
+            options={[
+              { id: 'active', label: 'ACTIVE' },
+              { id: 'history', label: 'HISTORY' },
+              { id: 'all', label: 'ALL' },
+            ]}
+            value={cycleFilter}
+            onChange={v => setCycleFilter(v as 'active' | 'history' | 'all')}
+          />
         </div>
         <div className="panel-body" style={{ padding: 0 }}>
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+            <table className="admin-table">
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--cp-border)' }}>
                   <th style={{ ...TH, textAlign: 'left' }}>MERCHANT</th>
@@ -532,7 +720,7 @@ function BillingTab({ billing, system }: { billing: BillingData; system: SystemD
                 </tr>
               </thead>
               <tbody>
-                {billing.recent_cycles.map(c => (
+                {cycles.map(c => (
                   <tr key={c.id} style={{ borderBottom: '1px solid var(--cp-border)' }}>
                     <td style={{ padding: '10px 16px', fontWeight: 500 }}>{c.merchant_name || c.merchant_id.slice(0, 8)}</td>
                     <td style={{ padding: '10px 16px', textAlign: 'right' }}>
@@ -544,12 +732,7 @@ function BillingTab({ billing, system }: { billing: BillingData; system: SystemD
                       {usd && c.outstanding_zec > 0 && <div style={{ fontSize: 9, color: 'var(--cp-text-dim)' }}>{fmtUsd(c.outstanding_zec, usd)}</div>}
                     </td>
                     <td style={{ padding: '10px 16px', textAlign: 'center' }}>
-                      <span className={`status-badge ${
-                        c.status === 'paid' ? 'status-confirmed' :
-                        c.status === 'open' ? 'status-pending' :
-                        c.status === 'invoiced' ? 'status-detected' :
-                        'status-expired'
-                      }`} style={{ fontSize: 9 }}>
+                      <span className={`status-badge ${cycleBadgeClass(c.status)}`} style={{ fontSize: 9 }}>
                         {c.status.toUpperCase()}
                       </span>
                     </td>
@@ -558,10 +741,10 @@ function BillingTab({ billing, system }: { billing: BillingData; system: SystemD
                     </td>
                   </tr>
                 ))}
-                {billing.recent_cycles.length === 0 && (
+                {cycles.length === 0 && (
                   <tr>
                     <td colSpan={5} style={{ padding: '24px 16px', textAlign: 'center', color: 'var(--cp-text-dim)' }}>
-                      No billing cycles yet.
+                      No billing cycles in this view.
                     </td>
                   </tr>
                 )}
@@ -569,6 +752,11 @@ function BillingTab({ billing, system }: { billing: BillingData; system: SystemD
             </table>
           </div>
         </div>
+        {cycleFilter === 'all' && billing.carried_over_cycles > 0 && (
+          <div style={{ padding: '8px 16px', fontSize: 9, color: 'var(--cp-text-dim)', borderTop: '1px solid var(--cp-border)' }}>
+            {billing.carried_over_cycles} carried-over cycle{billing.carried_over_cycles !== 1 ? 's' : ''} · {billing.total_cycles} total
+          </div>
+        )}
       </div>
     </div>
   );
@@ -606,37 +794,26 @@ function WebhooksTab({ data, adminKey }: { data: WebhookData; adminKey: string }
 
   const totalPages = Math.ceil(total / pageSize);
 
-  const filterPillStyle = (active: boolean): React.CSSProperties => ({
-    background: active ? 'rgba(255,255,255,0.06)' : 'transparent',
-    border: `1px solid ${active ? 'var(--cp-text-dim)' : 'var(--cp-border)'}`,
-    borderRadius: 4, padding: '3px 10px', cursor: 'pointer',
-    fontSize: 9, fontFamily: 'inherit', letterSpacing: 0.5,
-    color: active ? 'var(--cp-text)' : 'var(--cp-text-dim)',
-    fontWeight: active ? 600 : 400,
-    transition: 'all 0.15s',
-  });
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="admin-tab-content">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', gap: 6 }}>
-          {['all', 'delivered', 'pending', 'failed'].map(s => (
-            <button
-              key={s}
-              onClick={() => { setFilter(s); setPage(0); }}
-              style={filterPillStyle(filter === s)}
-            >
-              {s.toUpperCase()}
-            </button>
-          ))}
-        </div>
+        <FilterPills
+          options={[
+            { id: 'all', label: 'ALL' },
+            { id: 'delivered', label: 'DELIVERED' },
+            { id: 'pending', label: 'PENDING' },
+            { id: 'failed', label: 'FAILED' },
+          ]}
+          value={filter}
+          onChange={v => { setFilter(v); setPage(0); }}
+        />
         <span style={{ fontSize: 10, color: 'var(--cp-text-dim)' }}>{total} total</span>
       </div>
 
       <div className="panel">
         <div className="panel-body" style={{ padding: 0 }}>
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+            <table className="admin-table">
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--cp-border)' }}>
                   <th style={{ ...TH, textAlign: 'left' }}>TIME</th>
