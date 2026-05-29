@@ -117,6 +117,7 @@ messages/
 - **[CipherPay API](https://github.com/atmospherelabs-dev/cipherpay-api)** — Rust backend
 - **[CipherPay Shopify](https://github.com/atmospherelabs-dev/cipherpay-shopify)** — Shopify integration
 - **[CipherScan](https://cipherscan.app)** — Zcash blockchain explorer
+- **[Zipher](https://zipher.to)** — Zcash wallet (mobile, desktop & CLI)
 
 ## License
 

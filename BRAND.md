@@ -33,9 +33,9 @@ ZODL maintains the protocol. Shielded Labs does the research. We are the consume
 
 | Product | Role | Status |
 |---------|------|--------|
-| **Zipher** | The Wallet — financial privacy, finally user-friendly. Full testnet support for developers. | Beta |
-| **CipherScan** | The Explorer — mainnet and testnet. Verify without revealing. | Live |
-| **CipherPay** | The Infrastructure — private payments, a few lines away | Live |
+| **[Zipher](https://zipher.to)** | The Wallet — financial privacy, finally user-friendly. Full testnet support for developers. | Beta |
+| **[CipherScan](https://cipherscan.app)** | The Explorer — mainnet and testnet. Verify without revealing. | Live |
+| **[CipherPay](https://cipherpay.app)** | The Infrastructure — private payments, a few lines away | Live |
 
 ## Visual Identity
 

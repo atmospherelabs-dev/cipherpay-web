@@ -195,6 +195,7 @@ zipher-cli policy show`} />
 
       <SectionTitle>Links</SectionTitle>
       <div style={{ fontSize: 11, lineHeight: 2.2, color: 'var(--cp-text-dim)' }}>
+        <a href="https://zipher.to" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>zipher.to</a> — product page &amp; download<br />
         <a href="https://www.npmjs.com/package/@cipherpay/zipher-cli" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>@cipherpay/zipher-cli on npm</a><br />
         <a href="https://github.com/atmospherelabs-dev/zipher-app" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cp-cyan)', textDecoration: 'underline' }}>Source on GitHub</a>
       </div>

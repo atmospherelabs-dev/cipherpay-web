@@ -15,6 +15,7 @@ export function SiteFooter() {
         <Link href="/brand">{t('brand')}</Link>
         <a href="https://zecmap.com/" target="_blank" rel="noopener noreferrer">{t('zecmap')}</a>
         <a href="https://cipherscan.app" target="_blank" rel="noopener noreferrer">CipherScan</a>
+        <a href="https://zipher.to" target="_blank" rel="noopener noreferrer">Zipher</a>
         <Link href="/privacy">{t('privacy')}</Link>
         <Link href="/terms">{t('terms')}</Link>
       </div>

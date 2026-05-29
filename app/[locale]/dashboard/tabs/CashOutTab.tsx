@@ -104,6 +104,15 @@ export const CashOutTab = memo(function CashOutTab({
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <a
+                href="https://zipher.to"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-small"
+                style={{ fontSize: 9, textDecoration: 'none', borderColor: 'var(--cp-cyan)', color: 'var(--cp-cyan)' }}
+              >
+                Website
+              </a>
+              <a
                 href="https://github.com/atmospherelabs-dev/zipher-app"
                 target="_blank"
                 rel="noopener noreferrer"
