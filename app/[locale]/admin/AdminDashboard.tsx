@@ -94,6 +94,20 @@ interface WebhookData {
   total: number;
 }
 
+interface ScannerMetrics {
+  status: string;
+  uptime_secs: number;
+  blocks_scanned: number;
+  last_block_height: number;
+  chain_tip_height: number;
+  blocks_behind: number;
+  payments_detected: number;
+  mempool_txs_checked: number;
+  scan_errors: number;
+  last_block_scan_ms: number;
+  last_mempool_scan_ms: number;
+}
+
 type Tab = 'overview' | 'merchants' | 'billing' | 'webhooks' | 'system';
 
 function fmtUsd(zec: number, rate: number | undefined): string {
@@ -152,6 +166,7 @@ export default function AdminDashboard({ adminKey, onLogout }: AdminDashboardPro
   const [billing, setBilling] = useState<BillingData | null>(null);
   const [system, setSystem] = useState<SystemData | null>(null);
   const [webhookData, setWebhookData] = useState<WebhookData | null>(null);
+  const [scannerMetrics, setScannerMetrics] = useState<ScannerMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
 
@@ -160,18 +175,20 @@ export default function AdminDashboard({ adminKey, onLogout }: AdminDashboardPro
   const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [statsRes, merchantsRes, billingRes, systemRes, webhooksRes] = await Promise.all([
+      const [statsRes, merchantsRes, billingRes, systemRes, webhooksRes, scannerRes] = await Promise.all([
         fetch(`${API_URL}/api/admin/stats`, { headers: headers() }),
         fetch(`${API_URL}/api/admin/merchants`, { headers: headers() }),
         fetch(`${API_URL}/api/admin/billing`, { headers: headers() }),
         fetch(`${API_URL}/api/admin/system`, { headers: headers() }),
         fetch(`${API_URL}/api/admin/webhooks?limit=100`, { headers: headers() }),
+        fetch(`${API_URL}/api/admin/scanner-metrics`, { headers: headers() }),
       ]);
       if (statsRes.ok) setStats(await statsRes.json());
       if (merchantsRes.ok) setMerchants(await merchantsRes.json());
       if (billingRes.ok) setBilling(await billingRes.json());
       if (systemRes.ok) setSystem(await systemRes.json());
       if (webhooksRes.ok) setWebhookData(await webhooksRes.json());
+      if (scannerRes.ok) setScannerMetrics(await scannerRes.json());
       setLastFetched(new Date());
     } catch (e) {
       console.error('Failed to fetch admin data', e);
@@ -241,7 +258,7 @@ export default function AdminDashboard({ adminKey, onLogout }: AdminDashboardPro
           ) : (
             <>
               {tab === 'overview' && stats && (
-                <OverviewTab stats={stats} system={system} billing={billing} onNavigate={setTab} />
+                <OverviewTab stats={stats} system={system} billing={billing} scanner={scannerMetrics} onNavigate={setTab} />
               )}
               {tab === 'merchants' && (
                 <MerchantsTab merchants={merchants} billing={billing} system={system} onNavigate={setTab} />
@@ -325,9 +342,26 @@ function AlertsStrip({ stats, system, billing, onNavigate }: {
 // Overview
 // ---------------------------------------------------------------------------
 
-function OverviewTab({ stats, system, billing, onNavigate }: {
+function fmtUptime(secs: number): string {
+  if (secs < 60) return `${secs}s`;
+  const mins = Math.floor(secs / 60);
+  if (mins < 60) return `${mins}m`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ${mins % 60}m`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d ${hrs % 24}h`;
+}
+
+function scannerStatusClass(status: string): string {
+  if (status === 'healthy') return 'status-confirmed';
+  if (status === 'catching_up') return 'status-detected';
+  if (status === 'starting') return 'status-pending';
+  return 'status-expired';
+}
+
+function OverviewTab({ stats, system, billing, scanner, onNavigate }: {
   stats: Stats; system: SystemData | null; billing: BillingData | null;
-  onNavigate: (tab: Tab) => void;
+  scanner: ScannerMetrics | null; onNavigate: (tab: Tab) => void;
 }) {
   const usd = system?.price_feed?.zec_usd;
   const feeCollectionRate = stats.fees.total > 0
@@ -336,6 +370,74 @@ function OverviewTab({ stats, system, billing, onNavigate }: {
   return (
     <div className="admin-tab-content">
       <AlertsStrip stats={stats} system={system} billing={billing} onNavigate={onNavigate} />
+
+      {scanner && (
+        <div className="panel" style={{ marginBottom: 16 }}>
+          <div className="panel-header">
+            <span className="panel-title">Scanner Health</span>
+            <span className={`status-badge ${scannerStatusClass(scanner.status)}`} style={{ fontSize: 9 }}>
+              {scanner.status.toUpperCase().replace('_', ' ')}
+            </span>
+          </div>
+          <div className="panel-body">
+            <div className="admin-activity-grid">
+              <div>
+                <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginBottom: 8 }}>CHAIN</div>
+                <div className="stat-row">
+                  <span style={{ color: 'var(--cp-text-muted)' }}>Last Block</span>
+                  <span style={{ fontWeight: 500, fontFamily: 'var(--font-mono)' }}>{scanner.last_block_height.toLocaleString()}</span>
+                </div>
+                <div className="stat-row">
+                  <span style={{ color: 'var(--cp-text-muted)' }}>Chain Tip</span>
+                  <span style={{ fontWeight: 500, fontFamily: 'var(--font-mono)' }}>{scanner.chain_tip_height.toLocaleString()}</span>
+                </div>
+                <div className="stat-row">
+                  <span style={{ color: 'var(--cp-text-muted)' }}>Behind</span>
+                  <span style={{ fontWeight: 500, color: scanner.blocks_behind > 20 ? 'var(--cp-warm)' : 'inherit' }}>
+                    {scanner.blocks_behind} blocks
+                  </span>
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginBottom: 8 }}>COUNTERS</div>
+                <div className="stat-row">
+                  <span style={{ color: 'var(--cp-text-muted)' }}>Payments Detected</span>
+                  <span style={{ fontWeight: 500 }}>{scanner.payments_detected}</span>
+                </div>
+                <div className="stat-row">
+                  <span style={{ color: 'var(--cp-text-muted)' }}>Blocks Scanned</span>
+                  <span style={{ fontWeight: 500 }}>{scanner.blocks_scanned.toLocaleString()}</span>
+                </div>
+                <div className="stat-row">
+                  <span style={{ color: 'var(--cp-text-muted)' }}>Mempool Txs</span>
+                  <span style={{ fontWeight: 500 }}>{scanner.mempool_txs_checked.toLocaleString()}</span>
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginBottom: 8 }}>PERFORMANCE</div>
+                <div className="stat-row">
+                  <span style={{ color: 'var(--cp-text-muted)' }}>Block Scan</span>
+                  <span style={{ fontWeight: 500, fontFamily: 'var(--font-mono)' }}>{scanner.last_block_scan_ms}ms</span>
+                </div>
+                <div className="stat-row">
+                  <span style={{ color: 'var(--cp-text-muted)' }}>Mempool Scan</span>
+                  <span style={{ fontWeight: 500, fontFamily: 'var(--font-mono)' }}>{scanner.last_mempool_scan_ms}ms</span>
+                </div>
+                <div className="stat-row">
+                  <span style={{ color: 'var(--cp-text-muted)' }}>Uptime</span>
+                  <span style={{ fontWeight: 500 }}>{fmtUptime(scanner.uptime_secs)}</span>
+                </div>
+                {scanner.scan_errors > 0 && (
+                  <div className="stat-row">
+                    <span style={{ color: 'var(--cp-text-muted)' }}>Errors</span>
+                    <span style={{ fontWeight: 500, color: 'var(--cp-warm)' }}>{scanner.scan_errors}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="admin-stat-grid admin-stat-grid--3">
         <StatCard value={stats.volume.total_zec.toFixed(4)} label="PLATFORM VOLUME" sub="ZEC" sub2={fmtUsd(stats.volume.total_zec, usd)} />
