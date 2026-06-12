@@ -147,6 +147,7 @@ export default function POSPage() {
       {screen === 'pin' && (
         <PinLock
           merchantName={merchantName}
+          merchantId={merchant?.id}
           onSuccess={handlePinSuccess}
           onDashboardAuth={merchant ? handlePinSuccess : undefined}
         />

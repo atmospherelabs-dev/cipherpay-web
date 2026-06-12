@@ -6,6 +6,7 @@ import { API_URL } from '@/lib/config';
 
 interface PinLockProps {
   merchantName: string;
+  merchantId?: string;
   onSuccess: () => void;
   onDashboardAuth?: () => void;
 }
@@ -14,7 +15,7 @@ const PIN_LENGTH = 4;
 const MAX_ATTEMPTS = 3;
 const LOCKOUT_MS = 30_000;
 
-export function PinLock({ merchantName, onSuccess, onDashboardAuth }: PinLockProps) {
+export function PinLock({ merchantName, merchantId, onSuccess, onDashboardAuth }: PinLockProps) {
   const t = useTranslations('pos.pin');
   const locale = useLocale();
   const [pin, setPin] = useState('');
@@ -31,13 +32,21 @@ export function PinLock({ merchantName, onSuccess, onDashboardAuth }: PinLockPro
     setVerifying(true);
     setError('');
     try {
+      const storedMid = merchantId || localStorage.getItem('pos_merchant_id') || undefined;
+      const payload: Record<string, string> = { pin: code };
+      if (storedMid) payload.merchant_id = storedMid;
+
       const res = await fetch(`${API_URL}/api/auth/pos-session`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pin: code }),
+        body: JSON.stringify(payload),
       });
       if (res.ok) {
+        const data = await res.json().catch(() => ({}));
+        if (data.merchant_id) {
+          localStorage.setItem('pos_merchant_id', data.merchant_id);
+        }
         onSuccess();
         return;
       }
