@@ -117,7 +117,7 @@ export const InvoicesTab = memo(function InvoicesTab({
   };
 
   const exportInvoicesCSV = () => {
-    const headers = ['Reference', 'Product', 'Status', 'Amount', 'Currency', 'Price (ZEC)', 'Received (ZEC)', 'Created', 'Confirmed', 'Refunded', 'Refund TxID', 'TxID'];
+    const headers = ['Reference', 'Product', 'Status', 'Amount', 'Currency', 'Price (ZEC)', 'Received (ZEC)', 'Rate at Creation', 'Rate at Confirmation', 'Fiat at Confirmation', 'Created', 'Confirmed', 'Refunded', 'Refund TxID', 'TxID'];
     const rows = invoices.map(inv => [
       inv.memo_code,
       inv.product_name || '',
@@ -126,6 +126,9 @@ export const InvoicesTab = memo(function InvoicesTab({
       inv.currency || displayCurrency,
       inv.price_zec.toFixed(8),
       inv.received_zatoshis > 0 ? (inv.received_zatoshis / 1e8).toFixed(8) : '',
+      inv.zec_rate_at_creation?.toFixed(4) ?? '',
+      inv.confirmed_rate?.toFixed(4) ?? '',
+      inv.confirmed_fiat_amount?.toFixed(2) ?? '',
       inv.created_at,
       inv.confirmed_at || '',
       inv.refunded_at || '',

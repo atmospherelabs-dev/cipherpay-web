@@ -46,6 +46,14 @@ export interface CreatedApiKey {
   created_at: string;
 }
 
+export interface LedgerToken {
+  id: string;
+  label: string;
+  expires_at: string | null;
+  created_at: string;
+  revoked: boolean;
+}
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type PublicKeyCredentialCreationOptionsJSON = any;
 type PublicKeyCredentialRequestOptionsJSON = any;
@@ -84,6 +92,8 @@ export interface Invoice {
   overpaid?: boolean;
   is_donation?: boolean;
   payment_link_id?: string | null;
+  confirmed_rate?: number | null;
+  confirmed_fiat_amount?: number | null;
   is_event?: boolean;
   is_luma?: boolean;
   price_label?: string | null;
@@ -619,6 +629,19 @@ export const api = {
 
   revokeApiKey: (id: string) =>
     request<{ status: string }>(`/api/merchants/me/keys/${id}`, { method: 'DELETE' }),
+
+  // Ledger tokens (shared accountant links)
+  listLedgerTokens: () =>
+    request<LedgerToken[]>('/api/merchants/me/ledger-tokens'),
+
+  createLedgerToken: (data: { label: string; expires_days?: number }) =>
+    request<{ token: string; label: string; expires_at: string }>('/api/merchants/me/ledger-tokens', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  revokeLedgerToken: (id: string) =>
+    request<{ status: string }>(`/api/merchants/me/ledger-tokens/${id}`, { method: 'DELETE' }),
 
   // Public
   register: (data: RegisterRequest) =>

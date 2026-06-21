@@ -2,7 +2,7 @@
 
 import { memo, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
-import { api, type MerchantInfo, type PasskeyInfo, type ApiKeySummary, type ApiKeyType } from '@/lib/api';
+import { api, type MerchantInfo, type PasskeyInfo, type ApiKeySummary, type ApiKeyType, type LedgerToken } from '@/lib/api';
 import { CopyButton } from '@/components/CopyButton';
 import { Spinner } from '@/components/Spinner';
 import { validateEmail, validateWebhookUrl, validateLength } from '@/lib/validation';
@@ -295,6 +295,11 @@ export const SettingsTab = memo(function SettingsTab({
           {/* Scoped API Keys */}
           <div className="settings-card">
             <ScopedKeysSection />
+          </div>
+
+          {/* Shared Ledger Links */}
+          <div className="settings-card">
+            <LedgerLinksSection />
           </div>
         </section>
 
@@ -757,6 +762,177 @@ function ScopedKeysSection() {
               style={{ marginTop: 12 }}
             >
               {t('scopedKeysCreate')}
+            </button>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+function LedgerLinksSection() {
+  const t = useTranslations('dashboard.settings');
+  const { showToast } = useToast();
+  const [tokens, setTokens] = useState<LedgerToken[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
+  const [newLabel, setNewLabel] = useState('');
+  const [newDays, setNewDays] = useState(90);
+  const [revealed, setRevealed] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    try { setTokens(await api.listLedgerTokens()); } catch { /* empty */ }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const formatDate = (iso: string | null) => {
+    if (!iso) return null;
+    try {
+      return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch { return iso; }
+  };
+
+  const submitCreate = async () => {
+    const label = newLabel.trim();
+    if (!label) return;
+    setCreating(true);
+    try {
+      const resp = await api.createLedgerToken({ label, expires_days: newDays });
+      const url = `${window.location.origin}/ledger/${resp.token}`;
+      setRevealed(url);
+      setNewLabel('');
+      setShowCreate(false);
+      showToast(t('ledgerCreated'));
+      await load();
+    } catch {
+      showToast(t('ledgerCreateFailed'), true);
+    }
+    setCreating(false);
+  };
+
+  const submitRevoke = async (id: string) => {
+    if (!confirm(t('ledgerRevokeConfirm'))) return;
+    try {
+      await api.revokeLedgerToken(id);
+      showToast(t('ledgerRevoked'));
+      if (revealed) setRevealed(null);
+      await load();
+    } catch {
+      showToast(t('ledgerRevokeFailed'), true);
+    }
+  };
+
+  const active = tokens.filter(tok => !tok.revoked);
+
+  return (
+    <div>
+      <div className="settings-card-label">{t('ledgerLinks')}</div>
+      <div className="settings-help" style={{ marginBottom: 12 }}>
+        {t('ledgerLinksHelp')}
+      </div>
+
+      {loading ? (
+        <div style={{ padding: 16, textAlign: 'center' }}><Spinner /></div>
+      ) : (
+        <>
+          {active.length === 0 && !showCreate && (
+            <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', padding: '8px 0' }}>
+              {t('ledgerEmpty')}
+            </div>
+          )}
+
+          {active.map((tok) => (
+            <div key={tok.id} style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12,
+              padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.04)',
+            }}>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--cp-text)' }}>
+                  {tok.label}
+                </div>
+                <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 2 }}>
+                  {t('ledgerCreatedDate', { date: formatDate(tok.created_at) || '' })}
+                  {tok.expires_at && (
+                    <> &middot; {t('ledgerExpires', { date: formatDate(tok.expires_at) || '' })}</>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={() => submitRevoke(tok.id)}
+                className="btn btn-small"
+                style={{ color: 'var(--cp-red)', borderColor: 'rgba(239,68,68,0.3)', fontSize: 9, flexShrink: 0 }}
+              >
+                {t('ledgerRevoke')}
+              </button>
+            </div>
+          ))}
+
+          {revealed && (
+            <div style={{ background: 'var(--cp-bg)', border: '1px solid var(--cp-cyan)', borderRadius: 4, padding: 12, marginTop: 12 }}>
+              <div style={{ fontSize: 10, letterSpacing: 1, color: 'var(--cp-cyan)', marginBottom: 6 }}>
+                {t('ledgerReady')}
+              </div>
+              <div style={{ fontSize: 10, color: 'var(--cp-text)', wordBreak: 'break-all', fontFamily: 'monospace', marginBottom: 8 }}>
+                {revealed}
+              </div>
+              <CopyButton text={revealed} label={t('copyLabel')} />
+              <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 6 }}>
+                {t('ledgerReadyHelp')}
+              </div>
+            </div>
+          )}
+
+          {showCreate ? (
+            <div style={{
+              background: 'rgba(255,255,255,0.02)', border: '1px solid var(--cp-border)',
+              borderRadius: 4, padding: 14, marginTop: 12,
+            }}>
+              <div className="settings-field-row" style={{ marginBottom: 8, gap: 8 }}>
+                <input
+                  type="text"
+                  value={newLabel}
+                  onChange={(e) => setNewLabel(e.target.value)}
+                  placeholder={t('ledgerLabelPlaceholder')}
+                  className="input"
+                  style={{ flex: 1, fontSize: 11 }}
+                  maxLength={50}
+                  autoFocus
+                  onKeyDown={(e) => { if (e.key === 'Enter') submitCreate(); }}
+                />
+                <select
+                  className="input"
+                  value={newDays}
+                  onChange={(e) => setNewDays(Number(e.target.value))}
+                  style={{ width: 110, fontSize: 11 }}
+                >
+                  <option value={30}>30 {t('ledgerDays')}</option>
+                  <option value={90}>90 {t('ledgerDays')}</option>
+                  <option value={180}>180 {t('ledgerDays')}</option>
+                  <option value={365}>365 {t('ledgerDays')}</option>
+                </select>
+              </div>
+              <div className="settings-actions">
+                <button onClick={submitCreate} disabled={creating || !newLabel.trim()} className="btn btn-small">
+                  {creating ? <Spinner size={10} /> : t('ledgerCreateConfirm')}
+                </button>
+                <button
+                  onClick={() => { setShowCreate(false); setNewLabel(''); }}
+                  className="btn btn-small btn-cancel"
+                >
+                  {t('ledgerCreateCancel')}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => { setShowCreate(true); setRevealed(null); }}
+              className="btn"
+              style={{ marginTop: 12 }}
+            >
+              {t('ledgerCreate')}
             </button>
           )}
         </>
