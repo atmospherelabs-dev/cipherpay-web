@@ -46,6 +46,14 @@ function CopyIcon({ size = 12 }: { size?: number }) {
   );
 }
 
+function CheckIcon({ size = 12 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+}
+
 function isSafeReturnUrl(url: string, merchantOrigin?: string | null): boolean {
   try {
     const parsed = new URL(url);
@@ -73,6 +81,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
   const [refundAddr, setRefundAddr] = useState('');
   const [refundSaved, setRefundSaved] = useState(false);
   const [showManual, setShowManual] = useState(false);
+  const [copiedAddress, setCopiedAddress] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
   const [finalizeError, setFinalizeError] = useState<string | null>(null);
   const [ticketCode, setTicketCode] = useState<string | null>(null);
@@ -357,18 +366,24 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
 
               {/* Address pill — always visible under QR */}
               <button
-                onClick={() => copy(address, 'Address')}
+                onClick={() => {
+                  copy(address, 'Address');
+                  setCopiedAddress(true);
+                  setTimeout(() => setCopiedAddress(false), 2000);
+                }}
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: 6,
-                  background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 20,
+                  background: 'var(--cp-bg)',
+                  border: `1px solid ${copiedAddress ? 'rgba(86, 212, 200, 0.4)' : 'var(--cp-border)'}`,
+                  borderRadius: 20,
                   padding: '6px 14px', cursor: 'pointer', fontSize: 10,
                   fontFamily: 'var(--font-geist-mono), monospace',
-                  color: 'var(--cp-cyan)', transition: 'border-color 0.15s',
+                  color: 'var(--cp-cyan)', transition: 'border-color 0.3s',
                   marginBottom: 8,
                 }}
               >
                 <span>{truncateAddress(address)}</span>
-                <CopyIcon size={10} />
+                {copiedAddress ? <CheckIcon size={10} /> : <CopyIcon size={10} />}
               </button>
 
               <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', lineHeight: 1.6, marginBottom: 20, opacity: 0.7 }}>
