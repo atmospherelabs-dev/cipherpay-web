@@ -108,6 +108,16 @@ interface ScannerMetrics {
   last_mempool_scan_ms: number;
 }
 
+interface HealthCheck {
+  status: 'ok' | 'degraded' | 'unhealthy';
+  service: string;
+  checks: {
+    database: string | { status: string };
+    scanner: { status: string; blocks_behind: number; scan_errors: number; last_block_height: number };
+    price_feed: string | { status: string; age_secs: number };
+  };
+}
+
 type Tab = 'overview' | 'merchants' | 'billing' | 'webhooks' | 'system';
 
 function fmtUsd(zec: number, rate: number | undefined): string {
@@ -136,7 +146,12 @@ function fmtDelta(current: number, prior: number): string | null {
 
 type HealthStatus = 'operational' | 'degraded' | 'down';
 
-function deriveHealth(system: SystemData): HealthStatus {
+function deriveHealth(system: SystemData, hc: HealthCheck | null): HealthStatus {
+  if (hc) {
+    if (hc.status === 'unhealthy') return 'down';
+    if (hc.status === 'degraded') return 'degraded';
+    return 'operational';
+  }
   if (!system.scanner_height) return 'down';
   if (!system.price_feed) return 'degraded';
   const priceFeedAge = Date.now() - new Date(system.price_feed.updated_at).getTime();
@@ -167,6 +182,7 @@ export default function AdminDashboard({ adminKey, onLogout }: AdminDashboardPro
   const [system, setSystem] = useState<SystemData | null>(null);
   const [webhookData, setWebhookData] = useState<WebhookData | null>(null);
   const [scannerMetrics, setScannerMetrics] = useState<ScannerMetrics | null>(null);
+  const [healthCheck, setHealthCheck] = useState<HealthCheck | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
 
@@ -175,13 +191,14 @@ export default function AdminDashboard({ adminKey, onLogout }: AdminDashboardPro
   const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [statsRes, merchantsRes, billingRes, systemRes, webhooksRes, scannerRes] = await Promise.all([
+      const [statsRes, merchantsRes, billingRes, systemRes, webhooksRes, scannerRes, healthRes] = await Promise.all([
         fetch(`${API_URL}/api/admin/stats`, { headers: headers() }),
         fetch(`${API_URL}/api/admin/merchants`, { headers: headers() }),
         fetch(`${API_URL}/api/admin/billing`, { headers: headers() }),
         fetch(`${API_URL}/api/admin/system`, { headers: headers() }),
         fetch(`${API_URL}/api/admin/webhooks?limit=100`, { headers: headers() }),
         fetch(`${API_URL}/api/admin/scanner-metrics`, { headers: headers() }),
+        fetch(`${API_URL}/api/health`),
       ]);
       if (statsRes.ok) setStats(await statsRes.json());
       if (merchantsRes.ok) setMerchants(await merchantsRes.json());
@@ -189,6 +206,7 @@ export default function AdminDashboard({ adminKey, onLogout }: AdminDashboardPro
       if (systemRes.ok) setSystem(await systemRes.json());
       if (webhooksRes.ok) setWebhookData(await webhooksRes.json());
       if (scannerRes.ok) setScannerMetrics(await scannerRes.json());
+      try { setHealthCheck(await healthRes.json()); } catch { setHealthCheck(null); }
       setLastFetched(new Date());
     } catch (e) {
       console.error('Failed to fetch admin data', e);
@@ -211,7 +229,7 @@ export default function AdminDashboard({ adminKey, onLogout }: AdminDashboardPro
     { id: 'system', label: 'SYSTEM' },
   ];
 
-  const health = system ? deriveHealth(system) : null;
+  const health = system ? deriveHealth(system, healthCheck) : null;
 
   return (
     <div className="admin-layout">
@@ -258,14 +276,14 @@ export default function AdminDashboard({ adminKey, onLogout }: AdminDashboardPro
           ) : (
             <>
               {tab === 'overview' && stats && (
-                <OverviewTab stats={stats} system={system} billing={billing} scanner={scannerMetrics} onNavigate={setTab} />
+                <OverviewTab stats={stats} system={system} billing={billing} scanner={scannerMetrics} healthCheck={healthCheck} onNavigate={setTab} />
               )}
               {tab === 'merchants' && (
                 <MerchantsTab merchants={merchants} billing={billing} system={system} onNavigate={setTab} />
               )}
               {tab === 'billing' && billing && <BillingTab billing={billing} system={system} />}
               {tab === 'webhooks' && webhookData && <WebhooksTab data={webhookData} adminKey={adminKey} />}
-              {tab === 'system' && system && <SystemTab system={system} adminKey={adminKey} />}
+              {tab === 'system' && system && <SystemTab system={system} adminKey={adminKey} healthCheck={healthCheck} />}
             </>
           )}
         </main>
@@ -309,11 +327,20 @@ function FilterPills({ options, value, onChange }: {
   );
 }
 
-function AlertsStrip({ stats, system, billing, onNavigate }: {
+function AlertsStrip({ stats, system, billing, healthCheck, onNavigate }: {
   stats: Stats; system: SystemData | null; billing: BillingData | null;
-  onNavigate: (tab: Tab) => void;
+  healthCheck: HealthCheck | null; onNavigate: (tab: Tab) => void;
 }) {
-  const alerts: { message: string; tab: Tab; severity: 'warn' | 'info' }[] = [];
+  const alerts: { message: string; tab: Tab; severity: 'warn' | 'info' | 'critical' }[] = [];
+  if (healthCheck && healthCheck.status === 'unhealthy') {
+    const dbFailed = typeof healthCheck.checks.database !== 'string' || healthCheck.checks.database !== 'ok';
+    alerts.push({ message: dbFailed ? 'Database check failing — invoice queries broken' : 'System unhealthy', tab: 'system', severity: 'critical' });
+  } else if (healthCheck && healthCheck.status === 'degraded') {
+    alerts.push({ message: 'System degraded — check System tab', tab: 'system', severity: 'warn' });
+  }
+  if (healthCheck && healthCheck.checks.scanner.scan_errors > 0) {
+    alerts.push({ message: `${healthCheck.checks.scanner.scan_errors} scanner errors since startup`, tab: 'system', severity: 'warn' });
+  }
   if (system && system.webhooks.failed > 0) {
     alerts.push({ message: `${system.webhooks.failed} failed webhook${system.webhooks.failed > 1 ? 's' : ''}`, tab: 'webhooks', severity: 'warn' });
   }
@@ -330,8 +357,9 @@ function AlertsStrip({ stats, system, billing, onNavigate }: {
   return (
     <div className="admin-alerts">
       {alerts.map((a, i) => (
-        <button key={i} onClick={() => onNavigate(a.tab)} className={`admin-alert admin-alert--${a.severity}`}>
-          {a.severity === 'warn' ? '⚠' : '●'} {a.message} →
+        <button key={i} onClick={() => onNavigate(a.tab)} className={`admin-alert admin-alert--${a.severity === 'critical' ? 'warn' : a.severity}`}
+          style={a.severity === 'critical' ? { borderColor: '#e74c3c', background: 'rgba(231,76,60,0.08)' } : undefined}>
+          {a.severity === 'critical' ? '!!' : a.severity === 'warn' ? '!' : ''} {a.message}
         </button>
       ))}
     </div>
@@ -359,9 +387,9 @@ function scannerStatusClass(status: string): string {
   return 'status-expired';
 }
 
-function OverviewTab({ stats, system, billing, scanner, onNavigate }: {
+function OverviewTab({ stats, system, billing, scanner, healthCheck, onNavigate }: {
   stats: Stats; system: SystemData | null; billing: BillingData | null;
-  scanner: ScannerMetrics | null; onNavigate: (tab: Tab) => void;
+  scanner: ScannerMetrics | null; healthCheck: HealthCheck | null; onNavigate: (tab: Tab) => void;
 }) {
   const usd = system?.price_feed?.zec_usd;
   const feeCollectionRate = stats.fees.total > 0
@@ -369,7 +397,7 @@ function OverviewTab({ stats, system, billing, scanner, onNavigate }: {
 
   return (
     <div className="admin-tab-content">
-      <AlertsStrip stats={stats} system={system} billing={billing} onNavigate={onNavigate} />
+      <AlertsStrip stats={stats} system={system} billing={billing} healthCheck={healthCheck} onNavigate={onNavigate} />
 
       {scanner && (
         <div className="panel" style={{ marginBottom: 16 }}>
@@ -1011,8 +1039,8 @@ const EMAIL_TEMPLATES = [
   { value: 'discount_expired', label: 'Discount Expired' },
 ];
 
-function SystemTab({ system, adminKey }: { system: SystemData; adminKey: string }) {
-  const health = deriveHealth(system);
+function SystemTab({ system, adminKey, healthCheck }: { system: SystemData; adminKey: string; healthCheck: HealthCheck | null }) {
+  const health = deriveHealth(system, healthCheck);
   const priceFeedAge = system.price_feed
     ? Date.now() - new Date(system.price_feed.updated_at).getTime()
     : null;
@@ -1054,6 +1082,36 @@ function SystemTab({ system, adminKey }: { system: SystemData; adminKey: string 
           </span>
         </div>
         <div className="panel-body">
+          {healthCheck && (
+            <div style={{ marginBottom: 12, padding: '10px 12px', borderRadius: 6, background: 'var(--cp-surface)', border: '1px solid var(--cp-border)' }}>
+              <div style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', marginBottom: 8 }}>DEEP HEALTH CHECKS</div>
+              <div className="stat-row">
+                <span style={{ color: 'var(--cp-text-muted)' }}>Database</span>
+                <span className={`status-badge ${typeof healthCheck.checks.database === 'string' && healthCheck.checks.database === 'ok' ? 'status-confirmed' : 'status-expired'}`} style={{ fontSize: 8 }}>
+                  {typeof healthCheck.checks.database === 'string' ? healthCheck.checks.database.toUpperCase() : 'ERROR'}
+                </span>
+              </div>
+              <div className="stat-row">
+                <span style={{ color: 'var(--cp-text-muted)' }}>Scanner</span>
+                <span>
+                  <span className={`status-badge ${healthCheck.checks.scanner.status === 'healthy' ? 'status-confirmed' : healthCheck.checks.scanner.status === 'catching_up' ? 'status-detected' : 'status-expired'}`} style={{ fontSize: 8 }}>
+                    {healthCheck.checks.scanner.status.toUpperCase()}
+                  </span>
+                  {healthCheck.checks.scanner.scan_errors > 0 && (
+                    <span style={{ fontSize: 9, color: 'var(--cp-warm)', marginLeft: 6 }}>
+                      {healthCheck.checks.scanner.scan_errors} errors
+                    </span>
+                  )}
+                </span>
+              </div>
+              <div className="stat-row">
+                <span style={{ color: 'var(--cp-text-muted)' }}>Price Feed</span>
+                <span className={`status-badge ${typeof healthCheck.checks.price_feed === 'string' && healthCheck.checks.price_feed === 'ok' ? 'status-confirmed' : 'status-pending'}`} style={{ fontSize: 8 }}>
+                  {typeof healthCheck.checks.price_feed === 'string' ? healthCheck.checks.price_feed.toUpperCase() : (healthCheck.checks.price_feed as { status: string }).status.toUpperCase()}
+                </span>
+              </div>
+            </div>
+          )}
           <div className="stat-row">
             <span style={{ color: 'var(--cp-text-muted)' }}>Network</span>
             <span style={{ fontWeight: 600 }}>{system.network.toUpperCase()}</span>
