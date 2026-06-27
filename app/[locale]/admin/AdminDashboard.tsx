@@ -106,6 +106,7 @@ interface ScannerMetrics {
   scan_errors: number;
   last_block_scan_ms: number;
   last_mempool_scan_ms: number;
+  last_error?: { message: string; seconds_ago: number };
 }
 
 interface HealthCheck {
@@ -113,7 +114,7 @@ interface HealthCheck {
   service: string;
   checks: {
     database: string | { status: string };
-    scanner: { status: string; blocks_behind: number; scan_errors: number; last_block_height: number };
+    scanner: { status: string; blocks_behind: number; scan_errors: number; last_block_height: number; last_error?: string; last_error_ago_secs?: number };
     price_feed: string | { status: string; age_secs: number };
   };
 }
@@ -463,6 +464,17 @@ function OverviewTab({ stats, system, billing, scanner, healthCheck, onNavigate 
                 )}
               </div>
             </div>
+            {scanner.last_error && (
+              <div style={{ marginTop: 12, padding: '8px 10px', borderRadius: 4, background: 'rgba(232,196,141,0.06)', border: '1px solid rgba(232,196,141,0.15)', fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--cp-warm)', wordBreak: 'break-all' }}>
+                <span style={{ fontSize: 9, letterSpacing: 1, color: 'var(--cp-text-muted)', fontFamily: 'var(--font-sans)' }}>LAST ERROR: </span>
+                {scanner.last_error.message}
+                <span style={{ color: 'var(--cp-text-dim)', marginLeft: 8, fontFamily: 'var(--font-sans)' }}>
+                  {scanner.last_error.seconds_ago < 60 ? `${scanner.last_error.seconds_ago}s ago` :
+                   scanner.last_error.seconds_ago < 3600 ? `${Math.floor(scanner.last_error.seconds_ago / 60)}m ago` :
+                   `${Math.floor(scanner.last_error.seconds_ago / 3600)}h ago`}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -1099,11 +1111,23 @@ function SystemTab({ system, adminKey, healthCheck }: { system: SystemData; admi
                   </span>
                   {healthCheck.checks.scanner.scan_errors > 0 && (
                     <span style={{ fontSize: 9, color: 'var(--cp-warm)', marginLeft: 6 }}>
-                      {healthCheck.checks.scanner.scan_errors} errors
+                      {healthCheck.checks.scanner.scan_errors} error{healthCheck.checks.scanner.scan_errors !== 1 ? 's' : ''}
                     </span>
                   )}
                 </span>
               </div>
+              {healthCheck.checks.scanner.last_error && (
+                <div style={{ marginTop: 4, padding: '6px 8px', borderRadius: 4, background: 'rgba(232,196,141,0.06)', border: '1px solid rgba(232,196,141,0.15)', fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--cp-warm)', wordBreak: 'break-all' }}>
+                  {healthCheck.checks.scanner.last_error}
+                  {healthCheck.checks.scanner.last_error_ago_secs != null && (
+                    <span style={{ color: 'var(--cp-text-dim)', marginLeft: 8, fontFamily: 'var(--font-sans)' }}>
+                      {healthCheck.checks.scanner.last_error_ago_secs < 60 ? `${healthCheck.checks.scanner.last_error_ago_secs}s ago` :
+                       healthCheck.checks.scanner.last_error_ago_secs < 3600 ? `${Math.floor(healthCheck.checks.scanner.last_error_ago_secs / 60)}m ago` :
+                       `${Math.floor(healthCheck.checks.scanner.last_error_ago_secs / 3600)}h ago`}
+                    </span>
+                  )}
+                </div>
+              )}
               <div className="stat-row">
                 <span style={{ color: 'var(--cp-text-muted)' }}>Price Feed</span>
                 <span className={`status-badge ${typeof healthCheck.checks.price_feed === 'string' && healthCheck.checks.price_feed === 'ok' ? 'status-confirmed' : 'status-pending'}`} style={{ fontSize: 8 }}>
