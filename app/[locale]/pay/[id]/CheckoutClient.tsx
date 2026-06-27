@@ -355,12 +355,23 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
                 </div>
               )}
 
-              {/* Instruction */}
-              <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', letterSpacing: 1, marginBottom: 8, lineHeight: 1.6 }}>
-                {t('scanWallet')}<br />
-                <span style={{ color: 'var(--cp-text-muted)' }}>{t('orSendManually')}</span>
-              </div>
-              <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', lineHeight: 1.6, marginBottom: 16, opacity: 0.7 }}>
+              {/* Address pill — always visible under QR */}
+              <button
+                onClick={() => copy(address, 'Address')}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 20,
+                  padding: '6px 14px', cursor: 'pointer', fontSize: 10,
+                  fontFamily: 'var(--font-geist-mono), monospace',
+                  color: 'var(--cp-cyan)', transition: 'border-color 0.15s',
+                  marginBottom: 8,
+                }}
+              >
+                <span>{truncateAddress(address)}</span>
+                <CopyIcon size={10} />
+              </button>
+
+              <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', lineHeight: 1.6, marginBottom: 20, opacity: 0.7 }}>
                 {t('mempoolHint')}
               </div>
 
@@ -371,31 +382,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
                 </a>
               )}
 
-              {/* Pay with CLI */}
-              {invoice?.id && (
-                <div style={{ marginBottom: 24 }}>
-                  <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', letterSpacing: 1, marginBottom: 8, textAlign: 'center' }}>
-                    {t('payWithCli')}
-                  </div>
-                  <div
-                    onClick={() => copy(`zipher pay ${typeof window !== 'undefined' ? window.location.origin : ''}/pay/${invoice.id}`, 'Command')}
-                    style={{
-                      background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 6,
-                      padding: '10px 14px', cursor: 'pointer', fontSize: 10,
-                      fontFamily: 'var(--font-geist-mono), monospace',
-                      color: 'var(--cp-cyan)', display: 'flex', alignItems: 'center',
-                      justifyContent: 'space-between', gap: 8, transition: 'border-color 0.15s',
-                    }}
-                  >
-                    <code style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      zipher pay {typeof window !== 'undefined' ? window.location.origin : ''}/pay/{invoice.id}
-                    </code>
-                    <CopyIcon size={11} />
-                  </div>
-                </div>
-              )}
-
-              {/* Manual payment toggle */}
+              {/* Advanced toggle (CLI, refund address) */}
               <button
                 type="button"
                 onClick={() => setShowManual(!showManual)}
@@ -414,28 +401,29 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
 
               {showManual && (
                 <div style={{ marginTop: 20 }}>
-                  {/* Payment Address */}
-                  <div style={{ textAlign: 'start', marginBottom: 16 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                      <span style={{ fontSize: 10, color: 'var(--cp-text-muted)', letterSpacing: 1 }}>{t('paymentAddress')}</span>
-                      <button
-                        onClick={() => copy(address, 'Address')}
-                        style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', color: 'var(--cp-cyan)', cursor: 'pointer', fontSize: 9, letterSpacing: 1, fontFamily: 'inherit', padding: 0 }}
+                  {/* Pay with CLI */}
+                  {invoice?.id && (
+                    <div style={{ marginBottom: 16 }}>
+                      <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', letterSpacing: 1, marginBottom: 8, textAlign: 'center' }}>
+                        {t('payWithCli')}
+                      </div>
+                      <div
+                        onClick={() => copy(`zipher pay ${typeof window !== 'undefined' ? window.location.origin : ''}/pay/${invoice.id}`, 'Command')}
+                        style={{
+                          background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 6,
+                          padding: '10px 14px', cursor: 'pointer', fontSize: 10,
+                          fontFamily: 'var(--font-geist-mono), monospace',
+                          color: 'var(--cp-cyan)', display: 'flex', alignItems: 'center',
+                          justifyContent: 'space-between', gap: 8, transition: 'border-color 0.15s',
+                        }}
                       >
-                        <CopyIcon size={11} /> {tc('copy')}
-                      </button>
+                        <code style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          zipher pay {typeof window !== 'undefined' ? window.location.origin : ''}/pay/{invoice.id}
+                        </code>
+                        <CopyIcon size={11} />
+                      </div>
                     </div>
-                    <div
-                      onClick={() => copy(address, 'Address')}
-                      style={{
-                        background: 'var(--cp-bg)', border: '1px solid var(--cp-border)', borderRadius: 4,
-                        padding: '10px 12px', cursor: 'pointer', fontSize: 10, color: 'var(--cp-cyan)',
-                        wordBreak: 'break-all', lineHeight: 1.5, transition: 'border-color 0.15s',
-                      }}
-                    >
-                      {truncateAddress(address)}
-                    </div>
-                  </div>
+                  )}
 
                   {/* Refund address (hidden for donations) */}
                   {!invoice.is_donation && <div style={{ borderTop: '1px solid var(--cp-border)', paddingTop: 16, marginBottom: 16, textAlign: 'start' }}>
