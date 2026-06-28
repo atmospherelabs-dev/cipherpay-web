@@ -164,6 +164,42 @@ Authorization: Bearer <api_key>
   "currency": "USD"
 }`} />
       <Paragraph>Amount in cents. Creates an invoice and returns <code>invoice_id</code> and <code>checkout_url</code>.</Paragraph>
+
+      <SectionDivider />
+
+      <SectionTitle>Embed on Your Website</SectionTitle>
+      <Paragraph>
+        Add a donation widget to any website with a single script tag. The widget renders a
+        self-contained card with your campaign image, mission, progress bar, and a
+        &quot;Donate with Zcash&quot; button that opens your CipherPay donation page.
+      </Paragraph>
+
+      <Paragraph><strong>Basic embed</strong></Paragraph>
+      <CodeBlock lang="html" code={`<script src="https://cipherpay.app/embed.js"
+        data-campaign="your-campaign-slug"></script>`} />
+
+      <Paragraph><strong>All options</strong></Paragraph>
+      <CodeBlock lang="html" code={`<script src="https://cipherpay.app/embed.js"
+        data-campaign="your-campaign-slug"
+        data-locale="en"
+        data-theme="dark"></script>`} />
+
+      <Paragraph>
+        <strong>Attributes:</strong>
+      </Paragraph>
+      <ul style={{ fontSize: 13, lineHeight: 1.8, color: 'var(--cp-text-dim)', paddingLeft: 20 }}>
+        <li><code>data-campaign</code> — your donation link slug (required)</li>
+        <li><code>data-locale</code> — language for the donate page link: <code>en</code>, <code>es</code>, <code>pt</code>, <code>ar</code> (default: <code>en</code>)</li>
+        <li><code>data-theme</code> — <code>dark</code> or <code>light</code> (default: <code>dark</code>)</li>
+      </ul>
+
+      <Callout type="info">
+        The widget uses Shadow DOM — its styles never conflict with your site&apos;s CSS.
+        It fetches campaign data from the public API on load, so the progress bar is always up to date.
+      </Callout>
+
+      <Paragraph><strong>WordPress</strong> — paste the script tag into a Custom HTML block. No plugin needed.</Paragraph>
+      <Paragraph><strong>Static sites</strong> — add the script tag wherever you want the widget to appear.</Paragraph>
     </>
   );
 }
