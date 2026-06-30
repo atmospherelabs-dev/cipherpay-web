@@ -76,6 +76,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return meta;
 }
 
+async function fetchZecRate(currency: string): Promise<number | null> {
+  try {
+    const res = await fetch(`${API_URL}/api/rates`, {
+      cache: 'no-store',
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!res.ok) return null;
+    const rates = await res.json();
+    const key = `zec_${currency.toLowerCase()}`;
+    return rates[key] ?? rates.zec_usd ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export default async function DonatePage({ params }: PageProps) {
   const { slug, locale } = await params;
 
@@ -93,7 +108,10 @@ export default async function DonatePage({ params }: PageProps) {
     return <ErrorView status={404} message="This is not a donation link" />;
   }
 
-  return <DonateClient info={info} slug={slug} locale={locale} />;
+  const currency = info.donation_config?.currency || 'USD';
+  const zecRate = await fetchZecRate(currency);
+
+  return <DonateClient info={info} slug={slug} locale={locale} zecRate={zecRate} />;
 }
 
 function ErrorView({ status, message }: { status: number; message: string }) {

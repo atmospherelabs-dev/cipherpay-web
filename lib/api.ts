@@ -227,6 +227,7 @@ export interface DonationLinkInfo {
   mode: string;
   active: boolean;
   total_raised: number;
+  total_raised_zatoshis: number;
   total_created: number;
   merchant_name: string | null;
   donation_config?: DonationConfig | null;

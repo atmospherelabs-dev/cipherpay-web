@@ -17,9 +17,10 @@ interface DonateClientProps {
   info: DonationLinkInfo;
   slug: string;
   locale: string;
+  zecRate: number | null;
 }
 
-export default function DonateClient({ info, slug, locale }: DonateClientProps) {
+export default function DonateClient({ info, slug, locale, zecRate }: DonateClientProps) {
   const t = useTranslations('donate');
   const tc = useTranslations('common');
   const router = useRouter();
@@ -186,6 +187,19 @@ export default function DonateClient({ info, slug, locale }: DonateClientProps) 
                     transition: 'width 0.5s ease',
                   }} />
                 </div>
+                {info.total_raised_zatoshis > 0 && (
+                  <div style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    fontSize: 10, color: 'var(--cp-text-dim)', marginTop: 6,
+                  }}>
+                    <span>{(info.total_raised_zatoshis / 1e8).toFixed(4)} ZEC {t('received')}</span>
+                    {zecRate != null && (
+                      <span>
+                        {sym}{((info.total_raised_zatoshis / 1e8) * zecRate).toLocaleString(undefined, { maximumFractionDigits: 0 })} {t('currentValue')}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 

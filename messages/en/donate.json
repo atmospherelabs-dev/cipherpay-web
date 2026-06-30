@@ -7,5 +7,7 @@
   "goalOf": "of",
   "minAmount": "Minimum donation is {amount}",
   "maxAmount": "Maximum donation is {amount}",
+  "received": "received",
+  "currentValue": "current value",
   "poweredBy": "Private donations powered by CipherPay + Zcash"
 }

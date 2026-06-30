@@ -7,5 +7,7 @@
   "goalOf": "من",
   "minAmount": "الحد الأدنى للتبرع هو {amount}",
   "maxAmount": "الحد الأقصى للتبرع هو {amount}",
+  "received": "مستلمة",
+  "currentValue": "القيمة الحالية",
   "poweredBy": "تبرعات خاصة مدعومة من CipherPay + Zcash"
 }

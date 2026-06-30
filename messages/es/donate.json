@@ -7,5 +7,7 @@
   "goalOf": "de",
   "minAmount": "La donación mínima es {amount}",
   "maxAmount": "La donación máxima es {amount}",
+  "received": "recibidos",
+  "currentValue": "valor actual",
   "poweredBy": "Donaciones privadas con CipherPay + Zcash"
 }
