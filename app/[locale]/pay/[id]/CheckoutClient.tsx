@@ -219,6 +219,12 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
 
   const address = invoice?.payment_address || '';
   const zcashUri = invoice?.zcash_uri || '';
+  // Simplified URI for QR: address + amount only (no memo). Reduces QR density
+  // by ~20 chars, making it scannable on low-end cameras. Memo is informational
+  // only — payment matching uses the unique address.
+  const qrUri = address && invoice?.price_zec
+    ? `zcash:${address}?amount=${invoice.price_zec.toFixed(8)}`
+    : zcashUri;
 
   const countdown = useCountdown(invoice?.expires_at || new Date().toISOString());
 
@@ -357,10 +363,10 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
                 </div>
               </div>
 
-              {/* QR Code — dense mode: smaller logo + lower error correction for long Zcash URIs */}
-              {zcashUri && (
+              {/* QR Code — dense mode: no logo + low error correction for long Zcash URIs */}
+              {qrUri && (
                 <div className="qr-container" style={{ marginBottom: 12 }}>
-                  <QRCode data={zcashUri} size={300} dense />
+                  <QRCode data={qrUri} size={340} dense />
                 </div>
               )}
 
@@ -502,7 +508,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
               {/* Updated QR for remaining amount */}
               {address && remainingZec > 0 && (
                 <div className="qr-container" style={{ marginBottom: 12 }}>
-                  <QRCode data={`zcash:${address}?amount=${remainingZec.toFixed(8)}`} size={300} dense />
+                  <QRCode data={`zcash:${address}?amount=${remainingZec.toFixed(8)}`} size={340} dense />
                 </div>
               )}
 

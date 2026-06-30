@@ -19,19 +19,32 @@ export function QRCode({ data, size = 240, className = '', dense = false }: QRCo
 
   if (!mounted || !data) return null;
 
-  const level = dense ? 'Q' : 'H';
-  const logoScale = dense ? 0.10 : 0.14;
-  const clearScale = dense ? 0.16 : 0.22;
+  if (dense) {
+    // Dense mode: no center logo, low error correction — maximizes module size
+    // for long Zcash URIs so low-end cameras can scan reliably.
+    return (
+      <div style={{ position: 'relative', width: size, height: size }} className={className}>
+        <QRCodeSVG
+          value={data}
+          size={size}
+          level="L"
+          marginSize={2}
+          bgColor="#ffffff"
+          fgColor="#0f172a"
+        />
+      </div>
+    );
+  }
 
-  const logoSize = Math.round(size * logoScale);
-  const clearZone = Math.round(size * clearScale);
+  const logoSize = Math.round(size * 0.14);
+  const clearZone = Math.round(size * 0.22);
 
   return (
     <div style={{ position: 'relative', width: size, height: size }} className={className}>
       <QRCodeSVG
         value={data}
         size={size}
-        level={level}
+        level="H"
         marginSize={2}
         bgColor="#ffffff"
         fgColor="#0f172a"
