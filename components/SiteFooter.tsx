@@ -11,6 +11,7 @@ export function SiteFooter() {
     <footer className="site-footer">
       <div className="footer-links footer-links-primary">
         <Link href="/docs">{t('docs')}</Link>
+        <Link href="/campaigns">{t('campaigns')}</Link>
         <Link href="/faq">{t('faq')}</Link>
         <Link href="/brand">{t('brand')}</Link>
         <a href="https://zecmap.com/" target="_blank" rel="noopener noreferrer">{t('zecmap')}</a>

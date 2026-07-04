@@ -2,9 +2,8 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Logo } from '@/components/Logo';
-import { ThemeToggle } from '@/components/ThemeToggle';
-import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { SiteHeader } from '@/components/SiteHeader';
+import { SiteFooter } from '@/components/SiteFooter';
 import { currencySymbol } from '@/lib/currency';
 import type { CampaignEntry } from '@/lib/api';
 
@@ -35,20 +34,7 @@ export default function CampaignsClient({ campaigns, zecRate }: CampaignsClientP
       color: 'var(--cp-text, #e0e0e0)',
       fontFamily: 'var(--font-sans, Inter, system-ui, sans-serif)',
     }}>
-      {/* Header */}
-      <header style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        padding: '16px 24px',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-      }}>
-        <a href="/" style={{ textDecoration: 'none' }}>
-          <Logo size="sm" />
-        </a>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <LanguageSwitcher />
-          <ThemeToggle />
-        </div>
-      </header>
+      <SiteHeader />
 
       {/* Hero */}
       <div style={{
@@ -112,13 +98,7 @@ export default function CampaignsClient({ campaigns, zecRate }: CampaignsClientP
         ))}
       </div>
 
-      {/* Footer */}
-      <footer style={{
-        textAlign: 'center', padding: '24px', fontSize: 11,
-        color: 'var(--cp-text-dim)', borderTop: '1px solid rgba(255,255,255,0.04)',
-      }}>
-        {t('footer')}
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

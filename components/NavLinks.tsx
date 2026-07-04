@@ -79,6 +79,7 @@ export function NavLinks() {
       <div className="nav-desktop">
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <Link href="/docs" style={linkStyle('/docs')}>{t('docs')}</Link>
+          <Link href="/campaigns" style={linkStyle('/campaigns')}>{t('campaigns')}</Link>
           <Link href="/faq" style={linkStyle('/faq')}>{t('faq')}</Link>
         </div>
         <div style={{ width: 1, height: 20, background: 'var(--cp-border)', margin: '0 4px' }} />
@@ -111,6 +112,7 @@ export function NavLinks() {
         <div className="mobile-overlay" onClick={() => setMenuOpen(false)}>
           <nav className="mobile-drawer" onClick={(e) => e.stopPropagation()}>
             <Link href="/docs" style={{ ...linkStyle('/docs'), fontSize: 14, padding: '12px 0', display: 'block' }}>{t('docs')}</Link>
+            <Link href="/campaigns" style={{ ...linkStyle('/campaigns'), fontSize: 14, padding: '12px 0', display: 'block' }}>{t('campaigns')}</Link>
             <Link href="/faq" style={{ ...linkStyle('/faq'), fontSize: 14, padding: '12px 0', display: 'block' }}>{t('faq')}</Link>
             <div style={{ borderTop: '1px solid var(--cp-border)', marginTop: 8, paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
               {authLinks}
