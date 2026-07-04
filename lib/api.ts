@@ -218,7 +218,24 @@ export interface PaymentLink {
   mode: 'payment' | 'donation';
   donation_config?: DonationConfig | null;
   total_raised: number;
+  listed: boolean;
   created_at: string;
+}
+
+export interface CampaignEntry {
+  slug: string;
+  name: string | null;
+  merchant_name: string | null;
+  total_raised: number;
+  total_raised_zatoshis: number;
+  total_confirmed: number;
+  donate_url: string;
+  created_at: string;
+  campaign_name?: string | null;
+  mission?: string | null;
+  campaign_goal?: number | null;
+  cover_image_url?: string | null;
+  currency?: string;
 }
 
 export interface DonationLinkInfo {
@@ -724,6 +741,7 @@ export const api = {
 
   updatePaymentLink: (id: string, data: {
     name?: string; success_url?: string; active?: boolean;
+    listed?: boolean;
     donation_config?: Partial<DonationConfig>;
   }) =>
     request<PaymentLink>(`/api/payment-links/${id}`, {

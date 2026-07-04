@@ -22,6 +22,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
     donate,
     pos,
     brand,
+    campaigns,
   ] = await Promise.all([
     import(`../messages/${locale}/common.json`),
     import(`../messages/${locale}/nav.json`),
@@ -36,6 +37,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
     import(`../messages/${locale}/donate.json`),
     import(`../messages/${locale}/pos.json`),
     import(`../messages/${locale}/brand.json`),
+    import(`../messages/${locale}/campaigns.json`),
   ]);
 
   return {
@@ -54,6 +56,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
       donate: donate.default,
       pos: pos.default,
       brand: brand.default,
+      campaigns: campaigns.default,
     },
   };
 });

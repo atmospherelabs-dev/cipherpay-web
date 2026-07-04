@@ -1,0 +1,13 @@
+{
+  "title": "Donation Campaigns",
+  "subtitle": "Browse active campaigns accepting private donations with Zcash. Every transaction is shielded by default.",
+  "searchPlaceholder": "Search campaigns...",
+  "noResults": "No campaigns match your search.",
+  "noCampaigns": "No active campaigns right now. Check back soon.",
+  "raised": "raised",
+  "goalOf": "of",
+  "by": "by",
+  "donor": "donor",
+  "donors": "donors",
+  "footer": "Private donations powered by CipherPay + Zcash"
+}

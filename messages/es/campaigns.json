@@ -1,0 +1,13 @@
+{
+  "title": "Campanas de Donacion",
+  "subtitle": "Explora campanas activas que aceptan donaciones privadas con Zcash. Cada transaccion es protegida por defecto.",
+  "searchPlaceholder": "Buscar campanas...",
+  "noResults": "No hay campanas que coincidan con tu busqueda.",
+  "noCampaigns": "No hay campanas activas en este momento. Vuelve pronto.",
+  "raised": "recaudado",
+  "goalOf": "de",
+  "by": "por",
+  "donor": "donante",
+  "donors": "donantes",
+  "footer": "Donaciones privadas con CipherPay + Zcash"
+}

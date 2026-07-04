@@ -76,6 +76,7 @@ export const PaymentLinksTab = memo(function PaymentLinksTab({
   const [donCoverImage, setDonCoverImage] = useState('');
   const [donCoverPosition, setDonCoverPosition] = useState('center top');
   const [donSocialShare, setDonSocialShare] = useState('');
+  const [donListed, setDonListed] = useState(true);
   const [editingLink, setEditingLink] = useState<PaymentLink | null>(null);
 
   const allPrices = products
@@ -156,6 +157,7 @@ export const PaymentLinksTab = memo(function PaymentLinksTab({
     setDonCoverImage('');
     setDonCoverPosition('center top');
     setDonSocialShare('');
+    setDonListed(true);
   };
 
   const handleEditDonation = (link: PaymentLink) => {
@@ -177,6 +179,7 @@ export const PaymentLinksTab = memo(function PaymentLinksTab({
     setDonCoverImage(dc?.cover_image_url || '');
     setDonCoverPosition(dc?.cover_image_position || 'center top');
     setDonSocialShare(dc?.social_share_text || '');
+    setDonListed(link.listed !== false);
     setShowCreate(true);
   };
 
@@ -191,6 +194,7 @@ export const PaymentLinksTab = memo(function PaymentLinksTab({
 
       await api.updatePaymentLink(editingLink.id, {
         name: donName.trim(),
+        listed: donListed,
         donation_config: {
           mission: donMission.trim() || undefined,
           thank_you: donThankYou.trim() || undefined,
@@ -503,6 +507,39 @@ export const PaymentLinksTab = memo(function PaymentLinksTab({
               </div>
             </div>
 
+            {/* — Directory listing — */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              padding: '8px 10px', borderRadius: 6,
+              background: 'rgba(255,255,255,0.02)',
+              border: '1px solid rgba(255,255,255,0.06)',
+            }}>
+              <button
+                type="button"
+                onClick={() => setDonListed(!donListed)}
+                style={{
+                  width: 34, height: 18, borderRadius: 9, border: 'none',
+                  background: donListed ? 'var(--cp-accent-blue, #5B9CF6)' : 'rgba(255,255,255,0.12)',
+                  position: 'relative', cursor: 'pointer', transition: 'background 0.15s',
+                  flexShrink: 0,
+                }}
+              >
+                <span style={{
+                  position: 'absolute', top: 2, width: 14, height: 14, borderRadius: '50%',
+                  background: '#fff', transition: 'left 0.15s',
+                  left: donListed ? 18 : 2,
+                }} />
+              </button>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--cp-text)' }}>
+                  Listed in campaign directory
+                </div>
+                <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 1 }}>
+                  When enabled, this campaign appears on the public campaigns page
+                </div>
+              </div>
+            </div>
+
             <button className="btn btn-primary" disabled={!donName.trim() || creating}
               onClick={editingLink ? handleUpdateDonationLink : handleCreateDonationLink}
               style={{ alignSelf: 'flex-start', fontSize: 11, marginTop: 4 }}>
@@ -551,13 +588,24 @@ export const PaymentLinksTab = memo(function PaymentLinksTab({
                     {link.active ? 'ACTIVE' : 'INACTIVE'}
                   </span>
                   {link.mode === 'donation' && (
-                    <span style={{
-                      fontSize: 8, padding: '2px 6px', borderRadius: 3,
-                      background: 'rgba(255,255,255,0.05)', color: 'var(--cp-text-muted)',
-                      fontWeight: 600, letterSpacing: 0.5,
-                    }}>
-                      DONATION
-                    </span>
+                    <>
+                      <span style={{
+                        fontSize: 8, padding: '2px 6px', borderRadius: 3,
+                        background: 'rgba(255,255,255,0.05)', color: 'var(--cp-text-muted)',
+                        fontWeight: 600, letterSpacing: 0.5,
+                      }}>
+                        DONATION
+                      </span>
+                      {link.listed && (
+                        <span style={{
+                          fontSize: 8, padding: '2px 6px', borderRadius: 3,
+                          background: 'rgba(91,156,246,0.08)', color: 'var(--cp-accent-blue, #5B9CF6)',
+                          fontWeight: 600, letterSpacing: 0.5,
+                        }}>
+                          LISTED
+                        </span>
+                      )}
+                    </>
                   )}
                 </div>
                 <div style={{ display: 'flex', gap: 6 }}>

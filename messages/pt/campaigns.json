@@ -1,0 +1,13 @@
+{
+  "title": "Campanhas de Doacao",
+  "subtitle": "Explore campanhas ativas que aceitam doacoes privadas com Zcash. Cada transacao e protegida por padrao.",
+  "searchPlaceholder": "Buscar campanhas...",
+  "noResults": "Nenhuma campanha corresponde a sua busca.",
+  "noCampaigns": "Nenhuma campanha ativa no momento. Volte em breve.",
+  "raised": "arrecadado",
+  "goalOf": "de",
+  "by": "por",
+  "donor": "doador",
+  "donors": "doadores",
+  "footer": "Doacoes privadas com CipherPay + Zcash"
+}
