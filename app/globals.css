@@ -3426,8 +3426,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #0a0a0f 0%, #111827 100%);
-  color: #e4e4e7;
+  background: #f8fafc;
+  color: #0f172a;
 }
 
 .pos-qr-container {
@@ -3443,17 +3443,19 @@ body {
 .pos-qr-fiat {
   font-size: 32px;
   font-weight: 700;
-  color: #ffffff;
+  color: #0f172a;
 }
 
-.pos-qr-currency { font-size: 16px; color: #71717a; }
-.pos-qr-tip { font-size: 12px; color: #71717a; margin-top: 4px; }
-.pos-qr-zec { font-size: 16px; color: #00D4FF; margin-top: 4px; font-weight: 600; }
+.pos-qr-currency { font-size: 16px; color: #64748b; }
+.pos-qr-tip { font-size: 12px; color: #64748b; margin-top: 4px; }
+.pos-qr-zec { font-size: 16px; color: #0891b2; margin-top: 4px; font-weight: 600; }
 
 .pos-qr-code-wrap {
   padding: 24px;
   background: #ffffff;
   border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 .pos-qr-status {
@@ -3466,7 +3468,7 @@ body {
   text-transform: uppercase;
 }
 
-.pos-status-pending { color: #eab308; }
+.pos-status-pending { color: #ca8a04; }
 .pos-status-detected { color: #a855f7; }
 .pos-status-confirmed { color: #22c55e; }
 .pos-status-expired { color: #ef4444; }
@@ -3483,7 +3485,7 @@ body {
 .pos-qr-timer {
   font-size: 24px;
   font-weight: 700;
-  color: #71717a;
+  color: #64748b;
   font-variant-numeric: tabular-nums;
 }
 
