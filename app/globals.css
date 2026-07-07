@@ -2467,6 +2467,16 @@ body {
   overflow: hidden;
   -webkit-user-select: none;
   user-select: none;
+
+  --cp-bg: #f8fafc;
+  --cp-surface: #ffffff;
+  --cp-border: #e2e8f0;
+  --cp-hover: rgba(0, 0, 0, 0.04);
+  --cp-text: #0f172a;
+  --cp-text-muted: #64748b;
+  --cp-text-dim: #94a3b8;
+  --cp-cyan: #0891b2;
+  --cp-accent-blue: #2563eb;
 }
 
 /* ── PIN Lock Screen ── */
@@ -2862,9 +2872,9 @@ body {
 }
 
 .pos-cat-tab.active {
-  background: #0f172a;
+  background: #2563eb;
   color: #ffffff;
-  border-color: #0f172a;
+  border-color: #2563eb;
 }
 
 .pos-cat-tab:hover:not(.active) { border-color: #94a3b8; }
