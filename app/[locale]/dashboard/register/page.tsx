@@ -34,7 +34,7 @@ export default function RegisterPage() {
     }
     const ufvkLen = validateLength(ufvk, 2000, 'UFVK');
     if (ufvkLen) { setError(ufvkLen); setLoading(false); return; }
-    if (!ufvk.startsWith('uview') && !ufvk.startsWith('utest')) {
+    if (!ufvk.startsWith('uview') && !ufvk.startsWith('utest') && !ufvk.startsWith('uivk')) {
       setError(t('ufvkError'));
       setLoading(false);
       return;
@@ -165,7 +165,7 @@ export default function RegisterPage() {
 
                 <div className="form-group">
                   <label className="form-label">{t('ufvkLabel')} <span style={{ color: 'var(--cp-red)' }}>*</span></label>
-                  <textarea value={ufvk} onChange={(e) => setUfvk(e.target.value)} placeholder="uview1..." className="input" style={{ resize: 'vertical', minHeight: 70 }} required />
+                  <textarea value={ufvk} onChange={(e) => setUfvk(e.target.value)} placeholder="uview1... or uivk1..." className="input" style={{ resize: 'vertical', minHeight: 70 }} required />
                   <p style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 4 }}>{t('ufvkHelp')}</p>
                 </div>
 
