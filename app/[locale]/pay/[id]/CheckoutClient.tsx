@@ -392,10 +392,24 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
 
               {/* Open in Wallet */}
               {zcashUri && (
-                <a href={zcashUri} className="btn-primary" style={{ width: '100%', textTransform: 'uppercase', marginBottom: 24 }}>
+                <a href={zcashUri} className="btn-primary" style={{ width: '100%', textTransform: 'uppercase', marginBottom: 12 }}>
                   {t('openInWallet')}
                 </a>
               )}
+
+              {/* Get ZEC link */}
+              <div style={{ textAlign: 'center', marginBottom: 24 }}>
+                <a
+                  href="https://cipherswap.app"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: 11, color: 'var(--cp-text-muted)', textDecoration: 'none', transition: 'color 0.15s' }}
+                  onMouseEnter={e => { e.currentTarget.style.color = 'var(--cp-cyan)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--cp-text-muted)'; }}
+                >
+                  {t('noZec')} <span style={{ opacity: 0.6 }}>→</span>
+                </a>
+              </div>
 
               {/* Advanced toggle (CLI, refund address) */}
               <button

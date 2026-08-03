@@ -8,6 +8,7 @@
   "scanWallet": "امسح بمحفظة ZCASH الخاصة بك",
   "orSendManually": "أو أرسل يدوياً باستخدام التفاصيل أدناه",
   "openInWallet": "افتح في المحفظة",
+  "noZec": "ليس لديك ZEC؟ احصل عليه",
   "payWithCli": "ZIPHER CLI",
   "manualPayment": "متقدم",
   "paymentAddress": "عنوان الدفع",

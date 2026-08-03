@@ -8,6 +8,7 @@
   "scanWallet": "SCAN WITH YOUR ZCASH WALLET",
   "orSendManually": "or send manually using the details below",
   "openInWallet": "Open in Wallet",
+  "noZec": "Don't have ZEC? Get some",
   "payWithCli": "ZIPHER CLI",
   "manualPayment": "ADVANCED",
   "paymentAddress": "PAYMENT ADDRESS",
