@@ -165,67 +165,88 @@ export default function WebhooksSection() {
       <SectionTitle>Verifying webhook signatures</SectionTitle>
       <Paragraph>
         To verify that a webhook is genuinely from CipherPay, compute the HMAC-SHA256 of the timestamp + payload
-        using your webhook secret, and compare it to the signature header. Also check that the timestamp is recent
-        (within 5 minutes) to prevent replay attacks.
+        using your webhook secret, and compare it to the signature header. Verify the exact raw request bytes,
+        before parsing JSON. Reject invalid timestamps or timestamps more than 5 minutes in either direction.
+        A valid signature proves authenticity; duplicate processing still needs to be prevented.
       </Paragraph>
 
       <div style={{ fontSize: 11, color: 'var(--cp-text)', fontWeight: 600, marginBottom: 8 }}>Node.js / Express</div>
       <CodeBlock lang="javascript" code={`const crypto = require('crypto');
+// Use express.raw({ type: 'application/json' }) on the webhook route,
+// before any app-wide express.json() middleware.
 
 function verifyWebhook(req, webhookSecret) {
   const signature = req.headers['x-cipherpay-signature'];
   const timestamp = req.headers['x-cipherpay-timestamp'];
-  const body = JSON.stringify(req.body);
+  const body = req.body;
+  if (!webhookSecret || !Buffer.isBuffer(body)
+      || typeof signature !== 'string' || !/^[a-f0-9]{64}$/i.test(signature)
+      || typeof timestamp !== 'string') return false;
 
-  // Reject if timestamp is older than 5 minutes
-  const age = Date.now() - new Date(timestamp).getTime();
-  if (age > 5 * 60 * 1000) return false;
+  const sentAt = Date.parse(timestamp);
+  if (!Number.isFinite(sentAt)
+      || Math.abs(Date.now() - sentAt) > 5 * 60 * 1000) return false;
 
   // Compute expected signature
   const expected = crypto
     .createHmac('sha256', webhookSecret)
-    .update(timestamp + '.' + body)
-    .digest('hex');
+    .update(timestamp + '.')
+    .update(body)
+    .digest();
 
   // Constant-time comparison to prevent timing attacks
   return crypto.timingSafeEqual(
-    Buffer.from(signature), Buffer.from(expected)
+    Buffer.from(signature, 'hex'), expected
   );
 }`} />
 
       <div style={{ fontSize: 11, color: 'var(--cp-text)', fontWeight: 600, marginBottom: 8, marginTop: 16 }}>Python / Flask</div>
-      <CodeBlock lang="python" code={`import hmac, hashlib
+      <CodeBlock lang="python" code={`import hmac, hashlib, re
 from datetime import datetime, timezone
 
 def verify_webhook(headers, body, webhook_secret):
     signature = headers.get('X-CipherPay-Signature')
     timestamp = headers.get('X-CipherPay-Timestamp')
+    # Flask: pass request.get_data(), before parsing JSON.
+    if (not webhook_secret or not isinstance(body, bytes)
+            or not isinstance(signature, str)
+            or not re.fullmatch(r'[a-fA-F0-9]{64}', signature)
+            or not isinstance(timestamp, str)):
+        return False
 
-    # Reject if older than 5 minutes
-    ts = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+    try:
+        ts = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+        if ts.tzinfo is None:
+            return False
+    except ValueError:
+        return False
     age = (datetime.now(timezone.utc) - ts).total_seconds()
-    if age > 300:
+    if abs(age) > 300:
         return False
 
     # Compute expected signature
     expected = hmac.new(
         webhook_secret.encode(),
-        f"{timestamp}.{body}".encode(),
+        timestamp.encode() + b'.' + body,
         hashlib.sha256
     ).hexdigest()
 
-    return hmac.compare_digest(signature, expected)`} />
+    return hmac.compare_digest(signature.lower(), expected)`} />
 
       <SectionDivider />
 
       <Expandable title="Retry behavior">
         <Paragraph>
           If your endpoint returns a non-2xx status code, CipherPay retries the webhook with exponential backoff
-          (up to 5 attempts). Make sure your endpoint is idempotent — it may receive the same event more than once.
+          (up to 10 attempts). Make sure your endpoint is idempotent — it may receive the same event more than once.
         </Paragraph>
         <Callout type="tip">
-          Use the <Code>X-CipherPay-Delivery-Id</Code> header to deduplicate retries. Store the delivery ID
-          when you process a webhook and skip any subsequent deliveries with the same ID.
+          The <Code>X-CipherPay-Delivery-Id</Code> header identifies retries, but is not covered by the
+          payload signature. For invoice events, also deduplicate using the signed <Code>invoice_id</Code>
+          and event type, with a unique database constraint. For renewals, set the customer&apos;s expiry
+          from <Code>new_period_end</Code> instead of adding another month on each webhook. Events can
+          arrive out of order: reconcile with <Code>GET /api/subscriptions/&#123;id&#125;/status</Code>, and
+          enforce its <Code>active</Code> flag and paid expiry even if a webhook is delayed.
         </Callout>
       </Expandable>
     </>
