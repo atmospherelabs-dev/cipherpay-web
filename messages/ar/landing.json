@@ -1,6 +1,6 @@
 {
   "heroTitle": "مدفوعات <purple>خاصة</purple> للإنترنت.",
-  "heroSubtitle": "قبول Zcash فى دقائق. غير احتجازي. دون أي بيانات عن المشتري. بدون وسيط.",
+  "heroSubtitle": "يدفع عملاؤك باستخدام ZEC أو BTC أو ETH أو SOL أو العملات المستقرة. وتستلم ZEC محمياً مباشرة في محفظتك.",
   "logoBar": {
     "ariaLabel": "التكاملات المدعومة",
     "label": "يعمل مع بنيتك التحتية"
@@ -11,7 +11,7 @@
     "intro": "اربط ما تستخدمه بالفعل. روابط الدفع والcheckout المستضاف في قسم ابدأ أدناه.",
     "showcaseCaption": "Shopify أو WooCommerce أو موقعك — CipherPay يضيف ZEC دون استبدال متجرك.",
     "onlineTitle": "عبر الإنترنت",
-    "onlineDesc": "تطبيق Shopify أو إضافة WooCommerce أو روابط دفع أو REST API. واجهة متجرك تبقى لك — CipherPay يضيف ZEC دون استبدال متجرك.",
+    "onlineDesc": "احتفظ بمتجرك. اربط Shopify أو WooCommerce أو روابط الدفع أو REST API. يختار العملاء عملة مدعومة وتستلم أنت ZEC محمياً.",
     "inPersonTitle": "حضوري",
     "inPersonDesc": "نقطة بيع على iPad للأسواق والمتاجر. QR وإكراميات وإيصالات على أي جهاز لوحي.",
     "agentsTitle": "للآلات",
@@ -23,9 +23,9 @@
   "privacy": {
     "title": "ما يبقى خاصًا",
     "subtitle": "عملاؤك ليسوا المنتج",
-    "intro": "معالجات البطاقات والعملات الشفافة تكشف المشترين. checkout CipherPay لا يجمع أي شيء من الدافع.",
+    "intro": "الدفع المباشر باستخدام ZEC لا يطلب هوية المشتري؛ والمقارنة أدناه تخص هذا المسار. تستخدم العملات الأخرى NEAR Confidential Intents، وتبقى التحويلات على شبكة المصدر علنية.",
     "typicalCheckout": "CHECKOUT تقليدي",
-    "cipherpayCheckout": "CHECKOUT CIPHERPAY",
+    "cipherpayCheckout": "الدفع المباشر باستخدام ZEC",
     "Row1": "اسم وبريد المشتري",
     "Row2": "الدفع مرتبط بالهوية",
     "Row3": "سجل المشتريات على السلسلة",
@@ -41,8 +41,8 @@
   "whyCipherpay": "لماذا CIPHERPAY",
   "feature1Title": "01 // غير احتجازي",
   "feature1Desc": "مفاتيحك، أموالك. لا يحتفظ CipherPay بعملات ZEC الخاصة بك. تذهب المدفوعات مباشرة إلى عنوانك المحمي.",
-  "feature2Title": "02 // محمي بالكامل",
-  "feature2Desc": "كل عملية دفع تستخدم معاملات Zcash المحمية. لا عناوين شفافة، لا تسريب بيانات وصفية.",
+  "feature2Title": "02 // ZEC محمي",
+  "feature2Desc": "يصل ZEC إلى عنوان Zcash المحمي الخاص بك. تخضع المدفوعات على الشبكات الأخرى لقواعد الشفافية الخاصة بتلك الشبكات.",
   "feature3Title": "03 // مدفوعات الوكلاء",
   "feature3Desc": "اقبل ZEC من وكلاء الذكاء الاصطناعي عبر بروتوكولات x402 وMPP. جلسات مدفوعة مسبقاً للوصول عالي التردد. وسيط واحد.",
   "x402Link": "x402",
@@ -52,7 +52,7 @@
   "step2": "2. أدرج",
   "step2Desc": "أنشئ كتالوج منتجاتك من لوحة التحكم",
   "step3": "3. تلقَّ المدفوعات",
-  "step3Desc": "شارك رابطاً أو ادمج عبر API — العملاء يمسحون وأنت تتلقى ZEC",
+  "step3Desc": "شارك صفحة الدفع. يدفع العملاء باستخدام ZEC أو عملة مدعومة أخرى وتستلم أنت ZEC.",
   "forDevelopers": "للمطورين",
   "oneApiCall": "استدعاء API واحد لتلقّي المدفوعات",
   "integrationsTitle": "عمليات التكامل",
@@ -92,7 +92,18 @@
   "agentsNpmInstall": "npm install @cipherpay/x402",
   "agentsPackages": "npm install @cipherpay/x402 · npm install -g @cipherpay/zipher-cli · npm install -g @cipherpay/mcp",
   "readyTitle": "مستعد لقبول مدفوعات خاصة؟",
-  "readySubtitle": "الإعداد في أقل من دقيقة. بدون تحقق من الهوية. بدون وسيط. فقط ZEC.",
+  "readySubtitle": "الإعداد في أقل من دقيقة. اقبل المزيد من العملات واستمر في تلقّي ZEC.",
   "footerDocs": "المستندات",
-  "footerFaq": "الأسئلة الشائعة"
+  "footerFaq": "الأسئلة الشائعة",
+  "paymentMethods": {
+    "title": "<line>الدفع بالعملات الرقمية.</line> <line>والتسوية بـ ZEC محمي.</line>",
+    "description": "يختار عملاؤك الرمز والشبكة. وتستلم ZEC مباشرة في محفظتك المحمية.",
+    "customerPays": "يدفع عميلك",
+    "youReceive": "تستلم أنت",
+    "shieldedZec": "ZEC محمي",
+    "directWallet": "مباشرة في محفظتك.",
+    "availability": "يختلف توفر الشبكات والحد الأدنى للمبالغ. تبقى التحويلات على شبكة المصدر علنية.",
+    "label": "الدفع عبر الإنترنت",
+    "provider": "التحويل عبر NEAR Confidential Intents."
+  }
 }

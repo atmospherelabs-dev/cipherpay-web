@@ -1,4 +1,5 @@
 import { cache } from 'react';
+import { serverApiFetch } from '@/lib/server-api';
 import type { Metadata } from 'next';
 import DonateClient from './DonateClient';
 import type { DonationLinkInfo } from '@/lib/api';
@@ -6,7 +7,6 @@ import type { DonationLinkInfo } from '@/lib/api';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cipherpay.app';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.cipherpay.app';
 
 interface PageProps {
@@ -16,7 +16,7 @@ interface PageProps {
 const fetchInfo = cache(async function fetchInfo(slug: string, retries = 2): Promise<DonationLinkInfo | null> {
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
-      const res = await fetch(`${API_URL}/api/payment-links/${slug}/info`, {
+      const res = await serverApiFetch(`/api/payment-links/${encodeURIComponent(slug)}/info`, {
         cache: 'no-store',
         signal: AbortSignal.timeout(8000),
       });
@@ -78,7 +78,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 async function fetchZecRate(currency: string): Promise<number | null> {
   try {
-    const res = await fetch(`${API_URL}/api/rates`, {
+    const res = await serverApiFetch('/api/rates', {
       cache: 'no-store',
       signal: AbortSignal.timeout(5000),
     });

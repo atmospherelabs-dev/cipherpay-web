@@ -1,10 +1,13 @@
 'use client';
+import { checkoutPath } from '@/lib/checkout-access';
 
 import { memo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { api, type BillingSummary, type BillingCycle, type ZecRates, type Invoice } from '@/lib/api';
 import { currencySymbol, zecToFiat, fiatLabel } from '@/lib/currency';
 import { useToast } from '@/contexts/ToastContext';
+import { ReferralBilling } from './ReferralBilling';
+import { CrosschainBilling } from './CrosschainBilling';
 
 interface BillingTabProps {
   billing: BillingSummary | null;
@@ -55,7 +58,7 @@ export const BillingTab = memo(function BillingTab({
       const resp = await api.settleBilling();
       showToast(t('toastSettlement', { amount: resp.outstanding_zec.toFixed(6) }));
       if (resp.invoice_id) {
-        window.open(`/pay/${resp.invoice_id}`, '_blank');
+        window.open(checkoutPath(resp.invoice_id), '_blank');
       }
       reloadBilling();
     } catch (err) {
@@ -81,15 +84,20 @@ export const BillingTab = memo(function BillingTab({
         )}
       </div>
       <div className="panel-body">
+        {billing?.crosschain && (billing.crosschain.enabled || billing.crosschain.collected_count > 0 || (billing.crosschain.provider_handled_count ?? 0) > 0 || billing.crosschain.pending_count > 0) && (
+          <CrosschainBilling summary={billing.crosschain} />
+        )}
+        {!!billing?.verifying_payment_fees && <p role="status">{t('feesVerifying', { count: billing.verifying_payment_fees })}</p>}
+        {billing?.referrals && <ReferralBilling summary={billing.referrals} assets={billing.crosschain?.assets.map(a => a.asset) || []} reload={reloadBilling} />}
         {!billing ? (
           <div style={{ textAlign: 'center', padding: '32px 16px' }}>
             <div style={{ fontSize: 11, color: 'var(--cp-text-dim)' }}>Loading...</div>
           </div>
         ) : !billing.fee_enabled ? (
           <div style={{ textAlign: 'center', padding: '32px 16px' }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--cp-green)', marginBottom: 8 }}>{t('noFees')}</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--cp-green)', marginBottom: 8 }}>{t('directZec')}</div>
             <div style={{ fontSize: 11, color: 'var(--cp-text-muted)', lineHeight: 1.6 }}>
-              {t('selfHosted')}
+              {t('directDisabled')}
             </div>
           </div>
         ) : (

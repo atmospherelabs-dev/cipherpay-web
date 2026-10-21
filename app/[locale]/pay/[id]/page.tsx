@@ -1,4 +1,4 @@
-import { API_URL } from '@/lib/config';
+import { serverApiFetch } from '@/lib/server-api';
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import CheckoutClient from './CheckoutClient';
@@ -10,7 +10,7 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
   try {
-    const res = await fetch(`${API_URL}/api/invoices/${id}`, {
+    const res = await serverApiFetch(`/api/invoices/${encodeURIComponent(id)}`, {
       next: { revalidate: 30 },
     });
     if (res.ok) {

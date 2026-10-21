@@ -13,6 +13,14 @@ import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { Link } from '@/i18n/navigation';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Spinner } from '@/components/Spinner';
+import { PaymentIcon } from '@/components/PaymentJourney';
+import { AssetIcon } from '@/components/PaymentAssetSelector';
+import { API_URL } from '@/lib/config';
+import { NETWORK_NAMES, receiptPaymentAsset, type CryptoAsset } from '@/lib/crosschain';
+import paymentStyles from '@/components/CrosschainCheckout.module.css';
+import dynamic from 'next/dynamic';
+const CrosschainCheckout = dynamic(() => import('@/components/CrosschainCheckout').then(m => m.CrosschainCheckout), { ssr: false });
+const CROSSCHAIN_ENABLED = process.env.NEXT_PUBLIC_CROSSCHAIN_ENABLED === 'true';
 
 function useCountdown(expiresAt: string) {
   const [text, setText] = useState('');
@@ -76,6 +84,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
   const t = useTranslations('checkout');
   const tc = useTranslations('common');
   const [invoice, setInvoice] = useState<Invoice | null>(null);
+  const [crosschainActive, setCrosschainActive] = useState(CROSSCHAIN_ENABLED);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState('');
   const [refundAddr, setRefundAddr] = useState('');
@@ -255,7 +264,6 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
   const invCurrency = invoice.currency || 'EUR';
   const invAmount = invoice.amount != null ? invoice.amount : invoice.price_eur;
   const primaryPrice = formatFiat(invAmount, invCurrency);
-  const secondaryPrice = invCurrency !== 'EUR' ? formatFiat(invoice.price_eur, 'EUR') : (invoice.price_usd ? formatFiat(invoice.price_usd, 'USD') : null);
   const showReceipt = invoice.status === 'detected' || invoice.status === 'confirmed';
   const isUnderpaid = invoice.status === 'underpaid';
   const remainingZatoshis = invoice.price_zatoshis - invoice.received_zatoshis;
@@ -263,18 +271,20 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ fontFamily: 'var(--font-geist-mono), monospace', fontSize: 13, lineHeight: 1.6 }}>
-      <header className="site-header">
+      <header className={`site-header ${paymentStyles.checkoutHeader}`}>
         <Link href="/"><Logo size="sm" /></Link>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {(invoice.status === 'pending' || isUnderpaid) && <span className="tag">{invoice.is_donation ? t('donation') : countdown.text}</span>}
-          {showReceipt && <span className="tag">{t('paid')}</span>}
-          <LanguageSwitcher />
-          <ThemeToggle />
+        <div className={paymentStyles.checkoutActions}>
+          {(invoice.status === 'pending' || isUnderpaid) && !crosschainActive && !invoice.is_donation && <span className={paymentStyles.headerStatus}>{countdown.text}</span>}
+          {showReceipt && <span className={paymentStyles.headerStatus}>{t('paid')}</span>}
+          <LanguageSwitcher size={44} />
+          <ThemeToggle size={44} />
         </div>
       </header>
 
       <main className="flex-1 flex items-center justify-center" style={{ padding: '32px 24px' }}>
         <div style={{ maxWidth: 440, width: '100%' }}>
+
+          {CROSSCHAIN_ENABLED && <CrosschainCheckout invoice={invoice} onActiveChange={setCrosschainActive} onInvoice={setInvoice} />}
 
           {/* ── Draft: pre-checkout (Lock Rate & Pay) ── */}
           {invoice.status === 'draft' && (
@@ -318,7 +328,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
           )}
 
           {/* ── Payment UI ── */}
-          {invoice.status === 'pending' && (
+          {invoice.status === 'pending' && !crosschainActive && (
             <div style={{ textAlign: 'center' }}>
 
               {/* Order info — prominent */}
@@ -349,9 +359,9 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
                   </>
                 )}
                 <div style={{ fontSize: 32, fontWeight: 700, color: 'var(--cp-text)' }}>
-                  {primaryPrice}{secondaryPrice && <span style={{ fontSize: 16, color: 'var(--cp-text-muted)', fontWeight: 400, marginInlineStart: 8 }}>{secondaryPrice}</span>}
+                  {primaryPrice}
                 </div>
-                <div style={{ fontSize: 13, color: 'var(--cp-cyan)', marginTop: 4 }}>≈ {invoice.price_zec.toFixed(8)} ZEC</div>
+                <div className={paymentStyles.zecAmount}><span>≈ {invoice.price_zec.toFixed(8)}</span><span className={paymentStyles.zecCurrency}><img src="/tokens/zec.png" alt="" width={14} height={14}/>ZEC</span></div>
                 <div style={{ marginTop: 12, fontSize: 10, color: 'var(--cp-text-dim)', letterSpacing: 1 }}>
                   {t('expiresIn', { time: countdown.text })}
                 </div>
@@ -359,7 +369,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
 
               {/* QR Code — dense mode: no logo + low error correction for long Zcash URIs */}
               {zcashUri && (
-                <div className="qr-container" style={{ marginBottom: 12 }}>
+                <div className={`qr-container ${paymentStyles.responsiveQr}`} style={{ marginBottom: 12 }}>
                   <QRCode data={zcashUri} size={340} dense />
                 </div>
               )}
@@ -501,7 +511,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
           )}
 
           {/* ── Underpaid: partial payment received ── */}
-          {isUnderpaid && (
+          {isUnderpaid && !crosschainActive && (
             <div style={{ textAlign: 'center' }}>
               <div className="checkout-status underpaid" style={{ marginBottom: 24, padding: 20 }}>
                 <div style={{ fontSize: 15, fontWeight: 700 }}>{t('partialReceived')}</div>
@@ -515,7 +525,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
 
               {/* Updated QR for remaining amount */}
               {address && remainingZec > 0 && (
-                <div className="qr-container" style={{ marginBottom: 12 }}>
+                <div className={`qr-container ${paymentStyles.responsiveQr}`} style={{ marginBottom: 12 }}>
                   <QRCode data={`zcash:${address}?amount=${remainingZec.toFixed(8)}`} size={340} dense />
                 </div>
               )}
@@ -565,7 +575,7 @@ export default function CheckoutClient({ invoiceId }: { invoiceId: string }) {
           )}
 
           {/* ── Expired ── */}
-          {invoice.status === 'expired' && (
+          {invoice.status === 'expired' && !crosschainActive && (
             <div className="checkout-status expired">
               <div>{t('invoiceExpired')}</div>
 
@@ -676,13 +686,52 @@ async function saveReceiptImage(el: HTMLElement, ticketCode: string) {
   link.click();
 }
 
-function ReceiptDetails({ invoice, row, label, primaryPrice, secondaryPrice, t }: {
+function ReceiptDetails({ invoice, row, label, primaryPrice, t }: {
   invoice: Invoice; row: React.CSSProperties; label: React.CSSProperties;
-  primaryPrice: string; secondaryPrice: string | null;
+  primaryPrice: string;
   t: ReturnType<typeof useTranslations>;
 }) {
   const locale = useLocale();
   const isDonation = !!invoice.is_donation;
+  const [sourceAsset, setSourceAsset] = useState<CryptoAsset | null>(null);
+
+  useEffect(() => {
+    setSourceAsset(null);
+    if (!invoice.is_crosschain) return;
+    const controller = new AbortController();
+    let retry: ReturnType<typeof setTimeout> | undefined;
+    const deadline = setTimeout(() => {
+      controller.abort();
+      if (retry !== undefined) clearTimeout(retry);
+    }, 60000);
+    const poll = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/invoices/${encodeURIComponent(invoice.id)}/crosschain`, {
+          cache: 'no-store', signal: AbortSignal.any([controller.signal, AbortSignal.timeout(10000)]),
+        });
+        const attempt = response.ok ? await response.json() : null;
+        if (controller.signal.aborted) return;
+        const asset = attempt && receiptPaymentAsset(attempt);
+        if (asset) {
+          setSourceAsset(asset);
+          clearTimeout(deadline);
+        } else if (attempt?.settlementVerified !== true && ['KNOWN_DEPOSIT_TX', 'PROCESSING', 'SUCCESS'].includes(attempt?.state)) {
+          retry = setTimeout(poll, 5000);
+        } else {
+          clearTimeout(deadline);
+        }
+      } catch {
+        // The ZEC receipt remains usable when source metadata is unavailable.
+        clearTimeout(deadline);
+      }
+    };
+    void poll();
+    return () => {
+      controller.abort();
+      if (retry !== undefined) clearTimeout(retry);
+      clearTimeout(deadline);
+    };
+  }, [invoice.id, invoice.is_crosschain, invoice.status]);
 
   return (
     <>
@@ -719,8 +768,12 @@ function ReceiptDetails({ invoice, row, label, primaryPrice, secondaryPrice, t }
         )}
         <div style={row}>
           <span style={label}>{t('amount')}</span>
-          <span style={{ fontWeight: 700, fontSize: 14 }}>{primaryPrice}{secondaryPrice && <span style={{ fontWeight: 400, fontSize: 11, color: 'var(--cp-text-muted)', marginInlineStart: 6 }}>{secondaryPrice}</span>}</span>
+          <span style={{ fontWeight: 700, fontSize: 14 }}>{primaryPrice}</span>
         </div>
+        {sourceAsset && <div style={{ ...row, gap: 12 }}>
+          <span style={label}>{t('paidWith')}</span>
+          <span className={paymentStyles.receiptAsset}><AssetIcon asset={sourceAsset}/><span>{sourceAsset.symbol} · {NETWORK_NAMES[sourceAsset.blockchain]}</span></span>
+        </div>}
         <div style={row}>
           <span style={label}>{t('zecPaid')}</span>
           <span style={{ color: 'var(--cp-cyan)', fontWeight: 600 }}>
@@ -748,7 +801,7 @@ function ReceiptDetails({ invoice, row, label, primaryPrice, secondaryPrice, t }
           );
         })()}
       </div>
-      {invoice.overpaid && invoice.received_zatoshis > invoice.price_zatoshis && !invoice.is_donation && (
+      {invoice.overpaid && invoice.received_zatoshis > invoice.price_zatoshis && !invoice.is_donation && !invoice.is_crosschain && (
         <div style={{
           marginTop: 16, padding: '14px 20px', borderRadius: 6,
           background: 'rgba(249, 115, 22, 0.1)', border: '1px solid rgba(249, 115, 22, 0.3)',
@@ -796,7 +849,6 @@ function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending, ticke
   const invCurrency = invoice.currency || 'EUR';
   const invAmount = invoice.amount != null ? invoice.amount : invoice.price_eur;
   const primaryPrice = formatFiat2(invAmount, invCurrency);
-  const secondaryPrice = invCurrency !== 'EUR' ? formatFiat2(invoice.price_eur, 'EUR') : (invoice.price_usd ? formatFiat2(invoice.price_usd, 'USD') : null);
 
   const row: React.CSSProperties = {
     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -884,6 +936,7 @@ function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending, ticke
         </div>
       ) : (
         <div className="checkout-status confirmed" style={{ marginTop: 0, marginBottom: 20, padding: 20 }}>
+          <div className={paymentStyles.acceptedIcon}><PaymentIcon kind="check"/></div>
           <div style={{ fontSize: 15, fontWeight: 700 }}>{t('paymentAccepted')}</div>
         </div>
       )}
@@ -1040,7 +1093,7 @@ function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending, ticke
               )}
             </div>
 
-            <ReceiptDetails invoice={invoice} row={row} label={label} primaryPrice={primaryPrice} secondaryPrice={secondaryPrice} t={t} />
+            <ReceiptDetails invoice={invoice} row={row} label={label} primaryPrice={primaryPrice} t={t} />
           </div>
 
           <button
@@ -1059,7 +1112,7 @@ function ConfirmedReceipt({ invoice, returnUrl, ticketCode, ticketPending, ticke
       )}
 
       {!ticketCode && !ticketPending && !lumaPass && (
-        <ReceiptDetails invoice={invoice} row={row} label={label} primaryPrice={primaryPrice} secondaryPrice={secondaryPrice} t={t} />
+        <ReceiptDetails invoice={invoice} row={row} label={label} primaryPrice={primaryPrice} t={t} />
       )}
 
       {returnUrl && (

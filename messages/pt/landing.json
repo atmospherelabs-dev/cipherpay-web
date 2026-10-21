@@ -1,6 +1,6 @@
 {
   "heroTitle": "Pagamentos <purple>privados</purple> para a internet.",
-  "heroSubtitle": "Aceite Zcash em minutos. Sem custódia. Pagamento privado.",
+  "heroSubtitle": "Seus clientes pagam com ZEC, BTC, ETH, SOL ou stablecoins. Receba ZEC blindado diretamente na sua carteira.",
   "logoBar": {
     "ariaLabel": "Integrações compatíveis",
     "label": "Funciona com sua stack"
@@ -11,7 +11,7 @@
     "intro": "Encaixe no que você já usa. Links de pagamento e checkout hospedado estão em Começar abaixo.",
     "showcaseCaption": "Shopify, WooCommerce ou seu próprio site — CipherPay adiciona ZEC sem substituir sua loja.",
     "onlineTitle": "Online",
-    "onlineDesc": "App Shopify, plugin WooCommerce, links de pagamento ou REST API. Sua vitrine continua sua — CipherPay adiciona ZEC sem substituir sua loja.",
+    "onlineDesc": "Mantenha sua loja. Conecte Shopify, WooCommerce, links de pagamento ou a API REST. Clientes escolhem uma cripto compatível; você recebe ZEC blindado.",
     "inPersonTitle": "Presencial",
     "inPersonDesc": "POS em iPad para mercados e varejo. Checkout QR, gorjetas e recibos em qualquer tablet.",
     "agentsTitle": "Para máquinas",
@@ -23,9 +23,9 @@
   "privacy": {
     "title": "O QUE PERMANECE PRIVADO",
     "subtitle": "Seus clientes não são o produto",
-    "intro": "O checkout padrão não solicita a identidade do comprador. Integrações opcionais e hospedagem processam os dados descritos na política de privacidade.",
+    "intro": "O pagamento direto em ZEC não solicita a identidade do comprador; a comparação cobre essa opção. Outras criptomoedas usam NEAR Confidential Intents, e as transferências na rede de origem continuam públicas.",
     "typicalCheckout": "CHECKOUT TÍPICO",
-    "cipherpayCheckout": "CHECKOUT CIPHERPAY",
+    "cipherpayCheckout": "PAGAMENTO DIRETO EM ZEC",
     "Row1": "Nome e email do comprador",
     "Row2": "Pagamento ligado à identidade",
     "Row3": "Histórico de compras on-chain",
@@ -41,8 +41,8 @@
   "whyCipherpay": "POR QUE CIPHERPAY",
   "feature1Title": "01 // Não-Custodial",
   "feature1Desc": "Suas chaves, seus fundos. CipherPay nunca retém seu ZEC. Os pagamentos vão direto para o seu endereço blindado.",
-  "feature2Title": "02 // Totalmente Blindado",
-  "feature2Desc": "Os pagamentos usam endereços blindados Zcash para ocultar os detalhes do público.",
+  "feature2Title": "02 // ZEC blindado",
+  "feature2Desc": "O ZEC vai para seu endereço blindado Zcash. Pagamentos em outras redes seguem as regras de visibilidade dessas redes.",
   "feature3Title": "03 // Pagamentos Agênticos",
   "feature3Desc": "Aceite ZEC de agentes de IA via protocolos x402 e MPP. Sessões pré-pagas para acesso de alta frequência. Um middleware.",
   "x402Link": "x402",
@@ -52,7 +52,7 @@
   "step2": "2. Publique",
   "step2Desc": "Crie seu catálogo de produtos pelo painel",
   "step3": "3. Receba",
-  "step3Desc": "Compartilhe um link ou integre via API — clientes escaneiam, você recebe ZEC",
+  "step3Desc": "Compartilhe seu checkout. Clientes pagam com ZEC ou outra cripto compatível; você recebe ZEC.",
   "forDevelopers": "PARA DESENVOLVEDORES",
   "oneApiCall": "Uma chamada de API para ser pago",
   "integrationsTitle": "INTEGRAÇÕES",
@@ -91,7 +91,18 @@
   "agentsPrivacyHidden": "Oculto",
   "agentsPrivacyZcash": "ZCASH BLINDADO",
   "agentsNpmInstall": "npm install @cipherpay/x402",
-  "readySubtitle": "Configure em menos de um minuto. Sem KYC. Sem intermediários. Apenas ZEC.",
+  "readySubtitle": "Configure em menos de um minuto. Aceite mais criptomoedas. Continue recebendo em ZEC.",
   "footerDocs": "Docs",
-  "footerFaq": "FAQ"
+  "footerFaq": "FAQ",
+  "paymentMethods": {
+    "title": "<line>Pago em cripto.</line> <line>Liquidado em ZEC blindado.</line>",
+    "description": "Seus clientes escolhem o token e a rede. Você recebe ZEC direto na sua carteira blindada.",
+    "customerPays": "SEU CLIENTE PAGA",
+    "youReceive": "VOCÊ RECEBE",
+    "shieldedZec": "ZEC blindado",
+    "directWallet": "Direto na sua carteira.",
+    "availability": "A disponibilidade de redes e os valores mínimos variam. As transferências na rede de origem permanecem públicas.",
+    "label": "PAGAMENTOS ONLINE",
+    "provider": "Conversão com NEAR Confidential Intents."
+  }
 }

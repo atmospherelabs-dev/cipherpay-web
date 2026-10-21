@@ -89,7 +89,10 @@
     "lumaIntegration": "Integração Luma",
     "zecmapTitle": "LISTAR NO ZECMAP",
     "zecmapDesc": "ZecMap ajuda holders de ZEC a descobrir comerciantes. Envie sua loja ao diretório comunitário.",
-    "zecmapAction": "ENVIAR AO ZECMAP →"
+    "zecmapAction": "ENVIAR AO ZECMAP →",
+    "directZecCount": "ZEC direto · {count}",
+    "crosschainCount": "Entre redes · {count}",
+    "verifyingMethod": "Verificando método · {count}"
   },
   "products": {
     "title": "Catálogo de Produtos",
@@ -215,7 +218,8 @@
     "toastLinkCreated": "Fatura criada",
     "toastFailedCreateLink": "Falha ao criar fatura",
     "toastCancelled": "Fatura cancelada",
-    "toastFailedCancel": "Falha ao cancelar"
+    "toastFailedCancel": "Falha ao cancelar",
+    "crosschain": "ENTRE REDES"
   },
   "billing": {
     "title": "Faturamento",
@@ -251,7 +255,35 @@
     "howItWorks": "COMO FUNCIONA",
     "howItWorksDesc": "Uma taxa de {rate}% é adicionada como uma segunda saída nos QR codes de pagamento (ZIP 321). Quando os compradores escaneiam o QR, a taxa é auto-coletada. Se um comprador copiar o endereço manualmente, a taxa acumula e é cobrada no fim do ciclo. Pagamentos pontuais consistentes elevam seu nível de confiança, estendendo ciclos de faturamento e períodos de carência.",
     "toastSettlement": "Fatura de liquidação criada: {amount} ZEC",
-    "toastFailedSettle": "Falha ao liquidar"
+    "toastFailedSettle": "Falha ao liquidar",
+    "directZec": "ZEC direto",
+    "directDisabled": "As taxas de ZEC direto estão desativadas nesta instância.",
+    "crosschainTitle": "Pagamentos entre redes",
+    "crosschainRate": "{rate}% de taxa de serviço",
+    "crosschainExplanation": "Paga pelo comprador durante a conversão, incluindo a parte da NEAR. As taxas gerenciadas pela NEAR ou coletadas automaticamente não são cobradas de você novamente.",
+    "crosschainCollected": "Taxas da CipherPay com comprovantes verificados",
+    "crosschainNone": "Nenhum comprovante de taxa verificado ainda.",
+    "crosschainPending": "{count, plural, one {# pagamento aguardando verificação da taxa} other {# pagamentos aguardando verificação das taxas}}",
+    "crosschainRecent": "Atividade recente de taxas",
+    "crosschainPaid": "Coletada automaticamente",
+    "crosschainVerifying": "Verificando comprovante",
+    "crosschainHandledExplanation": "A NEAR concluiu essas conversões com a taxa da CipherPay configurada, e seus pagamentos em ZEC foram confirmados. Essas taxas não serão cobradas de você novamente. Os comprovantes verificados são exibidos separadamente.",
+    "crosschainHandledCount": "{count, plural, one {# pagamento gerenciado pela NEAR} other {# pagamentos gerenciados pela NEAR}}",
+    "crosschainHandled": "Gerenciada pela NEAR",
+    "referrals": {
+      "title": "Indicações",
+      "terms": "Ganhe 50% das taxas CipherPay que recebermos dos comerciantes indicados por 12 meses. Eles recebem uma taxa de serviço de 0,5% por 3 meses em novas faturas; a sobretaxa entre redes não muda.",
+      "copy": "Copiar código",
+      "copied": "Código copiado",
+      "count": "{count} comerciantes indicados",
+      "held": "Os ganhos são registrados no token recebido. Pagamentos e conversão em crédito ainda não estão disponíveis.",
+      "applied": "Uma indicação já foi aplicada a esta conta.",
+      "label": "Tem um código?",
+      "apply": "Aplicar código",
+      "failed": "Não foi possível concluir. Tente novamente.",
+      "baseUnits": "unidades mínimas"
+    },
+    "feesVerifying": "{count} taxas estão em verificação e não estão incluídas na fatura."
   },
   "settings": {
     "title": "Configurações",
@@ -270,7 +302,13 @@
     "emailChange": "ALTERAR",
     "emailRemove": "REMOVER",
     "emailChangeHelp": "Digite um novo email para substituir o atual.",
-    "emailAddHelp": "Adicione um email para recuperar sua conta se você perder seu token do painel.",
+    "emailAddHelp": "Usado para recuperar sua conta e receber notificações de faturamento. Nunca enviamos emails de marketing.",
+    "paymentEmailLabel": "Notificações de pagamento por email",
+    "paymentEmailHelp": "Receba um email no seu endereço salvo para cada pagamento confirmado de uma fatura de cliente. É opcional e desativado por padrão; os emails de faturamento são enviados separadamente.",
+    "paymentEmailNeedsEmail": "Adicione e salve um email acima para ativar notificações de pagamentos confirmados de faturas de clientes.",
+    "paymentEmailEnabled": "Notificações de pagamento por email ativadas",
+    "paymentEmailDisabled": "Notificações de pagamento por email desativadas",
+    "paymentEmailFailed": "Não foi possível salvar as notificações de pagamento por email",
     "derivedAddress": "Endereço Derivado",
     "derivedAddressHelp": "Auto-derivado da sua UFVK. Cada fatura recebe seu próprio endereço de pagamento único para privacidade e detecção confiável.",
     "webhookUrl": "URL do Webhook",
@@ -325,11 +363,11 @@
     "ledgerCreatedDate": "criado {date}",
     "ledgerExpires": "expira {date}",
     "dangerZone": "ZONA DE PERIGO",
-    "dangerDesc": "Exclua permanentemente sua conta, produtos e todos os dados. Isso não pode ser desfeito. Você deve liquidar qualquer saldo pendente de faturamento antes de excluir.",
+    "dangerDesc": "Exclua permanentemente sua conta e produtos. Isso não pode ser desfeito. Quite primeiro qualquer saldo pendente. Registros mínimos de elegibilidade para indicações e comissões ganhas são mantidos.",
     "deleteAccount": "EXCLUIR CONTA",
     "confirmDelete": "Tem certeza que deseja excluir permanentemente sua conta? Isso não pode ser desfeito.",
     "confirmDelete2": "Isso excluirá TODOS os seus produtos, faturas e dados de faturamento. Digite OK para confirmar.",
-    "confirmRemoveEmail": "Remover seu email de recuperação? Você não poderá recuperar sua conta se perder seu token do painel.",
+    "confirmRemoveEmail": "Remover seu email? As notificações de pagamento por email serão desativadas. Você não receberá notificações de faturamento nem poderá recuperar sua conta se perder seu token do painel.",
     "confirmRegenApiKey": "Regenerar sua chave API? A chave atual parará de funcionar imediatamente. Quaisquer integrações usando-a serão afetadas.",
     "confirmRegenDashToken": "Regenerar seu token do painel? Você será desconectado de todas as sessões e precisará do novo token para entrar novamente.",
     "confirmRegenWebhook": "Regenerar seu segredo do webhook? Você precisará atualizar o segredo nas suas integrações.",
@@ -347,7 +385,11 @@
     "toastDashTokenRegen": "Token do painel regenerado. Copie agora — não será mostrado novamente.",
     "toastWebhookSecretRegen": "Segredo do webhook regenerado",
     "toastFailedRegen": "Falha ao regenerar",
-    "toastFailedDelete": "Falha ao excluir conta"
+    "toastFailedDelete": "Falha ao excluir conta",
+    "crosschainLabel": "Aceitar pagamentos entre redes",
+    "crosschainHint": "Os compradores podem pagar com outros tokens. Você recebe ZEC. Desativar esta opção impede apenas novos pagamentos entre redes.",
+    "crosschainSaved": "Configurações de pagamento salvas",
+    "crosschainFailed": "Não foi possível salvar as configurações"
   },
   "webhooks": {
     "title": "Entregas de Webhooks",

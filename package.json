@@ -7,28 +7,36 @@
     "build": "next build",
     "start": "next start",
     "lint": "tsc --noEmit --incremental false",
-    "typecheck": "tsc --noEmit --incremental false"
+    "typecheck": "tsc --noEmit --incremental false",
+    "test:crosschain": "node --test tests/crosschain.test.cjs",
+    "deploy:staging": "node scripts/deploy-staging.mjs"
   },
   "dependencies": {
+    "@solana/web3.js": "^1.99.0",
+    "buffer": "^6.0.3",
     "framer-motion": "^12.38.0",
     "html2canvas": "^1.4.1",
     "html5-qrcode": "^2.3.8",
-    "next": "^15.5.7",
-    "next-intl": "^4.8.3",
+    "next": "^15.5.28",
+    "next-intl": "^4.14.9",
     "qrcode.react": "^4.2.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "viem": "^2.57.2"
   },
   "devDependencies": {
     "@types/node": "^22.10.5",
     "@types/react": "^19.0.6",
     "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.4.21",
-    "postcss": "^8.5.23",
+    "postcss": "^8.5.31",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.2"
   },
   "overrides": {
-    "postcss": "$postcss"
+    "postcss": "$postcss",
+    "jayson": {
+      "uuid": "^11.1.1"
+    }
   }
 }

@@ -1,4 +1,5 @@
 'use client';
+import { checkoutPath } from '@/lib/checkout-access';
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
@@ -135,6 +136,19 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    if (tab !== 'overview' && tab !== 'billing') return;
+    const refresh = () => {
+      if (document.visibilityState !== 'visible') return;
+      void refreshMerchant();
+      void loadBilling();
+      void loadInvoices();
+    };
+    const interval = setInterval(refresh, 30_000);
+    window.addEventListener('focus', refresh);
+    return () => { clearInterval(interval); window.removeEventListener('focus', refresh); };
+  }, [tab, refreshMerchant, loadBilling, loadInvoices]);
+
   const handleLogout = async () => { await logout(); router.push('/dashboard/login'); };
 
   const settleBilling = async () => {
@@ -142,7 +156,7 @@ export default function DashboardClient({ merchant }: { merchant: MerchantInfo }
       const resp = await api.settleBilling();
       showToast(t('toasts.settlementCreated', { amount: resp.outstanding_zec.toFixed(6) }));
       if (resp.invoice_id) {
-        window.open(`/pay/${resp.invoice_id}`, '_blank');
+        window.open(checkoutPath(resp.invoice_id), '_blank');
       }
       loadBilling();
     } catch (err) {

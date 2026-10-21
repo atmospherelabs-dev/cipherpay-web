@@ -1,15 +1,13 @@
 {
   "tag": "CHECKOUT",
-  "payWithZec": "PAY WITH SHIELDED ZEC",
-  "payButton": "PAY WITH ZEC",
-  "processing": "PROCESSING...",
+  "payButton": "CONTINUE TO PAYMENT",
+  "processing": "OPENING CHECKOUT…",
   "productNotFound": "PRODUCT NOT FOUND",
-  "refundTitle": "Refund Address (optional)",
-  "refundDesc": "Provide a Zcash address if you want the option of a refund. Without it, refunds require manual coordination.",
-  "refundPrivacyHint": "Providing a refund address reveals it to the merchant, reducing your privacy.",
+  "refundTitle": "Zcash refund address (optional)",
+  "refundDesc": "For refunds from the merchant in ZEC. Any address needed for a crypto conversion refund is requested at payment.",
+  "refundPrivacyHint": "Shared with the merchant. You can skip this and arrange a refund with them later.",
   "getTickets": "GET TICKETS",
   "selectTier": "SELECT TIER",
-  "buyTicket": "BUY TICKET WITH ZEC",
   "attendeeName": "Your Name",
   "attendeeNamePlaceholder": "Jane Doe",
   "attendeeEmail": "Your Email",
@@ -18,5 +16,8 @@
   "emailRequired": "Email is required for event registration",
   "openOnLuma": "Open on Luma",
   "soldOut": "SOLD OUT",
-  "soldOutHint": "This ticket tier has reached its maximum capacity. No more tickets are available."
+  "soldOutHint": "This ticket tier has reached its maximum capacity. No more tickets are available.",
+  "orderSummary": "ORDER SUMMARY",
+  "paymentHint": "Pay with ZEC, or choose another available crypto at the next step.",
+  "paymentHintZec": "Pay with shielded ZEC at the next step."
 }

@@ -1,4 +1,5 @@
 'use client';
+import { CrosschainOperations } from './CrosschainOperations';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { API_URL } from '@/lib/config';
@@ -270,6 +271,7 @@ export default function AdminDashboard({ adminKey, onLogout }: AdminDashboardPro
         </nav>
 
         <main className="admin-main">
+          {(tab === 'overview' || tab === 'system') && <CrosschainOperations adminKey={adminKey} />}
           {loading && !stats ? (
             <div className="admin-loading">
               <div className="w-6 h-6 border-2 border-cp-cyan border-t-transparent rounded-full animate-spin" />

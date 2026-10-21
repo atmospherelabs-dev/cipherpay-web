@@ -13,3 +13,6 @@ next-env.d.ts
 .agents/
 .vercel
 .env*
+
+# Keep referral UI application code visible despite private-document global ignores.
+!app/**/ReferralBilling.tsx

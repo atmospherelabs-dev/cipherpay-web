@@ -27,6 +27,8 @@ export const SettingsTab = memo(function SettingsTab({
   const t = useTranslations('dashboard.settings');
   const tc = useTranslations('common');
 
+  const [savingPayment, setSavingPayment] = useState(false);
+  const [savingPaymentEmails, setSavingPaymentEmails] = useState(false);
   const [editingName, setEditingName] = useState(!merchant.name);
   const [editName, setEditName] = useState(merchant.name || '');
   const [editingWebhook, setEditingWebhook] = useState(!merchant.webhook_url);
@@ -145,6 +147,21 @@ export const SettingsTab = memo(function SettingsTab({
         <section id="settings-general" className="settings-section">
           <h3 className="settings-section-title">{t('sectionGeneral')}</h3>
 
+          <div className="settings-card">
+            <label className="settings-field-row" style={{ cursor: savingPayment ? 'wait' : 'pointer', justifyContent: 'space-between', minHeight: 44, flexWrap: 'nowrap' }}>
+              <span className="settings-card-label" style={{ marginBottom: 0 }}>{t('crosschainLabel')}</span>
+              <input type="checkbox" role="switch" checked={merchant.crosschain_enabled !== false} disabled={savingPayment} style={{ width: 18, height: 18, flexShrink: 0, accentColor: 'var(--cp-cyan)' }}
+                onChange={async e => {
+                  const enabled = e.target.checked;
+                  setSavingPayment(true);
+                  try { await api.updateMe({ crosschain_enabled: enabled }); await reloadMerchant(); showToast(t('crosschainSaved')); }
+                  catch { showToast(t('crosschainFailed'), true); }
+                  finally { setSavingPayment(false); }
+                }} />
+            </label>
+            <p style={{ fontSize: 12, color: 'var(--cp-text-muted)', lineHeight: 1.6, marginTop: 10 }}>{t('crosschainHint')}</p>
+          </div>
+
           {/* Store Name */}
           <div className="settings-card">
             <div className="settings-card-label">{t('storeName')}</div>
@@ -204,6 +221,38 @@ export const SettingsTab = memo(function SettingsTab({
                 </div>
               </>
             )}
+            {merchant.recovery_email_preview && !editingEmail && (
+              <div className="settings-help">{t('emailAddHelp')}</div>
+            )}
+          </div>
+
+          {/* Payment Email Notifications */}
+          <div className="settings-card">
+            <label className="settings-field-row" style={{ cursor: savingPaymentEmails ? 'wait' : merchant.has_recovery_email ? 'pointer' : 'default', justifyContent: 'space-between', minHeight: 44, flexWrap: 'nowrap' }}>
+              <span className="settings-card-label" style={{ marginBottom: 0 }}>{t('paymentEmailLabel')}</span>
+              <input
+                type="checkbox"
+                role="switch"
+                checked={merchant.payment_email_notifications === true}
+                disabled={savingPaymentEmails || (!merchant.has_recovery_email && merchant.payment_email_notifications !== true)}
+                aria-describedby="payment-email-help"
+                style={{ width: 18, height: 18, flexShrink: 0, accentColor: 'var(--cp-cyan)' }}
+                onChange={async e => {
+                  const enabled = e.target.checked;
+                  if (enabled && !merchant.has_recovery_email) return;
+                  setSavingPaymentEmails(true);
+                  try {
+                    await api.updateMe({ payment_email_notifications: enabled });
+                    await reloadMerchant();
+                    showToast(t(enabled ? 'paymentEmailEnabled' : 'paymentEmailDisabled'));
+                  } catch { showToast(t('paymentEmailFailed'), true); }
+                  finally { setSavingPaymentEmails(false); }
+                }}
+              />
+            </label>
+            <div id="payment-email-help" className="settings-help">
+              {merchant.has_recovery_email ? t('paymentEmailHelp') : t('paymentEmailNeedsEmail')}
+            </div>
           </div>
         </section>
 

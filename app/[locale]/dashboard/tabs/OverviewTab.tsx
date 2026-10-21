@@ -284,6 +284,13 @@ export const OverviewTab = memo(function OverviewTab({
                   <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', marginTop: 2 }}>
                     {t('ofTotal', { total: merchant.stats.total_invoices })}
                   </div>
+                  {merchant.stats.payment_methods && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '4px 12px', marginTop: 10, fontSize: 11, color: 'var(--cp-text-muted)' }}>
+                      <span>{t('directZecCount', { count: merchant.stats.payment_methods.direct_zec })}</span>
+                      <span style={{ color: 'var(--cp-cyan)' }}>{t('crosschainCount', { count: merchant.stats.payment_methods.crosschain })}</span>
+                      {merchant.stats.payment_methods.verifying > 0 && <span>{t('verifyingMethod', { count: merchant.stats.payment_methods.verifying })}</span>}
+                    </div>
+                  )}
                 </div>
               </div>
               <div

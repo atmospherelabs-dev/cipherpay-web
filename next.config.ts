@@ -9,7 +9,7 @@ const cspHeader = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
   "style-src 'self' 'unsafe-inline'",
-  `connect-src 'self' ${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3080'}`,
+  `connect-src 'self' https://api.trongrid.io https://api.tronstack.io ${process.env.NEXT_PUBLIC_API_URL?.startsWith('/') ? '' : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3080'}`,
   "img-src 'self' data: blob: https:",
   "font-src 'self'",
   "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com",

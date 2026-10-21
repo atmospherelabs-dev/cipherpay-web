@@ -1,0 +1,2 @@
+Phantom official website favicon: https://phantom.com/_web_platform_assets/favicon.svg
+Retrieved 2026-10-04 for wallet identification.

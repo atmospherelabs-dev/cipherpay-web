@@ -89,7 +89,10 @@
     "lumaIntegration": "Luma Integration",
     "zecmapTitle": "LIST ON ZECMAP",
     "zecmapDesc": "ZecMap helps ZEC holders discover merchants. Submit your store to the community directory.",
-    "zecmapAction": "SUBMIT TO ZECMAP →"
+    "zecmapAction": "SUBMIT TO ZECMAP →",
+    "directZecCount": "Direct ZEC · {count}",
+    "crosschainCount": "Cross-chain · {count}",
+    "verifyingMethod": "Verifying method · {count}"
   },
   "products": {
     "title": "Product Catalog",
@@ -215,7 +218,8 @@
     "toastLinkCreated": "Invoice created",
     "toastFailedCreateLink": "Failed to create invoice",
     "toastCancelled": "Invoice cancelled",
-    "toastFailedCancel": "Failed to cancel"
+    "toastFailedCancel": "Failed to cancel",
+    "crosschain": "CROSS-CHAIN"
   },
   "billing": {
     "title": "Billing",
@@ -251,7 +255,35 @@
     "howItWorks": "HOW IT WORKS",
     "howItWorksDesc": "A {rate}% fee is added as a second output in payment QR codes (ZIP 321). When buyers scan the QR, the fee is auto-collected. If a buyer copies the address manually, the fee accrues and is billed at cycle end. Consistent on-time payment upgrades your trust tier, extending billing cycles and grace periods.",
     "toastSettlement": "Settlement invoice created: {amount} ZEC",
-    "toastFailedSettle": "Failed to settle"
+    "toastFailedSettle": "Failed to settle",
+    "directZec": "Direct ZEC",
+    "directDisabled": "Direct ZEC fees are disabled on this instance.",
+    "crosschainTitle": "Cross-chain payments",
+    "crosschainRate": "{rate}% service fee",
+    "crosschainExplanation": "Paid by the buyer during the swap, including NEAR’s share. Fees handled by NEAR or collected automatically are not billed to you again.",
+    "crosschainCollected": "CipherPay fees with verified receipts",
+    "crosschainNone": "No verified fee receipts yet.",
+    "crosschainPending": "{count, plural, one {# payment awaiting fee verification} other {# payments awaiting fee verification}}",
+    "crosschainRecent": "Recent fee activity",
+    "crosschainPaid": "Collected automatically",
+    "crosschainVerifying": "Verifying receipt",
+    "crosschainHandledExplanation": "NEAR completed these swaps with CipherPay’s fee configured, and your ZEC payments were confirmed. You will not be billed again for these fees. Verified receipts are shown separately.",
+    "crosschainHandledCount": "{count, plural, one {# payment handled by NEAR} other {# payments handled by NEAR}}",
+    "crosschainHandled": "Handled by NEAR",
+    "referrals": {
+      "title": "Referrals",
+      "terms": "Earn 50% of the CipherPay fees we collect from merchants you refer, for 12 months. They get a 0.5% service fee for 3 months on new invoices; the cross-chain surcharge stays unchanged.",
+      "copy": "Copy code",
+      "copied": "Referral code copied",
+      "count": "{count} referred merchants",
+      "held": "Earnings are recorded in the token received. Payouts and conversion to service credit are not enabled yet.",
+      "applied": "A referral has been applied to this account.",
+      "label": "Have a referral code?",
+      "apply": "Apply code",
+      "failed": "Could not complete this action. Please retry.",
+      "baseUnits": "smallest units"
+    },
+    "feesVerifying": "{count} payment fees are being verified. They are not included in your bill."
   },
   "settings": {
     "title": "Settings",
@@ -271,6 +303,12 @@
     "emailRemove": "REMOVE",
     "emailChangeHelp": "Enter a new email to replace the current one.",
     "emailAddHelp": "Used for account recovery and billing notifications. We never send marketing emails.",
+    "paymentEmailLabel": "Payment email notifications",
+    "paymentEmailHelp": "Get an email at your saved address for every confirmed customer invoice payment. Optional and off by default; billing emails are sent separately.",
+    "paymentEmailNeedsEmail": "Add and save an email above to enable notifications for confirmed customer invoice payments.",
+    "paymentEmailEnabled": "Payment email notifications enabled",
+    "paymentEmailDisabled": "Payment email notifications disabled",
+    "paymentEmailFailed": "Could not save payment email notifications",
     "derivedAddress": "Derived Address",
     "derivedAddressHelp": "Auto-derived from your UFVK. Each invoice gets its own unique payment address for privacy and reliable detection.",
     "webhookUrl": "Webhook URL",
@@ -325,11 +363,11 @@
     "ledgerCreatedDate": "created {date}",
     "ledgerExpires": "expires {date}",
     "dangerZone": "DANGER ZONE",
-    "dangerDesc": "Permanently delete your account, products, and all data. This cannot be undone. You must settle any outstanding billing balance before deleting.",
+    "dangerDesc": "Permanently delete your account and products. This cannot be undone. Settle any outstanding billing balance first. Minimal referral eligibility and earned commission records are retained.",
     "deleteAccount": "DELETE ACCOUNT",
     "confirmDelete": "Are you sure you want to permanently delete your account? This cannot be undone.",
     "confirmDelete2": "This will delete ALL your products, invoices, and billing data. Type OK to confirm.",
-    "confirmRemoveEmail": "Remove your email? You won't receive billing notifications or be able to recover your account if you lose your dashboard token.",
+    "confirmRemoveEmail": "Remove your email? Payment email notifications will be turned off. You won't receive billing notifications or be able to recover your account if you lose your dashboard token.",
     "confirmRegenApiKey": "Regenerate your API key? The current key will stop working immediately. Any integrations using it will break.",
     "confirmRegenDashToken": "Regenerate your dashboard token? You will be logged out of all sessions and need the new token to log back in.",
     "confirmRegenWebhook": "Regenerate your webhook secret? You'll need to update the secret in your integrations.",
@@ -347,7 +385,11 @@
     "toastDashTokenRegen": "Dashboard token regenerated. Copy it now — it won't be shown again.",
     "toastWebhookSecretRegen": "Webhook secret regenerated",
     "toastFailedRegen": "Failed to regenerate",
-    "toastFailedDelete": "Failed to delete account"
+    "toastFailedDelete": "Failed to delete account",
+    "crosschainLabel": "Accept cross-chain payments",
+    "crosschainHint": "Buyers can pay with other tokens. You receive ZEC. Turning this off only stops new cross-chain payments.",
+    "crosschainSaved": "Payment settings saved",
+    "crosschainFailed": "Could not save payment settings"
   },
   "webhooks": {
     "title": "Webhook Deliveries",

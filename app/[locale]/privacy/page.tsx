@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: 'How CipherPay processes payment, account, and optional integration data.',
 };
 
-const lastUpdated = 'September 8, 2026';
+const lastUpdated = 'October 21, 2026';
 
 export default function PrivacyPage() {
   return (
@@ -48,6 +48,12 @@ export default function PrivacyPage() {
             Shielded payment details are hidden from public observers, but incoming amounts are visible to CipherPay and the recipient.
           </P>
           <P>
+            <Strong>Cross-chain payments:</Strong> If you pay with another token, we store the selected token and network,
+            quoted amounts, provider deposit and buyer refund addresses, swap status, and transaction identifiers
+            for payment recovery and reconciliation. Saved swap quotes, including deposit and refund addresses,
+            and detailed fee evidence or provider confirmations use application-level encryption at rest.
+          </P>
+          <P>
             <Strong>Website operation:</Strong> We do not use advertising trackers. Essential cookies support
             language selection and authenticated sessions. Hosting and security providers process network metadata,
             including IP addresses, to deliver and protect the service.
@@ -70,13 +76,21 @@ export default function PrivacyPage() {
         <Section id="04" title="Data sharing">
           <P>
             We do not sell personal data. Hosting providers and Upstash process service data on our behalf.
-            Resend processes merchant recovery and billing emails when configured. Luma receives attendee details when a buyer
+            Resend processes merchant recovery and billing emails when configured, and confirmed-payment notification
+            emails when enabled by the merchant. Luma receives attendee details when a buyer
             chooses an integrated event registration. Shopify receives order payment updates. Merchants receive invoice webhooks.
           </P>
           <P>
             Invoice data is processed through the Zcash blockchain, which is a public
             network. However, shielded transactions do not reveal sender, receiver,
             or amount information publicly.
+          </P>
+          <P>
+            For cross-chain payments, NEAR 1Click processes route information, including the selected tokens and networks,
+            amounts, refund address, and destination payment address, to quote, execute, and track the swap.
+            The provider can associate the source payment with its destination. Transfers on public source chains
+            expose addresses, amounts, and transaction identifiers. Using NEAR Confidential Intents does not hide
+            the complete payment route or prevent the provider from associating its source and destination.
           </P>
         </Section>
 

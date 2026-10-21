@@ -33,7 +33,7 @@ export function fiatPrice(inv: Invoice, displayCurrency: string): number {
 
 export function fiatStr(inv: Invoice, displayCurrency: string): string {
   const p = fiatPrice(inv, displayCurrency);
-  const sym = currencySymbol(displayCurrency);
+  const sym = currencySymbol(inv.amount != null ? inv.currency || 'EUR' : displayCurrency === 'USD' && inv.price_usd ? 'USD' : 'EUR');
   return p < 0.01 ? `${sym}${p}` : `${sym}${p.toFixed(2)}`;
 }
 
@@ -50,4 +50,11 @@ export function fiatLabel(fiat: number | null, displayCurrency: string): string 
   if (fiat < 0.0001) return ` (~${sym}0.00)`;
   if (fiat < 0.01) return ` (~${sym}${fiat.toFixed(4)})`;
   return ` (~${sym}${fiat.toFixed(2)})`;
+}
+
+// Stored creation rates are denominated in the invoice currency, not the
+// merchant's current dashboard display preference.
+export function invoiceRateLabel(inv: Pick<Invoice, 'currency' | 'zec_rate_at_creation'>): string {
+  const currency = inv.currency || 'EUR';
+  return `1 ZEC = ${currencySymbol(currency)}${inv.zec_rate_at_creation.toFixed(2)} ${currency}`;
 }
