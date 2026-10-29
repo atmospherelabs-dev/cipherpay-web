@@ -174,7 +174,7 @@ export const X402Tab = memo(function X402Tab({
                     <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span style={{ color: 'var(--cp-text-dim)' }}>{t('txid')}</span>
                       <a
-                        href={`${isTestnet ? 'https://testnet.cipherscan.app' : 'https://cipherscan.app'}/tx/${v.txid}`}
+                        href={`${isTestnet ? 'https://testnet.zecblock.com' : 'https://zecblock.com'}/tx/${v.txid}`}
                         target="_blank" rel="noopener noreferrer"
                         className="text-link"
                         style={{ fontSize: 10, fontFamily: 'var(--font-geist-mono), monospace' }}
@@ -253,7 +253,7 @@ export const X402Tab = memo(function X402Tab({
                     <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span style={{ color: 'var(--cp-text-dim)' }}>Deposit</span>
                       <a
-                        href={`${isTestnet ? 'https://testnet.cipherscan.app' : 'https://cipherscan.app'}/tx/${s.deposit_txid}`}
+                        href={`${isTestnet ? 'https://testnet.zecblock.com' : 'https://zecblock.com'}/tx/${s.deposit_txid}`}
                         target="_blank" rel="noopener noreferrer"
                         className="text-link"
                         style={{ fontSize: 10, fontFamily: 'var(--font-geist-mono), monospace' }}

@@ -733,7 +733,7 @@ function ReceiptDetails({ invoice, row, label, primaryPrice, secondaryPrice, t }
         </div>
         {invoice.detected_txid && (() => {
           const isTestnet = invoice.payment_address?.startsWith('utest');
-          const explorerBase = isTestnet ? 'https://testnet.cipherscan.app' : 'https://cipherscan.app';
+          const explorerBase = isTestnet ? 'https://testnet.zecblock.com' : 'https://zecblock.com';
           return (
             <div style={{ ...row, borderBottom: 'none', flexDirection: 'column', alignItems: 'flex-start', gap: 6 }}>
               <span style={label}>{t('txid')}</span>
