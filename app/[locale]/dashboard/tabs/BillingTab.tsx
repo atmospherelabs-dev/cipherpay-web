@@ -329,7 +329,7 @@ export const BillingTab = memo(function BillingTab({
                                     <span style={{ color: 'var(--cp-text-dim)' }}>TxID</span>
                                     <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                                       <a
-                                        href={`https://cipherscan.app/tx/${settlementInvoice.detected_txid}`}
+                                        href={`https://zecblock.com/tx/${settlementInvoice.detected_txid}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         style={{ fontFamily: 'monospace', fontSize: 9, color: 'var(--cp-cyan)', textDecoration: 'none' }}
