@@ -1174,7 +1174,7 @@ function ShopifySetup({ merchant }: { merchant: MerchantInfo }) {
       <div className="settings-help" style={{ marginBottom: 12 }}>
         {deployStatus === 'deployed' && !showForm
           ? 'Shopify integration is active. CipherPay API key, webhook, and checkout block are configured.'
-          : 'Connect a merchant-owned Shopify custom app. CipherPay creates a dedicated restricted API key, configures the webhook URL, and deploys the checkout block automatically. The Shopify automation token is used once and is not stored.'}
+          : 'Connect a merchant-owned Shopify custom app. CipherPay creates a dedicated restricted API key, configures the webhook URL, and deploys the checkout block automatically. The Shopify service account token is used once and is not stored.'}
       </div>
 
       {deployStatus === 'deployed' && !showForm ? (
@@ -1230,7 +1230,7 @@ function ShopifySetup({ merchant }: { merchant: MerchantInfo }) {
               type="password"
               value={automationToken}
               onChange={(e) => setAutomationToken(e.target.value)}
-              placeholder="One-time App automation token (atkn_...)"
+              placeholder="Shopify service account token"
               style={{ fontSize: 10 }}
             />
             <input

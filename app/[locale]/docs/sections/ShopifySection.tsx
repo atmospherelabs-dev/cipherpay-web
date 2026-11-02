@@ -55,15 +55,15 @@ export default function ShopifySection() {
           <Strong>Embedded app</Strong> — Leave disabled.
         </div>
         <Paragraph>
-          Copy the app&apos;s Client ID and Client Secret. Then create a one-time App automation token in the same Dev Dashboard.
-          CipherPay uses these to securely deploy the checkout block to your private app. The automation token is used once and is not stored.
+          Copy the app&apos;s Client ID and Client Secret. Then create a service account in the same Dev Dashboard and copy its token. An existing App automation token (<Code>atkn_...</Code>) also works.
+          CipherPay uses these to securely deploy the checkout block to your private app. The service account token is used once and is not stored.
         </Paragraph>
       </Step>
 
       <Step n={2} title="Deploy and install your private app">
         <Paragraph>
           Go to <Strong>CipherPay Dashboard &rarr; Settings &rarr; Integrations &rarr; Shopify</Strong>. Paste your permanent store domain,
-          Shopify Client ID, Client Secret, one-time App automation token, and CipherPay dashboard token.
+          Shopify Client ID, Client Secret, Shopify service account token, and CipherPay dashboard token.
         </Paragraph>
         <Paragraph>
           CipherPay will create a dedicated restricted API key, configure the webhook URL, and deploy the checkout extension to your private Shopify app.
