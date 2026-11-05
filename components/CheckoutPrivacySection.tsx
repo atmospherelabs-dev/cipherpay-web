@@ -3,9 +3,11 @@
 import { useTranslations } from 'next-intl';
 import { LogoMark } from '@/components/Logo';
 import { AnimatedSection } from '@/components/AnimatedSection';
+import { MeshGradient } from '@/components/MeshGradient';
 import { motion } from 'framer-motion';
 
 const PRIVACY_ROWS = ['Row1', 'Row2', 'Row3', 'Row4', 'Row5'] as const;
+const PRIVACY_COLORS = ['#00D4FF', '#8FE1FF', '#56D4C8', '#5B9CF6'];
 
 const stagger = {
   hidden: {},
@@ -21,8 +23,9 @@ export function CheckoutPrivacySection() {
   const t = useTranslations('landing.privacy');
 
   return (
-    <section id="privacy" style={{ borderTop: '1px solid var(--cp-border)', padding: '80px 24px' }}>
-      <div style={{ maxWidth: 720, margin: '0 auto' }}>
+    <section id="privacy" style={{ borderTop: '1px solid var(--cp-border)', padding: '80px 24px', position: 'relative', overflow: 'hidden' }}>
+      <MeshGradient variant="privacy" className="mesh-gradient-privacy" colors={PRIVACY_COLORS} />
+      <div style={{ maxWidth: 720, margin: '0 auto', position: 'relative' }}>
         <AnimatedSection>
           <div
             className="section-title"

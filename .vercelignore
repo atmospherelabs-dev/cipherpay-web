@@ -1,0 +1,7 @@
+.git
+.env*
+.codex
+.agents
+node_modules
+.next
+tests

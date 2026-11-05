@@ -22,6 +22,9 @@ export default async function LocaleLayout({
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <DirectionSetter />
+      {process.env.STAGING_MODE === 'true' && <aside style={{ background: '#fef3c7', color: '#78350f', padding: '10px 16px', textAlign: 'center', fontSize: 12 }}>
+        PRIVATE STAGING · Test store only · Wallet payments use real funds
+      </aside>}
       {children}
     </NextIntlClientProvider>
   );

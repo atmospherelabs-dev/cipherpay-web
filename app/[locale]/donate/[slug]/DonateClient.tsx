@@ -1,4 +1,5 @@
 'use client';
+import { checkoutPath } from '@/lib/checkout-access';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -53,12 +54,12 @@ export default function DonateClient({ info, slug, locale, zecRate }: DonateClie
     try {
       const result = await createDonationCheckout(slug, effectiveAmount, currency);
 
-      if (result.error) {
-        setError(result.error);
+      if (result.error || !result.invoice_id) {
+        setError(result.error || 'Could not create payment. Please retry.');
         return;
       }
 
-      router.push(`/${locale}/pay/${result.invoice_id}`);
+      router.push(`/${locale}${checkoutPath(result.invoice_id, result.checkout_token)}`);
     } catch {
       setError('Network error. Please try again.');
     } finally {

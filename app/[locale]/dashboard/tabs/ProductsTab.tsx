@@ -1,4 +1,5 @@
 'use client';
+import { checkoutPath } from '@/lib/checkout-access';
 
 import { memo, useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
@@ -283,7 +284,7 @@ export const ProductsTab = memo(function ProductsTab({
     setPosCreating(true);
     try {
       const resp = await api.checkout({ product_id: productId });
-      router.push(`/pay/${resp.invoice_id}`);
+      router.push(checkoutPath(resp.invoice_id));
     } catch (err) {
       showToast(err instanceof Error ? err.message : t('toastPosFailed'), true);
     }

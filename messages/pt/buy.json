@@ -1,15 +1,13 @@
 {
   "tag": "CHECKOUT",
-  "payWithZec": "PAGUE COM ZEC BLINDADO",
-  "payButton": "PAGAR COM ZEC",
-  "processing": "PROCESSANDO...",
+  "payButton": "CONTINUAR PARA PAGAMENTO",
+  "processing": "ABRINDO O PAGAMENTO…",
   "productNotFound": "PRODUTO NÃO ENCONTRADO",
-  "refundTitle": "Endereço de Reembolso (opcional)",
-  "refundDesc": "Forneça um endereço Zcash se desejar a opção de reembolso. Sem ele, reembolsos exigem coordenação manual.",
-  "refundPrivacyHint": "Fornecer um endereço de reembolso o revela ao comerciante, reduzindo sua privacidade.",
+  "refundTitle": "Endereço Zcash para reembolso (opcional)",
+  "refundDesc": "Para reembolsos do comerciante em ZEC. O endereço para reembolsos de uma conversão é solicitado no pagamento.",
+  "refundPrivacyHint": "Compartilhado com o comerciante. Você pode pular esta etapa e combinar um reembolso com ele depois.",
   "getTickets": "OBTER INGRESSOS",
   "selectTier": "SELECIONAR NÍVEL",
-  "buyTicket": "COMPRAR INGRESSO COM ZEC",
   "attendeeName": "Seu Nome",
   "attendeeNamePlaceholder": "João Silva",
   "attendeeEmail": "Seu Email",
@@ -18,5 +16,8 @@
   "emailRequired": "O email é obrigatório para o registro do evento",
   "openOnLuma": "Abrir no Luma",
   "soldOut": "ESGOTADO",
-  "soldOutHint": "Este nível de ingressos atingiu sua capacidade máxima. Não há mais ingressos disponíveis."
+  "soldOutHint": "Este nível de ingressos atingiu sua capacidade máxima. Não há mais ingressos disponíveis.",
+  "orderSummary": "RESUMO DO PEDIDO",
+  "paymentHint": "Pague com ZEC ou escolha outra criptomoeda disponível na próxima etapa.",
+  "paymentHintZec": "Pague com ZEC blindado na próxima etapa."
 }

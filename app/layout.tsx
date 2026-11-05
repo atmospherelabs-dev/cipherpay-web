@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'CipherPay — Private Payments for the Internet',
   description:
-    'Accept Zcash in minutes. Non-custodial. Zero buyer data. No middleman.',
+    'Accept Zcash in minutes. Non-custodial. Private checkout.',
   manifest: '/manifest.json',
   icons: {
     icon: [
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'CipherPay — Private Payments for the Internet',
-    description: 'Accept Zcash in minutes. Non-custodial. Zero buyer data. No middleman.',
+    description: 'Accept Zcash in minutes. Non-custodial. Private checkout.',
     siteName: 'CipherPay',
     type: 'website',
     images: [{ url: '/logo-dark-bg.png', width: 694, height: 694 }],

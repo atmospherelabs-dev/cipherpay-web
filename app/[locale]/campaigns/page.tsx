@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
+import { serverApiFetch } from '@/lib/server-api';
 import CampaignsClient from './CampaignsClient';
 import type { CampaignEntry } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cipherpay.app';
 
 export const metadata: Metadata = {
   title: 'Campaigns — CipherPay',
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 
 async function fetchCampaigns(): Promise<CampaignEntry[]> {
   try {
-    const res = await fetch(`${API_URL}/api/campaigns`, {
+    const res = await serverApiFetch('/api/campaigns', {
       cache: 'no-store',
       signal: AbortSignal.timeout(8000),
     });
@@ -33,7 +33,7 @@ async function fetchCampaigns(): Promise<CampaignEntry[]> {
 
 async function fetchZecRate(): Promise<number | null> {
   try {
-    const res = await fetch(`${API_URL}/api/rates`, {
+    const res = await serverApiFetch('/api/rates', {
       cache: 'no-store',
       signal: AbortSignal.timeout(5000),
     });

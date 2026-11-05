@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import type { Metadata } from 'next';
+import { serverApiFetch } from '@/lib/server-api';
 
-const API_URL = process.env.CIPHERPAY_API_URL || process.env.NEXT_PUBLIC_API_URL || 'https://api.cipherpay.app';
 const CHECKOUT_KEY = process.env.CHECKOUT_SERVICE_KEY || '';
 
 interface PageProps {
@@ -20,7 +20,7 @@ export default async function PaymentLinkPage({ params }: PageProps) {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (CHECKOUT_KEY) headers['X-Checkout-Key'] = CHECKOUT_KEY;
 
-    const res = await fetch(`${API_URL}/api/payment-links/${slug}/checkout`, {
+    const res = await serverApiFetch(`/api/payment-links/${encodeURIComponent(slug)}/checkout`, {
       method: 'POST',
       headers,
       body: '{}',
@@ -40,13 +40,12 @@ export default async function PaymentLinkPage({ params }: PageProps) {
     }
 
     const checkoutPath = `/${locale}/pay/${invoiceId}`;
-    const returnUrl = data.checkout_url?.includes('return_url=')
-      ? `?return_url=${data.checkout_url.split('return_url=')[1]}`
-      : '';
+    const destination = data.checkout_url ? new URL(data.checkout_url) : null;
+    redirect(`${checkoutPath}${destination?.search || ''}${destination?.hash || (data.checkout_token ? `#checkout=${data.checkout_token}` : '')}`);
 
-    redirect(`${checkoutPath}${returnUrl}`);
   } catch (e: unknown) {
     if (e && typeof e === 'object' && 'digest' in e) throw e;
+    console.error('Payment link checkout request failed', { type: e instanceof Error ? e.name : 'UnknownError' });
     return <ErrorView status={500} message="Something went wrong" />;
   }
 }

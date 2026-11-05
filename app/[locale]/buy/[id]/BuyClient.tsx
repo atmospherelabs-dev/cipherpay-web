@@ -1,4 +1,5 @@
 'use client';
+import { checkoutPath } from '@/lib/checkout-access';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from '@/i18n/navigation';
@@ -11,6 +12,9 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { Link } from '@/i18n/navigation';
 import { Spinner } from '@/components/Spinner';
+import styles from './BuyClient.module.css';
+
+const CROSSCHAIN_ENABLED = process.env.NEXT_PUBLIC_CROSSCHAIN_ENABLED === 'true';
 
 const LOCALE_CURRENCY: Record<string, string> = {
   US: 'USD', GB: 'GBP', CA: 'CAD', AU: 'AUD', JP: 'JPY',
@@ -46,7 +50,6 @@ function formatEventDate(dateStr: string): string {
 
 export default function BuyClient({ productId }: { productId: string }) {
   const t = useTranslations('buy');
-  const tc = useTranslations('common');
   const [product, setProduct] = useState<PublicProduct | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedPrice, setSelectedPrice] = useState<Price | null>(null);
@@ -101,7 +104,7 @@ export default function BuyClient({ productId }: { productId: string }) {
         attendee_email: isLuma && attendeeEmail.trim() ? attendeeEmail.trim() : undefined,
       };
       const resp = await api.checkout(req);
-      router.push(`/pay/${resp.invoice_id}`);
+      router.push(checkoutPath(resp.invoice_id));
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Checkout failed';
       if (msg.toLowerCase().includes('sold out')) {
@@ -149,7 +152,7 @@ export default function BuyClient({ productId }: { productId: string }) {
         <div style={{ maxWidth: 440, width: '100%' }}>
           <div className="checkout-preview">
             <div style={{ fontSize: 10, letterSpacing: 1, color: 'var(--cp-text-dim)' }}>
-              {isEvent ? t('getTickets') : t('payWithZec')}
+              {isEvent ? t('getTickets') : t('orderSummary')}
             </div>
             <div className="price">{product.name}</div>
 
@@ -239,18 +242,18 @@ export default function BuyClient({ productId }: { productId: string }) {
               </div>
             )}
 
-            <div style={{ textAlign: 'start' }}>
-              <div className="section-title">{t('refundTitle')}</div>
-              <div style={{ fontSize: 10, color: 'var(--cp-text-dim)', marginBottom: 4, lineHeight: 1.5 }}>
-                {t('refundDesc')}
-              </div>
-              <div style={{ fontSize: 9, color: 'var(--cp-text-dim)', opacity: 0.7, marginBottom: 10, lineHeight: 1.5 }}>
-                {t('refundPrivacyHint')}
-              </div>
-              <div className="form-group">
-                <input type="text" value={refundAddr} onChange={(e) => setRefundAddr(e.target.value)} placeholder="u1..." className="input" style={{ fontSize: 10 }} />
-              </div>
-            </div>
+            <details className={styles.refundDetails}>
+              <summary>
+                <span>{t('refundTitle')}</span>
+                <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="m6 9 6 6 6-6" /></svg>
+              </summary>
+              <p id="refund-help">{t('refundDesc')}</p>
+              <label htmlFor="refund-address" className={styles.srOnly}>{t('refundTitle')}</label>
+              <input id="refund-address" type="text" value={refundAddr} onChange={(e) => { setRefundAddr(e.target.value); setFormError(''); }} placeholder="u1..." className="input" aria-describedby="refund-help refund-privacy" autoComplete="off" spellCheck={false} />
+              <p id="refund-privacy">{t('refundPrivacyHint')}</p>
+            </details>
+
+            <p className={styles.paymentHint}>{t(CROSSCHAIN_ENABLED ? 'paymentHint' : 'paymentHintZec')}</p>
 
             {formError && (
               <div style={{ color: 'var(--cp-red)', fontSize: 11, marginBottom: 12, textAlign: 'center' }}>
@@ -279,7 +282,7 @@ export default function BuyClient({ productId }: { productId: string }) {
               className="btn-primary"
               style={{ width: '100%', opacity: (submitting || soldOut) ? 0.5 : 1 }}
             >
-              {submitting ? t('processing') : soldOut ? t('soldOut') : (isEvent ? t('buyTicket') : t('payButton'))}
+              {submitting ? t('processing') : soldOut ? t('soldOut') : t('payButton')}
             </button>
           </div>
         </div>

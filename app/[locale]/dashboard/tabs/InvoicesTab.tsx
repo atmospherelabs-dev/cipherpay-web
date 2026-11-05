@@ -1,4 +1,5 @@
 'use client';
+import { checkoutPath } from '@/lib/checkout-access';
 
 import { memo, useState, useEffect, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
@@ -7,7 +8,7 @@ import type { TabAction } from '../DashboardClient';
 import { CopyButton } from '@/components/CopyButton';
 import { Spinner } from '@/components/Spinner';
 import { RefundModal } from '../components/RefundModal';
-import { currencySymbol, fiatPrice, fiatStr, SUPPORTED_CURRENCIES } from '@/lib/currency';
+import { currencySymbol, fiatPrice, fiatStr, invoiceRateLabel, SUPPORTED_CURRENCIES } from '@/lib/currency';
 import { useToast } from '@/contexts/ToastContext';
 
 interface InvoicesTabProps {
@@ -101,7 +102,7 @@ export const InvoicesTab = memo(function InvoicesTab({
         amount: Math.round(amount * 100) / 100,
         currency: payLinkCurrency,
       });
-      const link = `${checkoutOrigin}/pay/${resp.invoice_id}`;
+      const link = `${checkoutOrigin}${checkoutPath(resp.invoice_id)}`;
       setPayLinkResult(link);
       reloadInvoices();
       showToast(t('toastLinkCreated'));
@@ -123,7 +124,7 @@ export const InvoicesTab = memo(function InvoicesTab({
       inv.product_name || '',
       inv.status,
       fiatPrice(inv, displayCurrency).toFixed(2),
-      inv.currency || displayCurrency,
+      inv.amount != null ? inv.currency || 'EUR' : displayCurrency === 'USD' && inv.price_usd ? 'USD' : 'EUR',
       inv.price_zec.toFixed(8),
       inv.received_zatoshis > 0 ? (inv.received_zatoshis / 1e8).toFixed(8) : '',
       inv.zec_rate_at_creation?.toFixed(4) ?? '',
@@ -292,7 +293,7 @@ export const InvoicesTab = memo(function InvoicesTab({
           }).map((inv) => {
             const priceStr = fiatStr(inv, displayCurrency);
             const isExpanded = expandedInvoice === inv.id;
-            const isOverpaid = inv.received_zatoshis > inv.price_zatoshis + 1000 && inv.price_zatoshis > 0;
+            const isOverpaid = !inv.is_crosschain && inv.received_zatoshis > inv.price_zatoshis + 1000 && inv.price_zatoshis > 0;
             const invType = getInvoiceType(inv, recurringPriceIds);
             const typeBadge = TYPE_BADGE_STYLE;
             return (
@@ -301,6 +302,7 @@ export const InvoicesTab = memo(function InvoicesTab({
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', minWidth: 0 }}>
                     <span style={{ fontSize: 10, color: 'var(--cp-text-dim)', transition: 'transform 0.15s', transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)', display: 'inline-block' }}>▸</span>
                     <span className="invoice-id">{inv.memo_code}</span>
+                    {inv.is_crosschain && <span className="status-badge" style={{ color: 'var(--cp-cyan)', border: '1px solid var(--cp-border)', fontSize: 9 }}>{t('crosschain')}</span>}
                     {(() => {
                       const badgeLabel = inv.is_luma ? te('lumaBadge')
                         : inv.is_event ? te('ticketBadge')
@@ -349,7 +351,7 @@ export const InvoicesTab = memo(function InvoicesTab({
                     )}
                     <div className="stat-row">
                       <span style={{ color: 'var(--cp-text-muted)' }}>{t('rateAtCreation')}</span>
-                      <span>1 ZEC = {sym}{inv.zec_rate_at_creation.toFixed(2)}</span>
+                      <span>{invoiceRateLabel(inv)}</span>
                     </div>
 
                     {inv.product_name && (
@@ -443,7 +445,7 @@ export const InvoicesTab = memo(function InvoicesTab({
                     )}
 
                     <div className="stat-row" style={{ marginTop: 12 }}>
-                      <CopyButton text={`${checkoutOrigin}/pay/${inv.id}`} label={t('paymentLinkLabel')} />
+                      <CopyButton text={`${checkoutOrigin}${checkoutPath(inv.id, inv.checkout_token)}`} label={t('paymentLinkLabel')} />
                       <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                         {inv.status === 'confirmed' && (
                           <button

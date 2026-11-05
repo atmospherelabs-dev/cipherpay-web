@@ -5,7 +5,7 @@ import { useEffect, useRef } from 'react';
 interface MeshGradientProps {
   colors?: string[];
   className?: string;
-  variant?: 'hero' | 'cta' | 'steps' | 'agents';
+  variant?: 'hero' | 'cta' | 'steps' | 'agents' | 'privacy';
 }
 
 const DEFAULT_COLORS = ['#00D4FF', '#F4B728', '#8FE1FF', '#FFE876'];
@@ -265,11 +265,16 @@ function initGradient(canvas: HTMLCanvasElement, colors: string[]): (() => void)
     setCamera();
     mesh.geometry.setTopology(Math.ceil(w * 0.06), Math.ceil(h * 0.16));
     mesh.geometry.setSize(w, h);
+    if (reduceMotion) minigl.render();
   }
 
-  let animId: number;
+  // Several gradients share the landing page; only the visible ones animate.
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let visible = false;
+  let animId = 0;
   function animate(e: number) {
-    if (!playing) return;
+    animId = 0;
+    if (!playing || !visible) return;
     if (!document.hidden && e % 2 !== 0) {
       t += Math.min(e - last, 1000 / 15);
       last = e;
@@ -279,13 +284,19 @@ function initGradient(canvas: HTMLCanvasElement, colors: string[]): (() => void)
     animId = requestAnimationFrame(animate);
   }
 
+  const observer = new IntersectionObserver(([entry]) => {
+    visible = entry.isIntersecting;
+    if (visible && !reduceMotion && !animId) animId = requestAnimationFrame(animate);
+  });
+
   resize();
   window.addEventListener('resize', resize);
-  animId = requestAnimationFrame(animate);
+  observer.observe(canvas);
 
   return () => {
     playing = false;
-    cancelAnimationFrame(animId);
+    if (animId) cancelAnimationFrame(animId);
+    observer.disconnect();
     window.removeEventListener('resize', resize);
   };
 }
@@ -311,7 +322,13 @@ const VARIANTS = {
     transformOrigin: '40% 50%',
     mask: 'radial-gradient(ellipse 50% 55% at 30% 50%, black 0%, rgba(0,0,0,0.35) 40%, transparent 72%)',
   },
-} as const;
+  privacy: {
+    transform: 'rotate(-3deg)',
+    transformOrigin: '50% 55%',
+    mask: 'radial-gradient(ellipse 40% 26% at 50% 60%, black 0%, rgba(0,0,0,0.35) 45%, transparent 76%)',
+    opacity: 0.5,
+  },
+} as const satisfies Record<string, { transform: string; transformOrigin: string; mask: string; opacity?: number }>;
 
 export function MeshGradient({ colors = DEFAULT_COLORS, className, variant = 'hero' }: MeshGradientProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -322,7 +339,7 @@ export function MeshGradient({ colors = DEFAULT_COLORS, className, variant = 'he
     return cleanup;
   }, [colors]);
 
-  const v = VARIANTS[variant];
+  const v: { transform: string; transformOrigin: string; mask: string; opacity?: number } = VARIANTS[variant];
 
   return (
     <div
@@ -333,7 +350,7 @@ export function MeshGradient({ colors = DEFAULT_COLORS, className, variant = 'he
         inset: '-30%',
         zIndex: 0,
         pointerEvents: 'none',
-        opacity: 0.7,
+        opacity: v.opacity ?? 0.7,
         transform: v.transform,
         transformOrigin: v.transformOrigin,
         WebkitMaskImage: v.mask,

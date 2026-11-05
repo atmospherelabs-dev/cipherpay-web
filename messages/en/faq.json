@@ -7,7 +7,7 @@
   "s1q2": "What data does CipherPay have access to?",
   "s1a2": "When using the hosted service, CipherPay can see: your Unified Full Viewing Key (read-only, cannot spend funds), payment amounts, and product names. We cannot see the buyer's wallet balance, other transactions, or identity. We never hold your ZEC — payments go directly to your shielded address. No shipping addresses or buyer PII are stored.",
   "s1q3": "How do I get maximum privacy?",
-  "s1a3": "Self-host CipherPay. The entire codebase is open-source. When you run your own instance, only your server holds the viewing key, and CipherPay (the company) sees nothing. You get the same features — mempool scanning, trial decryption, webhooks, with zero third-party data exposure.",
+  "s1a3": "Self-host CipherPay to keep the incoming viewing key under your control. Your chosen chain-data, hosting, email and optional event providers may still process requests and integration data. Review those providers and your own retention settings.",
   "s1q4": "Can CipherPay spend my funds?",
   "s1a4": "No. CipherPay uses a Unified Full Viewing Key (UFVK), which is read-only. It can detect incoming payments but cannot create transactions or move your ZEC. Your spending keys never leave your wallet.",
   "s2Title": "Wallet Security",
@@ -59,7 +59,6 @@
   "s6a4": "CipherPay is the facilitator for Zcash-to-Zcash payments specifically. For other chains (USDC on Base, ETH, SOL), the resource server would use a different facilitator. The x402 protocol supports multiple chains in the \"accepts\" array, so a server can offer several payment options. AI agents with multichain wallets (e.g. via NEAR Intents) can swap tokens and pay on whichever chain the server accepts.",
   "s6q5": "Is there a fee for x402 verification?",
   "s6a5": "No. x402 verification is free. CipherPay provides it to drive Zcash adoption for AI and programmatic payments. Revenue comes from the existing invoice-based payment processing. The x402 facilitator and the invoice checkout system serve different use cases — x402 is for programmatic API access, while invoices are for human-facing e-commerce.",
-
   "s7Title": "Integrations",
   "s7q1": "Do I need a developer to integrate CipherPay?",
   "s7a1": "Not necessarily. If you use Shopify or WooCommerce, install the plugin, enter your API key, and you're live — no code required. For custom integrations, the REST API and SDKs (TypeScript, Python) are straightforward. A single API call creates an invoice and returns a payment link.",
@@ -69,7 +68,6 @@
   "s7a3": "Yes. Install the CipherPay WooCommerce plugin, configure your API key under WooCommerce > Settings > Payments, and your WordPress store accepts ZEC. The plugin handles invoice creation, payment detection, and order status updates automatically.",
   "s7q4": "What is MCP and how does it work?",
   "s7a4": "MCP (Model Context Protocol) lets AI assistants like Claude interact with your CipherPay store directly. Add @cipherpay/mcp to your agent's config, and it can create invoices, check payment status, verify transactions, and manage your store — all through natural language. The agent uses your API key, so it has the same permissions as your server-side integration.",
-
   "s8Title": "Products & Billing",
   "s8q1": "How do recurring payments work?",
   "s8a1": "You create a product with a recurring price (e.g. $9.99/month). CipherPay generates a new invoice each billing cycle and notifies your server via webhook. The buyer pays each invoice individually — there's no automatic wallet debit, because Zcash doesn't support pull payments. This is by design: the buyer always controls when and how much they send.",
@@ -77,7 +75,6 @@
   "s8a2": "The invoice expires after the configured window (default 30 minutes). Your webhook receives an expiry notification. How you handle it is up to you — you might send a reminder, pause access, or generate a new invoice. CipherPay doesn't enforce subscription logic; it provides the payment rails.",
   "s8q3": "Which fiat currencies are supported?",
   "s8a3": "USD, EUR, GBP, BRL, CAD, JPY, MXN, ARS, NGN, CHF, and INR. Prices are set in fiat, and CipherPay converts to ZEC at the current exchange rate when the invoice is created. The rate is locked for the invoice duration.",
-
   "s9Title": "Wallets & Testing",
   "s9q1": "Which Zcash wallets work with CipherPay?",
   "s9a1": "Any wallet that supports Zcash Unified Addresses and Orchard shielded transactions. Recommended: ZODL (iOS/Android), Vizor (macOS/Windows/Linux), zkool (iOS/Android/desktop), or Zipher (zipher.to). The wallet needs to support scanning QR codes or opening zcash: URIs.",
@@ -85,7 +82,6 @@
   "s9a2": "Yes. CipherPay supports Zcash testnet. Register with a testnet viewing key, and all invoices are created on testnet. You can test the full flow — invoice creation, payment, confirmation, webhooks — without spending real ZEC. When ready for mainnet, register a new merchant account with a mainnet viewing key.",
   "s9q3": "Can I accept ZEC in person (point of sale)?",
   "s9a3": "Yes. The dashboard includes a POS mode that generates QR codes for in-person payments. The buyer scans, pays, and you see the confirmation in real-time. No card reader, no terminal — just a screen showing a QR code.",
-
   "s10Title": "General",
   "s10q1": "What about refunds and chargebacks?",
   "s10a1": "Zcash shielded transactions are final — there are no chargebacks. This protects merchants from fraud chargebacks, a major pain point with traditional payments. For refunds: at checkout, the buyer can optionally provide a shielded refund address. If they do, the merchant can send ZEC directly to that address from their wallet. If they don't, the buyer keeps maximum privacy but refund requires out-of-band coordination. CipherPay provides the refund tracking UI (mark invoice as refunded, record refund txid) but never holds or moves funds — it's non-custodial. The tradeoff is explicit: chargebacks are replaced by voluntary refund coordination, which is better for merchants (finality, no fraud) and can be better for buyers (no bank intermediary deciding disputes).",
@@ -97,7 +93,6 @@
   "s10a4": "MPP enables prepaid sessions for high-frequency API access. Instead of paying per-request, an agent deposits ZEC upfront and gets a session token. Each request deducts from the balance. This is more efficient for agents making many small requests — one on-chain transaction covers hundreds of API calls.",
   "s10q5": "How do refunds work for AI agent payments?",
   "s10a5": "AI agents using Zipher can include a shielded return address in the transaction memo when paying. If included, the merchant has a refund path while the transaction stays fully shielded on-chain. If omitted, the payment has maximum privacy but no automatic refund route. The agent operator chooses this tradeoff. For session-based payments (MPP), unused balance can be refunded to a pre-specified address when the session closes. For x402 payments, refunds are typically unnecessary since the agent only pays for what it receives.",
-
   "footerPoweredBy": "Powered by CipherScan",
   "footerHome": "Home"
 }

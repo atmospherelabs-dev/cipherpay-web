@@ -1,4 +1,4 @@
-import { API_URL } from '@/lib/config';
+import { serverApiFetch } from '@/lib/server-api';
 import type { Metadata } from 'next';
 import BuyClient from './BuyClient';
 
@@ -9,7 +9,7 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
   try {
-    const res = await fetch(`${API_URL}/api/products/${id}/public`, {
+    const res = await serverApiFetch(`/api/products/${encodeURIComponent(id)}/public`, {
       next: { revalidate: 60 },
     });
     if (res.ok) {
@@ -23,10 +23,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         : '';
       return {
         title: priceStr ? `${product.name} — ${priceStr} — CipherPay` : `${product.name} — CipherPay`,
-        description: product.description || `Pay with shielded ZEC`,
+        description: product.description || 'Continue to payment with CipherPay',
         openGraph: {
           title: `${product.name} — CipherPay`,
-          description: priceStr ? `${priceStr} · Pay with shielded Zcash` : 'Pay with shielded Zcash',
+          description: priceStr ? `${priceStr} · Checkout with CipherPay` : 'Checkout with CipherPay',
         },
       };
     }
@@ -34,8 +34,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     // fallback metadata
   }
   return {
-    title: 'Buy with Zcash — CipherPay',
-    description: 'Pay privately with shielded Zcash',
+    title: 'Checkout — CipherPay',
+    description: 'Continue to payment with CipherPay',
   };
 }
 

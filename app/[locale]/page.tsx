@@ -12,6 +12,20 @@ import { IntegrationLogoBar } from '@/components/IntegrationLogoBar';
 import { UseCasesSection } from '@/components/UseCasesSection';
 import { CheckoutPrivacySection } from '@/components/CheckoutPrivacySection';
 import { getTranslations } from 'next-intl/server';
+import type { CSSProperties } from 'react';
+import styles from './page.module.css';
+
+const onlinePaymentNetworks = [
+  { network: 'Ethereum', icon: 'eth', assets: ['ETH', 'USDC', 'USDT'] },
+  { network: 'Base', icon: 'base', assets: ['ETH', 'USDC'] },
+  { network: 'Arbitrum', icon: 'arb', assets: ['ETH', 'USDC'] },
+  { network: 'Solana', icon: 'sol', assets: ['SOL', 'USDC', 'USDT'] },
+  { network: 'TRON', icon: 'tron', assets: ['TRX', 'USDT'] },
+  { network: 'Bitcoin', icon: 'btc', assets: ['BTC'] },
+];
+
+// Asset labels light up one token at a time, in this order, on a shared beat.
+const animatedTokens = ['BTC', 'ETH', 'SOL', 'USDC', 'USDT', 'TRX'];
 
 const codeTabs = [
   {
@@ -264,6 +278,63 @@ export default async function LandingPage() {
               </div>
             </StaggerItem>
           </StaggerChildren>
+
+        </div>
+      </section>
+
+      <section id="payment-methods" className={styles.paymentMethods} aria-labelledby="payment-methods-title">
+        <div className={styles.paymentMethodsInner}>
+          <div className={`section-title ${styles.eyebrow}`}>
+            <LogoMark size={8} /> {t('paymentMethods.label')}
+          </div>
+            <h2 id="payment-methods-title" className={styles.title}>
+              {t.rich('paymentMethods.title', {
+                line: (chunks) => <span className={styles.titleLine}>{chunks}</span>,
+              })}
+            </h2>
+            <p className={styles.description}>
+              {t('paymentMethods.description')}
+            </p>
+          <div className={styles.flowPanel}>
+            <div className={styles.paymentFlow}>
+              <div className={styles.paymentGroup}>
+                <div className={styles.label}>{t('paymentMethods.customerPays')}</div>
+                <ul className={styles.networkGrid}>
+                  {onlinePaymentNetworks.map(({ network, icon, assets }) => (
+                    <li key={network} className={styles.networkRow}>
+                      <img className={styles.networkIcon} src={`/chains/${icon}.png`} alt="" width={22} height={22} />
+                      <div className={styles.networkDetails}>
+                        <h3 className={styles.networkName}>{network}</h3>
+                        <ul className={styles.assetList}>
+                          {assets.map(symbol => (
+                            <li key={symbol} className={styles.asset} style={{ '--i': animatedTokens.indexOf(symbol) } as CSSProperties}>{symbol}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className={styles.connector} aria-hidden="true">
+                <div className={styles.connectorTrack}>
+                  <svg width="36" height="24" viewBox="0 0 36 24" fill="none">
+                    <path d="M2 12H33M26 5L33 12L26 19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <span className={styles.connectorPulse} />
+                </div>
+              </div>
+              <div className={styles.receiveGroup}>
+                <div className={styles.label}>{t('paymentMethods.youReceive')}</div>
+                <div className={styles.receivedAsset}>
+                  <img src="/tokens/zec.png" alt="" width={40} height={40} />
+                  <strong>{t('paymentMethods.shieldedZec')}</strong>
+                </div>
+                <p className={styles.walletCopy}>{t('paymentMethods.directWallet')}</p>
+              </div>
+            </div>
+            <p className={styles.provider}>{t('paymentMethods.provider')}</p>
+          </div>
+            <p className={styles.availability}>{t('paymentMethods.availability')}</p>
         </div>
       </section>
 

@@ -43,7 +43,7 @@ async function createDashboardSession(token: string): Promise<string> {
   return cookie;
 }
 
-async function createRestrictedShopifyKey(cookie: string): Promise<string> {
+async function createRestrictedShopifyKey(cookie: string): Promise<{ key: string; id: string }> {
   const res = await fetch(`${API_URL}/api/merchants/me/keys`, {
     method: 'POST',
     headers: {
@@ -61,39 +61,21 @@ async function createRestrictedShopifyKey(cookie: string): Promise<string> {
     throw new Error(body.error || 'Could not create Shopify API key');
   }
 
-  return body.key;
+  return { key: body.key, id: body.id };
 }
 
-async function regenerateWebhookSecret(cookie: string): Promise<string> {
-  const res = await fetch(`${API_URL}/api/merchants/me/regenerate-webhook-secret`, {
-    method: 'POST',
-    headers: { Cookie: cookie },
-  });
-
-  const body = await res.json().catch(() => ({ error: 'Could not create webhook secret' }));
-  if (!res.ok) {
-    throw new Error(body.error || 'Could not create webhook secret');
+async function existingWebhookConfig(cookie: string): Promise<string> {
+  const res = await fetch(`${API_URL}/api/merchants/me/webhook-config`, { headers: { Cookie: cookie }, cache: 'no-store' });
+  const data = await res.json();
+  if (!res.ok) throw new Error('Could not read webhook configuration');
+  if (data.webhook_url && data.webhook_url !== `${SHOPIFY_SETUP_URL}/api/webhook/cipherpay`) {
+    throw new Error('A different webhook integration is already configured. Use a separate merchant account for Shopify.');
   }
-
-  return body.webhook_secret;
+  return data.webhook_secret;
 }
-
 async function setWebhookUrl(cookie: string): Promise<void> {
-  const res = await fetch(`${API_URL}/api/merchants/me`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      Cookie: cookie,
-    },
-    body: JSON.stringify({
-      webhook_url: `${SHOPIFY_SETUP_URL}/api/webhook/cipherpay`,
-    }),
-  });
-
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({ error: 'Could not set webhook URL' }));
-    throw new Error(body.error || 'Could not set webhook URL');
-  }
+  const res = await fetch(`${API_URL}/api/merchants/me/connect-shopify`, { method: 'POST', headers: { Cookie: cookie } });
+  if (!res.ok) throw new Error('Shopify is prepared, but the webhook connection could not be finalized. Retry setup.');
 }
 
 export async function POST(req: NextRequest) {
@@ -138,13 +120,15 @@ export async function POST(req: NextRequest) {
 
   let sessionCookie = '';
   let cipherPayApiKey = '';
+  let cipherPayKeyId = '';
   let cipherPayWebhookSecret = '';
 
   try {
     sessionCookie = await createDashboardSession(dashboardToken);
-    cipherPayApiKey = await createRestrictedShopifyKey(sessionCookie);
-    cipherPayWebhookSecret = await regenerateWebhookSecret(sessionCookie);
-    await setWebhookUrl(sessionCookie);
+    cipherPayWebhookSecret = await existingWebhookConfig(sessionCookie);
+    const createdKey = await createRestrictedShopifyKey(sessionCookie);
+    cipherPayApiKey = createdKey.key;
+    cipherPayKeyId = createdKey.id;
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Could not prepare CipherPay Shopify credentials' },
@@ -172,8 +156,18 @@ export async function POST(req: NextRequest) {
 
   const setupBody = await setupRes.json().catch(() => ({ error: 'Shopify setup request failed' }));
   if (!setupRes.ok) {
+    // Only revoke on a definite rejection; an ambiguous network failure may have prepared setup.
+    if (setupRes.status >= 400 && setupRes.status < 500 && cipherPayKeyId) {
+      const revoke = await fetch(`${API_URL}/api/merchants/me/keys/${encodeURIComponent(cipherPayKeyId)}`, {
+        method: 'DELETE', headers: { Cookie: sessionCookie }, signal: AbortSignal.timeout(10000),
+      }).catch(() => null);
+      if (!revoke?.ok) console.warn('Failed to revoke rejected Shopify setup key');
+    }
     return NextResponse.json(setupBody, { status: setupRes.status });
   }
+
+  try { await setWebhookUrl(sessionCookie); }
+  catch (err) { return NextResponse.json({ error: err instanceof Error ? err.message : 'Finalize failed', setup_prepared: true }, { status: 409 }); }
 
   const jobId = setupBody.deploy_job?.id;
   return NextResponse.json({

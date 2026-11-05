@@ -1,4 +1,6 @@
+import { saveCheckoutAccess } from './checkout-access';
 import { API_URL } from './config';
+import type { CryptoAsset } from './crosschain';
 
 export interface MerchantInfo {
   id: string;
@@ -8,7 +10,9 @@ export interface MerchantInfo {
   webhook_secret_preview: string;
   has_recovery_email: boolean;
   recovery_email_preview: string | null;
+  payment_email_notifications?: boolean;
   has_luma_key?: boolean;
+  crosschain_enabled?: boolean;
   has_passkeys?: boolean;
   last_token_login_at?: string | null;
   created_at: string;
@@ -16,6 +20,7 @@ export interface MerchantInfo {
     total_invoices: number;
     confirmed: number;
     total_zec: number;
+    payment_methods?: { direct_zec: number; crosschain: number; verifying: number } | null;
   };
 }
 
@@ -59,6 +64,7 @@ type PublicKeyCredentialCreationOptionsJSON = any;
 type PublicKeyCredentialRequestOptionsJSON = any;
 
 export interface Invoice {
+  checkout_token?: string;
   id: string;
   merchant_id: string;
   memo_code: string;
@@ -90,6 +96,7 @@ export interface Invoice {
   price_zatoshis: number;
   received_zatoshis: number;
   overpaid?: boolean;
+  is_crosschain?: boolean;
   is_donation?: boolean;
   payment_link_id?: string | null;
   confirmed_rate?: number | null;
@@ -323,7 +330,30 @@ export interface BillingCycle {
   created_at: string;
 }
 
+export interface CrosschainBillingSummary {
+  enabled: boolean;
+  total_bps: number;
+  cipherpay_bps: number;
+  collected_count: number;
+  provider_handled_count?: number;
+  pending_count: number;
+  assets: { asset: CryptoAsset; received_units: string; count: number }[];
+  recent: { invoice_id: string; reference: string; state: 'collected' | 'provider_handled' | 'pending'; received_units: string | null; asset: CryptoAsset; created_at: string }[];
+}
+
+export interface ReferralSummary {
+  code: string;
+  applied: boolean;
+  discount_until: string | null;
+  referred_merchants: number;
+  reward_bps: number;
+  payouts_enabled: boolean;
+  balances: { asset_id: string; units: string; asset?: import('./crosschain').CryptoAsset | null }[];
+}
 export interface BillingSummary {
+  referrals?: ReferralSummary;
+  verifying_payment_fees?: number;
+  crosschain?: CrosschainBillingSummary;
   fee_enabled: boolean;
   fee_rate: number;
   trust_tier: string;
@@ -539,7 +569,9 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     const body = await res.json().catch(() => ({ error: res.statusText }));
     throw new Error(body.error || `Request failed: ${res.status}`);
   }
-  return res.json();
+  const data = await res.json();
+  if (data?.invoice_id && data?.checkout_token) saveCheckoutAccess(data.invoice_id, data.checkout_token);
+  return data;
 }
 
 async function sameOriginRequest<T>(path: string, options?: RequestInit): Promise<T> {
@@ -552,10 +584,14 @@ async function sameOriginRequest<T>(path: string, options?: RequestInit): Promis
     const body = await res.json().catch(() => ({ error: res.statusText }));
     throw new Error(body.error || `Request failed: ${res.status}`);
   }
-  return res.json();
+  const data = await res.json();
+  if (data?.invoice_id && data?.checkout_token) saveCheckoutAccess(data.invoice_id, data.checkout_token);
+  return data;
 }
 
 export const api = {
+  applyReferral: (code: string) => request<{ ok: boolean }>('/api/merchants/me/referral', { method: 'POST', body: JSON.stringify({ code }) }),
+  checkoutAccess: (id: string) => request<{ checkout_token: string }>(`/api/invoices/${encodeURIComponent(id)}/checkout-access`),
   // Auth
   createSession: (token: string) =>
     request<{ merchant_id: string; payment_address: string }>(
@@ -570,7 +606,7 @@ export const api = {
 
   myInvoices: () => request<Invoice[]>('/api/merchants/me/invoices'),
 
-  updateMe: (data: { name?: string; webhook_url?: string; recovery_email?: string; luma_api_key?: string }) =>
+  updateMe: (data: { name?: string; webhook_url?: string; recovery_email?: string; luma_api_key?: string; crosschain_enabled?: boolean; payment_email_notifications?: boolean }) =>
     request<{ status: string }>('/api/merchants/me', {
       method: 'PATCH',
       body: JSON.stringify(data),
