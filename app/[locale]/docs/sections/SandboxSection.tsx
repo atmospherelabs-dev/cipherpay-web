@@ -70,7 +70,7 @@ export default function SandboxSection() {
           Then send testnet ZEC to the displayed address from your testnet wallet.
         </Paragraph>
         <Paragraph>
-          The payment will be detected in the mempool within seconds, and confirmed after one block (~75 seconds).
+          The payment will be detected in the mempool within seconds, and confirmed after one block (~25 seconds).
           Your dashboard and checkout page update in real-time.
         </Paragraph>
       </Step>

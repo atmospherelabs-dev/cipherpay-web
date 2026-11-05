@@ -67,7 +67,7 @@ export default function OverviewSection({ onNavigate }: { onNavigate: (id: DocSe
       <Paragraph>
         <Strong>Step 3:</Strong> CipherPay continuously monitors the Zcash network. When the transaction appears in the mempool
         (usually within 5-10 seconds), the checkout page updates to &quot;Payment detected.&quot;
-        When it gets confirmed in a block (~75 seconds), the status changes to &quot;Confirmed.&quot;
+        When it gets confirmed in a block (~25 seconds), the status changes to &quot;Confirmed.&quot;
       </Paragraph>
       <Paragraph>
         <Strong>Step 4:</Strong> CipherPay sends a webhook (an HTTP POST request) to your server, telling you the payment is confirmed.
