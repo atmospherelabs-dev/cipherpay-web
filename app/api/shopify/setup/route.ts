@@ -112,8 +112,10 @@ export async function POST(req: NextRequest) {
   if (!isValidShop(shopDomain)) {
     return NextResponse.json({ error: 'Use the permanent .myshopify.com store domain' }, { status: 400 });
   }
-  if (!appAutomationToken.startsWith('atkn_')) {
-    return NextResponse.json({ error: 'Invalid Shopify app automation token' }, { status: 400 });
+  // Shopify service account tokens replace App Automation Tokens; migrated
+  // tokens keep their atkn_ value, so don't require a specific prefix.
+  if (appAutomationToken.length < 20 || /\s/.test(appAutomationToken)) {
+    return NextResponse.json({ error: 'Invalid Shopify service account token' }, { status: 400 });
   }
 
   let sessionCookie = '';

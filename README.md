@@ -62,7 +62,7 @@ app/
         └── tabs/
             ├── OverviewTab.tsx    # Dashboard home — stats, recent invoices, setup checklist
             ├── ProductsTab.tsx   # Product CRUD, pricing, API integration snippets
-            ├── InvoicesTab.tsx   # Invoice list with status filters, CipherScan links
+            ├── InvoicesTab.tsx   # Invoice list with status filters, ZecBlock links
             ├── POSTab.tsx        # Point of sale — tap-to-add product grid
             ├── BillingTab.tsx    # Usage fees, settlement history
             ├── X402Tab.tsx       # HTTP 402 payment verifications
@@ -110,13 +110,13 @@ messages/
 3. **Draft** → buyer clicks "Lock Rate & Pay" to lock the ZEC exchange rate
 4. **Pending** → page shows QR code, countdown timer, "Open in Wallet" button
 5. Real-time status updates via SSE (pending → detected → confirmed)
-6. **Confirmed** → receipt with CipherScan transaction link, auto-redirect to merchant
+6. **Confirmed** → receipt with ZecBlock transaction link, auto-redirect to merchant
 
 ## Related
 
 - **[CipherPay API](https://github.com/atmospherelabs-dev/cipherpay-api)** — Rust backend
 - **[CipherPay Shopify](https://github.com/atmospherelabs-dev/cipherpay-shopify)** — Shopify integration
-- **[CipherScan](https://cipherscan.app)** — Zcash blockchain explorer
+- **[ZecBlock](https://zecblock.com/)** (formerly CipherScan) — Zcash blockchain explorer
 - **[Zipher](https://zipher.to)** — Zcash wallet (mobile, desktop & CLI)
 
 ## License

@@ -383,7 +383,7 @@ export const InvoicesTab = memo(function InvoicesTab({
                       <div className="stat-row">
                         <span style={{ color: 'var(--cp-text-muted)' }}>{t('txid')}</span>
                         <a
-                          href={`${isTestnet ? 'https://testnet.cipherscan.app' : 'https://cipherscan.app'}/tx/${inv.detected_txid}`}
+                          href={`${isTestnet ? 'https://testnet.zecblock.com' : 'https://zecblock.com'}/tx/${inv.detected_txid}`}
                           target="_blank" rel="noopener noreferrer"
                           className="text-link"
                           style={{ fontSize: 10, fontFamily: 'var(--font-geist-mono), monospace' }}
@@ -433,7 +433,7 @@ export const InvoicesTab = memo(function InvoicesTab({
                         <div className="section-title" style={{ marginTop: 12 }}>{t('refundTxid')}</div>
                         <div className="stat-row">
                           <a
-                            href={`${isTestnet ? 'https://testnet.cipherscan.app' : 'https://cipherscan.app'}/tx/${inv.refund_txid}`}
+                            href={`${isTestnet ? 'https://testnet.zecblock.com' : 'https://zecblock.com'}/tx/${inv.refund_txid}`}
                             target="_blank" rel="noopener noreferrer"
                             className="text-link"
                             style={{ fontSize: 9, fontFamily: 'var(--font-geist-mono), monospace' }}
