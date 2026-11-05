@@ -12,7 +12,7 @@
     "framer-motion": "^12.38.0",
     "html2canvas": "^1.4.1",
     "html5-qrcode": "^2.3.8",
-    "next": "^15.5.28",
+    "next": "^15.5.29",
     "next-intl": "^4.14.9",
     "qrcode.react": "^4.2.0",
     "react": "^19.0.0",
