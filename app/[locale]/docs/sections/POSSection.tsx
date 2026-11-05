@@ -93,7 +93,7 @@ export default function POSSection() {
         <Paragraph>
           Tap products to add them to the cart. Adjust quantities with +/- buttons.
           When ready, tap <Strong>Charge</Strong>. Choose a tip amount (or skip). A fullscreen QR code appears.
-          The customer scans and pays. The screen shows <Strong>Detected</Strong> (mempool, ~5-10 seconds) then <Strong>Confirmed</Strong> (block, ~75 seconds).
+          The customer scans and pays. The screen shows <Strong>Detected</Strong> (mempool, ~5-10 seconds) then <Strong>Confirmed</Strong> (block, ~25 seconds).
         </Paragraph>
       </Step>
 

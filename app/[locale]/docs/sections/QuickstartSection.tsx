@@ -118,7 +118,7 @@ export default function QuickstartSection() {
         </Paragraph>
         <Paragraph>
           Within seconds, the checkout page will update to <Strong>&quot;Payment detected&quot;</Strong>.
-          After one block confirmation (~75 seconds), it changes to <Strong>&quot;Confirmed&quot;</Strong>.
+          After one block confirmation (~25 seconds), it changes to <Strong>&quot;Confirmed&quot;</Strong>.
           That&apos;s it — your first ZEC payment is complete.
         </Paragraph>
       </Step>
