@@ -3900,3 +3900,69 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* Shopify guided setup */
+.shopify-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.shopify-step { border: 1px solid var(--cp-border); border-radius: 6px; background: var(--cp-bg); }
+.shopify-step.is-active { border-color: color-mix(in srgb, var(--cp-cyan) 45%, var(--cp-border)); }
+.shopify-step-header {
+  width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+  background: none; border: 0; color: var(--cp-text-muted); font: inherit; font-size: 11px;
+  text-align: left; cursor: pointer;
+}
+.shopify-step-header:focus-visible { outline: 2px solid var(--cp-cyan); outline-offset: -2px; border-radius: 6px; }
+.shopify-step.is-active .shopify-step-header { color: var(--cp-text); }
+.shopify-step-marker {
+  flex: 0 0 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%; border: 1px solid var(--cp-border); font-size: 10px; font-weight: 600;
+}
+.shopify-step.is-active .shopify-step-marker { border-color: var(--cp-cyan); color: var(--cp-cyan); }
+.shopify-step.is-done .shopify-step-marker { border-color: var(--cp-green); color: var(--cp-green); }
+.shopify-step-title { font-weight: 600; letter-spacing: 0.3px; }
+.shopify-step-body { padding: 0 12px 14px 42px; font-size: 11px; line-height: 1.7; color: var(--cp-text-muted); }
+.shopify-step-body p { margin: 0 0 8px; }
+.shopify-step-body strong { color: var(--cp-text); font-weight: 600; }
+.shopify-step-body code, .shopify-callout code {
+  font-family: var(--font-mono, monospace); color: var(--cp-cyan); word-break: break-all;
+}
+.shopify-link { color: var(--cp-cyan); text-decoration: none; }
+.shopify-link:hover { text-decoration: underline; }
+.shopify-list { margin: 0 0 8px; padding-left: 16px; display: grid; gap: 4px; list-style: disc; }
+.shopify-list li::marker { color: var(--cp-text-dim); }
+.shopify-list--numbered { list-style: decimal; padding-left: 18px; gap: 8px; }
+.shopify-value-row {
+  display: grid; grid-template-columns: minmax(120px, 190px) 1fr; gap: 2px 12px; align-items: center;
+  padding: 6px 0; border-bottom: 1px dashed var(--cp-border);
+}
+.shopify-value-row:last-of-type { margin-bottom: 10px; }
+.shopify-value-label { color: var(--cp-text-dim); font-size: 10px; }
+.shopify-value { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+.shopify-value-hint { grid-column: 2; font-size: 10px; color: var(--cp-text-dim); }
+.shopify-callout {
+  padding: 10px 12px; border-radius: 4px; margin-bottom: 10px; font-size: 11px; line-height: 1.6;
+  border: 1px solid var(--cp-border); color: var(--cp-text);
+}
+.shopify-callout--ok { border-color: rgba(34,197,94,0.3); background: rgba(34,197,94,0.06); }
+.shopify-callout--warn { border-color: rgba(249,115,22,0.35); background: rgba(249,115,22,0.07); }
+.shopify-callout--error { border-color: rgba(239,68,68,0.35); background: rgba(239,68,68,0.07); }
+.shopify-form { display: grid; gap: 12px; }
+.shopify-field { display: grid; gap: 4px; }
+.shopify-field .input { font-size: 11px; width: 100%; }
+.shopify-field-label { font-size: 10px; color: var(--cp-text); font-weight: 600; letter-spacing: 0.3px; }
+.shopify-field-hint { font-size: 10px; color: var(--cp-text-dim); }
+.shopify-field-error { font-size: 10px; color: var(--cp-red); }
+.shopify-field.has-error .input { border-color: var(--cp-red); }
+.shopify-status { display: flex; align-items: center; gap: 10px; color: var(--cp-text); }
+.shopify-error {
+  white-space: pre-wrap; word-break: break-word; max-height: 180px; overflow: auto; margin: 0 0 10px;
+  padding: 8px 10px; border-radius: 4px; background: var(--cp-surface); border: 1px solid var(--cp-border);
+  font-size: 10px; color: var(--cp-text-muted);
+}
+.shopify-details { margin-top: 4px; font-size: 11px; color: var(--cp-text-muted); }
+.shopify-details summary { cursor: pointer; color: var(--cp-text); }
+.shopify-details ul { margin-top: 8px; }
+@media (max-width: 640px) {
+  .shopify-step-body { padding-left: 12px; }
+  .shopify-value-row { grid-template-columns: 1fr; }
+  .shopify-value-hint { grid-column: 1; }
+}

@@ -55,12 +55,29 @@ export default function ShopifySection() {
           <Strong>Embedded app</Strong> — Leave disabled.
         </div>
         <Paragraph>
-          Copy the app&apos;s Client ID and Client Secret. Then create a service account in the same Dev Dashboard and copy its token. An existing App automation token (<Code>atkn_...</Code>) also works.
+          Copy the app&apos;s Client ID and Client Secret from <Strong>Settings &rarr; Credentials</Strong>. Both must come from the same app; a secret from another app makes the install fail with &quot;Client Secret does not match this app&quot;.
+          Then create a service account (app <Strong>Settings &rarr; App CLI automation token &rarr; Manage &rarr; Add service account</Strong>, with <Strong>App development</Strong> access to this app) and copy its token in the same Dev Dashboard and copy its token. An existing App automation token (<Code>atkn_...</Code>) also works.
           CipherPay uses these to securely deploy the checkout block to your private app. The service account token is used once and is not stored.
         </Paragraph>
       </Step>
 
-      <Step n={2} title="Deploy and install your private app">
+      <Step n={2} title="Allow network access (required)">
+        <Callout type="warning">
+          Without this, Shopify creates the app version but never publishes the CipherPay checkout block, so customers see no
+          payment button and no invoice is created.
+        </Callout>
+        <Paragraph>
+          The checkout block calls CipherPay to create the invoice, which Shopify treats as network access. This setting lives in the
+          <Strong> Partner Dashboard</Strong> (partners.shopify.com), not the Dev Dashboard:
+        </Paragraph>
+        <div style={{ fontSize: 11, color: 'var(--cp-text-dim)', lineHeight: 2.2, marginBottom: 12 }}>
+          1. Open <Strong>Apps</Strong> and select your CipherPay app<br />
+          2. Open <Strong>API access requests</Strong><br />
+          3. Under &quot;Allow network access in checkout and account UI extensions&quot;, click <Strong>Allow network access</Strong>. It is approved immediately.
+        </div>
+      </Step>
+
+      <Step n={3} title="Deploy and install your private app">
         <Paragraph>
           Go to <Strong>CipherPay Dashboard &rarr; Settings &rarr; Integrations &rarr; Shopify</Strong>. Paste your permanent store domain,
           Shopify Client ID, Client Secret, Shopify service account token, and CipherPay dashboard token.
@@ -68,6 +85,10 @@ export default function ShopifySection() {
         <Paragraph>
           CipherPay will create a dedicated restricted API key, configure the webhook URL, and deploy the checkout extension to your private Shopify app.
           The app version will contain the final App URL and Redirect URL automatically, so you do not need to manually edit the version URLs after deployment.
+        </Paragraph>
+        <Paragraph>
+          Wait for the status to show <Strong>connected</Strong>. If it shows <Strong>action needed</Strong>, Shopify created the version but did not
+          release it: finish step 2, then open the version from the link shown and click <Strong>Release</Strong>.
         </Paragraph>
         <Paragraph>
           Next, choose <Strong>Custom distribution</Strong> in Shopify and enter your store&apos;s permanent <Code>.myshopify.com</Code> domain.
@@ -79,7 +100,7 @@ export default function ShopifySection() {
         </Paragraph>
       </Step>
 
-      <Step n={3} title="Confirm connector settings">
+      <Step n={4} title="Confirm connector settings">
         <Paragraph>
           After installation, you&apos;ll be redirected to the CipherPay Shopify settings page. If setup was completed from the CipherPay dashboard,
           your API key, webhook secret, and API URL should already be configured.
@@ -89,7 +110,7 @@ export default function ShopifySection() {
         </Paragraph>
       </Step>
 
-      <Step n={4} title="Add a manual payment method">
+      <Step n={5} title="Add a manual payment method">
         <Paragraph>
           In your Shopify admin, go to <Strong>Settings &rarr; Payments &rarr; Manual payment methods</Strong> and add a method called exactly:
         </Paragraph>
@@ -101,7 +122,7 @@ export default function ShopifySection() {
         
       </Step>
 
-      <Step n={5} title="Add the payment button to the Thank You page">
+      <Step n={6} title="Add the payment button to the Thank You page">
         <Paragraph>
           The CipherPay button needs to be placed on the checkout Thank You page:
         </Paragraph>
@@ -128,7 +149,7 @@ export default function ShopifySection() {
         </div>
       </Step>
 
-      <Step n={6} title="Test a payment">
+      <Step n={7} title="Test a payment">
         <Paragraph>
           Add an item to your cart and proceed to checkout. Select <Strong>&quot;Pay with Zcash (ZEC)&quot;</Strong> as the payment method
           and complete the order. On the Thank You page, you&apos;ll see a <Strong>&quot;Pay with CipherPay&quot;</Strong> button.
@@ -143,7 +164,8 @@ export default function ShopifySection() {
 
       <SectionTitle>Troubleshooting</SectionTitle>
       <div style={{ fontSize: 11, color: 'var(--cp-text-dim)', lineHeight: 2.2 }}>
-        <Strong>Payment button doesn&apos;t appear on the Thank You page</Strong> — Make sure you added the CipherPay Checkout block in the checkout editor (Settings &rarr; Checkout &rarr; Customize &rarr; Thank you page) and clicked Save.<br /><br />
+        <Strong>Payment button doesn&apos;t appear on the Thank You page, and no invoice is created</Strong> — Allow network access (step 2), then in the Dev Dashboard open your app &rarr; Versions and make sure the newest version is <Strong>Active</Strong>; if not, open it and click Release. Also confirm the CipherPay Checkout block is on the Thank you page in the checkout editor and saved, and that the order used &quot;Pay with Zcash (ZEC)&quot;.<br /><br />
+        <Strong>&quot;Client Secret does not match this app&quot; during install</Strong> — The secret saved in CipherPay belongs to a different Shopify app. Copy the Client Secret from the app with the same Client ID, run setup again, and reinstall.<br /><br />
         <Strong>Order status doesn&apos;t update after payment</Strong> — Open the CipherPay Shopify settings page and confirm the API key, webhook secret, and API URL are configured.<br /><br />
         <Strong>&quot;Payment not ready&quot; message</Strong> — This usually means the app is still creating the invoice. Wait a few seconds and try again. If it persists, confirm the connector settings are configured.<br /><br />
         <Strong>Need help?</Strong> — Contact us at contact@atmospherelabs.dev
