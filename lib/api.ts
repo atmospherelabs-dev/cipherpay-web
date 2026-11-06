@@ -545,7 +545,7 @@ export interface ShopifySetupResponse {
   status_token: string | null;
   deploy_job: {
     id: string;
-    status: 'queued' | 'processing' | 'deployed' | 'failed';
+    status: ShopifyDeployStatus['status'];
   } | null;
 }
 
@@ -553,10 +553,13 @@ export interface ShopifyDeployStatus {
   id: string;
   client_id: string;
   app_name: string;
-  status: 'queued' | 'processing' | 'deployed' | 'failed';
+  // action_required: Shopify created the version but did not release it.
+  status: 'queued' | 'processing' | 'deployed' | 'action_required' | 'failed';
   created_at: string;
   updated_at: string;
   error: string | null;
+  error_code?: 'network_access_required' | 'release_failed' | null;
+  version?: { name: string | null; url: string | null } | null;
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
