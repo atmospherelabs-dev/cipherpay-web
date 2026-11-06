@@ -12,7 +12,7 @@
     "deploy:staging": "node scripts/deploy-staging.mjs"
   },
   "dependencies": {
-    "@solana/web3.js": "^1.99.0",
+    "@solana/web3.js": "^3.1.1",
     "buffer": "^6.0.3",
     "framer-motion": "^12.38.0",
     "html2canvas": "^1.4.1",
